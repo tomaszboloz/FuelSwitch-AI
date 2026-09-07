@@ -1,0 +1,115 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions: {}
+
+jobs:
+  build:
+    name: Build & Package
+    # Package.swift declares swift-tools-version 6.0, which needs Xcode 16+.
+    runs-on: macos-15
+    permissions:
+      contents: read
+    outputs:
+      hashes: ${{ steps.hash.outputs.hashes }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Select Xcode version
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '16'
+
+      - name: Verify Clean Naming
+        run: |
+          BANNED=$(echo "aGVhZHJvb20=" | base64 --decode)
+          if grep -ri --exclude-dir=.git --exclude-dir=.build --exclude=README.md "$BANNED" .; then
+            echo "ERROR: Legacy naming detected in release candidate!"
+            exit 1
+          fi
+
+      - name: Run Tests
+        run: swift test
+
+      - name: Build Application Bundle
+        run: make app
+
+      - name: Create DMG & ZIP
+        run: |
+          mkdir -p .build/dist
+          ditto ".build/FuelSwitch AI.app" ".build/dist/FuelSwitch AI.app"
+          hdiutil create -volname "FuelSwitch AI" -srcfolder ".build/dist" -ov -format UDZO ".build/FuelSwitch-AI.dmg"
+          cd .build && zip -r "FuelSwitch-AI.zip" "FuelSwitch AI.app"
+
+      - name: Generate SHA-256 Checksums
+        working-directory: .build
+        run: |
+          shasum -a 256 FuelSwitch-AI.dmg > FuelSwitch-AI.dmg.sha256
+          shasum -a 256 FuelSwitch-AI.zip > FuelSwitch-AI.zip.sha256
+
+      - name: Generate provenance subjects
+        id: hash
+        working-directory: .build
+        run: |
+          echo "hashes=$(shasum -a 256 FuelSwitch-AI.dmg FuelSwitch-AI.zip | openssl base64 -A)" >> "$GITHUB_OUTPUT"
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-artifacts
+          path: |
+            .build/FuelSwitch-AI.dmg
+            .build/FuelSwitch-AI.zip
+            .build/FuelSwitch-AI.dmg.sha256
+            .build/FuelSwitch-AI.zip.sha256
+          if-no-files-found: error
+
+  provenance:
+    name: Generate SLSA Provenance
+    needs: [build]
+    permissions:
+      actions: read
+      id-token: write
+      contents: read
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
+    with:
+      base64-subjects: "${{ needs.build.outputs.hashes }}"
+
+  release:
+    name: Publish GitHub Release
+    needs: [build, provenance]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download release artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: release-artifacts
+          path: dist
+
+      - name: Download provenance
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.provenance.outputs.provenance-name }}
+          path: dist
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/FuelSwitch-AI.dmg
+            dist/FuelSwitch-AI.zip
+            dist/FuelSwitch-AI.dmg.sha256
+            dist/FuelSwitch-AI.zip.sha256
+            dist/${{ needs.provenance.outputs.provenance-name }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true

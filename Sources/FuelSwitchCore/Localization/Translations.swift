@@ -1,0 +1,145 @@
+import Foundation
+
+public enum TranslationKey: String, Sendable, CaseIterable {
+    // General & Branding
+    case appName = "app_name"
+    case tagline = "tagline"
+    case ready = "ready"
+    case active = "active"
+    case standby = "standby"
+    case switchTank = "switch_tank"
+    case engage = "engage"
+    case remove = "remove"
+    case removeConfirm = "remove_confirm"
+    case cancel = "cancel"
+    case done = "done"
+    case settings = "settings"
+    case quit = "quit"
+    case refresh = "refresh"
+    case waitingTelemetry = "waiting_telemetry"
+    case noAccountsRegistered = "no_accounts_registered"
+
+    // Cockpit Hero & Navigation
+    case activeFuelTanks = "active_fuel_tanks"
+    case noActiveCliAccount = "no_active_cli_account"
+    case allTanks = "all_tanks"
+    case allActiveTanks = "all_active_tanks"
+    case addTank = "add_tank"
+    case addAccount = "add_account"
+    case connectClaude = "connect_claude"
+    case connectCodex = "connect_codex"
+    case connectGemini = "connect_gemini"
+
+    // HUD Widget
+    case hudTitle = "hud_title"
+    case hudCompact = "hud_compact"
+    case hudExpanded = "hud_expanded"
+    case hudAlwaysOnTop = "hud_always_on_top"
+    case hudOpacity = "hud_opacity"
+    case hudStyle = "hud_style"
+    case hudToggle = "hud_toggle"
+    case hudOn = "hud_on"
+    case hudOff = "hud_off"
+    case quickSwitch = "quick_switch"
+    case noProviderAccounts = "no_provider_accounts"
+
+    // Settings
+    case settingsAppearance = "settings_appearance"
+    case theme = "theme"
+    case themeSystem = "theme_system"
+    case themeDark = "theme_dark"
+    case themeLight = "theme_light"
+    case language = "language"
+    case selectLanguage = "select_language"
+    case telemetryAutostart = "telemetry_autostart"
+    case checkQuotaEvery = "check_quota_every"
+    case openAtLogin = "open_at_login"
+    case menuBarDisplay = "menu_bar_display"
+    case showPercentInMenuBar = "show_percent_in_menu_bar"
+    case menuBarMetric = "menu_bar_metric"
+    case securityTitle = "security_title"
+    case localCredentialsNotice = "local_credentials_notice"
+    case author = "author"
+
+    // Metrics
+    case metricActive = "metric_active"
+    case metricBest = "metric_best"
+    case metricBusiest = "metric_busiest"
+    case metricWithRoom = "metric_with_room"
+
+    // Gauges & Times
+    case fiveHourSession = "five_hour_session"
+    case weeklyQuota = "weekly_quota"
+    case resetsIn = "resets_in"
+    case resetDone = "reset_done"
+    case remainingFuel = "remaining_fuel"
+    case lowFuelWarning = "low_fuel_warning"
+    case resetCreditsAvailable = "reset_credits_available"
+    case redeemResetCredit = "redeem_reset_credit"
+
+    // New keys for hardcoded strings
+    case removeAccount = "remove_account"
+    case switchCliAccount = "switch_cli_account"
+    case checkQuotaNow = "check_quota_now"
+    case resetLimit = "reset_limit"
+    case redeemResetHelp = "redeem_reset_help"
+    case lowFuelWarningShort = "low_fuel_warning_short"
+    case accountsCount = "accounts_count"
+    case versionLabel = "version_label"
+    case connecting = "connecting"
+    case versionAvailable = "version_available"
+    case connected = "connected"
+    case reconnected = "reconnected"
+    case switched = "switched"
+    case dismiss = "dismiss"
+    case download = "download"
+    case checkForUpdates = "check_for_updates"
+    case checkingForUpdates = "checking_for_updates"
+    case upToDate = "up_to_date"
+    case geminiSetupTitle = "gemini_setup_title"
+    case geminiSetupHelp = "gemini_setup_help"
+    case geminiClientIdLabel = "gemini_client_id_label"
+    case geminiClientSecretLabel = "gemini_client_secret_label"
+    case saveAndConnect = "save_and_connect"
+    case addClaude = "add_claude"
+    case addCodex = "add_codex"
+    case addGemini = "add_gemini"
+    case connectMonitor = "connect_monitor"
+    case sessionExpired = "session_expired"
+    case awaitingCheck = "awaiting_check"
+    case cachedTelemetry = "cached_telemetry"
+    case removeThisAccount = "remove_this_account"
+    case tanksCount = "tanks_count"
+    case removeCredit = "remove_credit"
+    case telemetryInProgress = "telemetry_in_progress"
+    case toggleHudHelp = "toggle_hud_help"
+    case addProviderAccount = "add_provider_account"
+    case operationFailed = "operation_failed"
+}
+
+public struct Translations {
+    public static func lookup(_ key: TranslationKey, in language: AppLanguage) -> String {
+        table[language]?[key] ?? table[.english]?[key] ?? key.rawValue
+    }
+
+    /// Used by the test suite to make a missing entry a release-blocking error
+    /// instead of quietly falling back to English.
+    static func missingKeys(in language: AppLanguage) -> [TranslationKey] {
+        TranslationKey.allCases.filter { table[language]?[$0]?.isEmpty ?? true }
+    }
+
+    private static let table: [AppLanguage: [TranslationKey: String]] = [
+        .english: englishTable,
+        .polish: polishTable,
+        .spanish: spanishTable,
+        .german: germanTable,
+        .french: frenchTable,
+        .japanese: japaneseTable,
+        .chinese: chineseTable,
+        .portuguese: portugueseTable,
+        .russian: russianTable,
+        .korean: koreanTable,
+        .hindi: hindiTable,
+        .arabic: arabicTable,
+    ]
+}

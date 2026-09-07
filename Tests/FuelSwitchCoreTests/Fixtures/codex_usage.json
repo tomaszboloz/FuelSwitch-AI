@@ -1,0 +1,24 @@
+{
+  "user_id": "user-xxxx",
+  "account_id": "00000000-0000-4000-8000-000000000000",
+  "email": "account@example.com",
+  "plan_type": "team",
+  "rate_limit": {
+    "allowed": true,
+    "limit_reached": false,
+    "primary_window": {
+      "used_percent": 100,
+      "limit_window_seconds": 18000,
+      "reset_after_seconds": 11005,
+      "reset_at": 1788548409
+    },
+    "secondary_window": {
+      "used_percent": 16,
+      "limit_window_seconds": 604800,
+      "reset_after_seconds": 597805,
+      "reset_at": 1789135209
+    }
+  },
+  "model_usage": {},
+  "credits": { "has_credits": false, "unlimited": false, "balance": null }
+}

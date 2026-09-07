@@ -1,0 +1,8 @@
+.build/
+.swiftpm/
+*.xcuserdatastate
+DerivedData/
+.superpowers/
+
+# Local-only secrets (Gemini OAuth client, etc). Never commit this.
+.env
