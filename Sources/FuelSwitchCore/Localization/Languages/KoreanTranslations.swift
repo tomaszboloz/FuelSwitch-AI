@@ -100,6 +100,38 @@ extension Translations {
         .removeCredit: "재설정: %d",
         .toggleHudHelp: "플로팅 HUD를 표시하고 컴팩트 및 확장 스타일을 전환합니다",
         .addProviderAccount: "%@ 계정 추가",
-        .operationFailed: "이 작업을 완료할 수 없습니다."
+        .operationFailed: "이 작업을 완료할 수 없습니다.",
+        .notificationsTitle: "알림",
+        .notificationsToggle: "사용량 기준값에서 알림 받기",
+        .notificationsSoundToggle: "소리 재생",
+        .notificationThresholdsLabel: "알림 기준:",
+        .notificationThresholdTitle: "%@ 연료 부족",
+        .notificationThresholdBody: "%@ 사용량이 %d%%입니다.",
+        .autoSwitchTitle: "자동 전환",
+        .autoSwitchToggle: "계정이 소진되면 자동으로 전환",
+        .autoSwitchExplanation: "활성 계정이 100%에 도달하면 FuelSwitch가 남은 연료가 가장 많은 계정으로 CLI를 전환합니다. 기본적으로 꺼져 있습니다.",
+        .autoSwitchedBanner: "활성 %@ 탱크를 %@에서 %@로 자동 전환했습니다.",
+        .autoSwitchNotificationTitle: "FuelSwitch가 %@를 자동 전환했습니다",
+        .autoSwitchNotificationBody: "%@가 소진되어 %@로 전환했습니다.",
+        .paceEstimationToggle: "페이스 표시기 보기 (앞서감 / 정상 페이스 / 빠른 소진)",
+        .menuBarIconStyleLabel: "아이콘 스타일",
+        .iconStyleGauge: "게이지",
+        .iconStyleBattery: "배터리",
+        .iconStylePercentOnly: "퍼센트만",
+        .iconStyleMonochrome: "모노크롬",
+        .launcherTitle: "프로필별 런처",
+        .launcherExplanation: "아래에서 각 계정에 대한 셸 함수를 복사하세요. ~/.zshrc에 붙여넣은 다음 터미널에서 예를 들어 `fs-work`를 실행하면 FuelSwitch AI를 열지 않고도 CLI를 해당 계정으로 전환할 수 있습니다.",
+        .copyShellSnippet: "셸 스니펫 복사",
+        .shellSnippetCopied: "복사됨!",
+
+        // Claude Code Statusline
+        .statuslineTitle: "Claude Code 상태 표시줄",
+        .statuslineToggle: "Claude Code 상태 표시줄에 FuelSwitch AI 사용량 표시",
+        .statuslineExplanation: "폴링할 때마다 활성 계정의 사용량을 작은 캐시 파일에 기록하고, 생성된 스크립트를 Claude Code statusLine으로 설치합니다. 신선도는 폴링 간격(최대 30분)만큼만 유지되며 실시간이 아닙니다.",
+        .statuslineInstall: "설치",
+        .statuslineUninstall: "제거",
+
+        // Adaptive Refresh
+        .adaptiveRefreshToggle: "최근 CLI 활동이 있으면 폴링 간격을 자동으로 단축"
     ]
 }

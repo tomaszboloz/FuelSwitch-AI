@@ -11,9 +11,13 @@ struct AccountRowView: View {
     let refresh: () -> Void
     let remove: () -> Void
     var onRedeemReset: (() -> Void)? = nil
+    var paceEnabled: Bool = false
+    var onRename: ((String?) -> Void)? = nil
 
     @State private var confirmingRemoval = false
     @State private var isHovered = false
+    @State private var isEditingNickname = false
+    @State private var nicknameDraft = ""
 
     private var loc: LocalizationManager { LocalizationManager.shared }
 
@@ -51,13 +55,27 @@ struct AccountRowView: View {
                             .foregroundStyle(iconColor)
                     }
 
-                    // Account Email & Plan
+                    // Account Nickname/Email & Plan
                     VStack(alignment: .leading, spacing: 1) {
-                        Text(account.email)
-                            .font(.system(size: 12, weight: isActive ? .bold : .semibold))
-                            .foregroundStyle(exhausted ? FuelSwitchTheme.crimson : FuelSwitchTheme.textPrimary)
-                            .lineLimit(1)
-                            .truncationMode(.middle)
+                        if isEditingNickname {
+                            TextField(account.email, text: $nicknameDraft, onCommit: commitNickname)
+                                .textFieldStyle(.plain)
+                                .font(.system(size: 12, weight: isActive ? .bold : .semibold))
+                                .foregroundStyle(FuelSwitchTheme.textPrimary)
+                                .onExitCommand { isEditingNickname = false }
+                        } else {
+                            Text(account.nickname ?? account.email)
+                                .font(.system(size: 12, weight: isActive ? .bold : .semibold))
+                                .foregroundStyle(exhausted ? FuelSwitchTheme.crimson : FuelSwitchTheme.textPrimary)
+                                .lineLimit(1)
+                                .truncationMode(.middle)
+                                .onTapGesture(count: 2) {
+                                    guard onRename != nil else { return }
+                                    nicknameDraft = account.nickname ?? ""
+                                    isEditingNickname = true
+                                }
+                                .help(onRename != nil ? account.email : "")
+                        }
 
                         if let plan = account.plan {
                             Text(plan.uppercased())
@@ -221,6 +239,13 @@ struct AccountRowView: View {
         let remainingFuel = max(0, min(100, 100.0 - window.percent))
         let isWindowLow = remainingFuel < 20.0 && !isResetPassed
         let color = FuelSwitchTheme.fuelColor(percentUsed: window.percent, isResetPassed: isResetPassed)
+        let pace: PaceEstimate? = paceEnabled && !isResetPassed
+            ? PaceEstimator.estimate(
+                window: window,
+                windowDuration: window.label == "5 hours" ? PaceEstimator.sessionWindowDuration : PaceEstimator.weeklyWindowDuration,
+                now: now
+            )
+            : nil
 
         return VStack(alignment: .leading, spacing: 3) {
             HStack(alignment: .firstTextBaseline) {
@@ -234,6 +259,12 @@ struct AccountRowView: View {
                             .font(.system(size: 8, weight: .bold))
                             .foregroundStyle(FuelSwitchTheme.amber)
                             .help(loc.text(.lowFuelWarning))
+                    }
+
+                    if let pace, pace.tier != .onPace {
+                        Image(systemName: pace.tier == .burningFast ? "hare.fill" : "tortoise.fill")
+                            .font(.system(size: 8, weight: .bold))
+                            .foregroundStyle(pace.tier == .burningFast ? FuelSwitchTheme.crimson : FuelSwitchTheme.emerald)
                     }
                 }
 
@@ -280,6 +311,11 @@ struct AccountRowView: View {
                 .foregroundStyle(FuelSwitchTheme.crimson)
         }
         .padding(.vertical, 4)
+    }
+
+    private func commitNickname() {
+        isEditingNickname = false
+        onRename?(nicknameDraft)
     }
 
     // MARK: - Helpers & Styling

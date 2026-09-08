@@ -91,6 +91,26 @@ private func tempDefaults() -> (defaults: UserDefaults, name: String) {
     #expect(preferences.menuBarMetric == .activeAccount)
 }
 
+@Test func theMenuBarIconStyleDefaultsToGauge() {
+    let (defaults, name) = tempDefaults()
+    defer { defaults.removePersistentDomain(forName: name) }
+    #expect(Preferences(defaults: defaults).menuBarIconStyle == .gauge)
+}
+
+@Test func theMenuBarIconStyleSurvivesAWriteAndAnUnknownValue() {
+    let (defaults, name) = tempDefaults()
+    defer { defaults.removePersistentDomain(forName: name) }
+    let preferences = Preferences(defaults: defaults)
+
+    preferences.menuBarIconStyle = .battery
+    #expect(preferences.menuBarIconStyle == .battery)
+
+    // A style written by a version that had one we no longer do must not
+    // leave the menu bar with nothing to draw.
+    defaults.set("somethingRemoved", forKey: "menuBarIconStyle")
+    #expect(preferences.menuBarIconStyle == .gauge)
+}
+
 @Test func floatingWidgetPreferencesDefaultAndClamp() {
     let (defaults, name) = tempDefaults()
     defer { defaults.removePersistentDomain(forName: name) }

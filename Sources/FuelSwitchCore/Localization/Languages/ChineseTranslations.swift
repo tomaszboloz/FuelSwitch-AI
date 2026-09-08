@@ -100,6 +100,38 @@ extension Translations {
         .removeCredit: "重置：%d",
         .toggleHudHelp: "显示浮动 HUD 并在紧凑与扩展样式之间切换",
         .addProviderAccount: "添加 %@ 账户",
-        .operationFailed: "无法完成此操作。"
+        .operationFailed: "无法完成此操作。",
+        .notificationsTitle: "通知",
+        .notificationsToggle: "达到用量阈值时通知我",
+        .notificationsSoundToggle: "播放提示音",
+        .notificationThresholdsLabel: "通知阈值：",
+        .notificationThresholdTitle: "%@ 燃料不足",
+        .notificationThresholdBody: "%@ 已使用 %d%%。",
+        .autoSwitchTitle: "自动切换",
+        .autoSwitchToggle: "账户用尽时自动切换油箱",
+        .autoSwitchExplanation: "当前账户达到100%时，FuelSwitch会将CLI切换到剩余燃料最多的账户。默认关闭。",
+        .autoSwitchedBanner: "已将活跃的 %@ 油箱从 %@ 自动切换到 %@。",
+        .autoSwitchNotificationTitle: "FuelSwitch 已自动切换 %@",
+        .autoSwitchNotificationBody: "%@ 已耗尽，已切换到 %@。",
+        .paceEstimationToggle: "显示节奏指示器（领先 / 正常 / 消耗过快）",
+        .menuBarIconStyleLabel: "图标样式",
+        .iconStyleGauge: "仪表",
+        .iconStyleBattery: "电池",
+        .iconStylePercentOnly: "仅百分比",
+        .iconStyleMonochrome: "单色",
+        .launcherTitle: "按账户启动器",
+        .launcherExplanation: "复制下方每个账户对应的 shell 函数，粘贴到 ~/.zshrc 中，然后在终端运行例如 `fs-work`，无需打开 FuelSwitch AI 即可切换 CLI 账户。",
+        .copyShellSnippet: "复制 Shell 代码段",
+        .shellSnippetCopied: "已复制！",
+
+        // Claude Code Statusline
+        .statuslineTitle: "Claude Code 状态栏",
+        .statuslineToggle: "在 Claude Code 状态栏中显示 FuelSwitch AI 用量",
+        .statuslineExplanation: "每次轮询后都会把当前活跃账户的用量写入一个小型缓存文件，并安装生成的脚本作为你的 Claude Code statusLine。新鲜度仅取决于轮询间隔（最长30分钟）——并非实时。",
+        .statuslineInstall: "安装",
+        .statuslineUninstall: "卸载",
+
+        // Adaptive Refresh
+        .adaptiveRefreshToggle: "在最近有 CLI 活动后自动缩短轮询间隔"
     ]
 }

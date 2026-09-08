@@ -2,7 +2,7 @@ import SwiftUI
 import FuelSwitchCore
 
 struct GeminiSetupView: View {
-    @Bindable var model: AppModel
+    @ObservedObject var model: AppModel
     let close: () -> Void
 
     @State private var clientID = ""

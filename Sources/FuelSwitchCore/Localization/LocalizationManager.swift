@@ -1,6 +1,6 @@
 import Foundation
 import SwiftUI
-import Observation
+import Combine
 
 /// All 12 supported locales in FuelSwitch AI
 public enum AppLanguage: String, CaseIterable, Codable, Sendable, Identifiable {
@@ -47,13 +47,12 @@ public enum AppLanguage: String, CaseIterable, Codable, Sendable, Identifiable {
     }
 }
 
-@Observable
-public final class LocalizationManager: @unchecked Sendable {
+public final class LocalizationManager: ObservableObject, @unchecked Sendable {
     public static let shared = LocalizationManager()
     private static let languageKey = "FuelSwitch_App_Language"
 
     private let defaults: UserDefaults
-    public var currentLanguage: AppLanguage {
+    @Published public var currentLanguage: AppLanguage {
         didSet {
             defaults.set(currentLanguage.rawValue, forKey: Self.languageKey)
         }

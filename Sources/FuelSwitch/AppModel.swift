@@ -1,23 +1,22 @@
 import SwiftUI
 import AppKit
-import Observation
+import Combine
 import ServiceManagement
 import FuelSwitchCore
 
-@Observable
 @MainActor
-final class AppModel {
-    private(set) var accounts: [Account] = []
-    private(set) var usage: [String: AccountUsage] = [:]
-    private(set) var isRefreshing = false
+final class AppModel: ObservableObject {
+    @Published private(set) var accounts: [Account] = []
+    @Published private(set) var usage: [String: AccountUsage] = [:]
+    @Published private(set) var isRefreshing = false
 
     /// Currently active account emails in the CLI config files.
-    private(set) var activeClaudeEmail: String?
-    private(set) var activeCodexEmail: String?
-    private(set) var activeGeminiEmail: String?
+    @Published private(set) var activeClaudeEmail: String?
+    @Published private(set) var activeCodexEmail: String?
+    @Published private(set) var activeGeminiEmail: String?
 
     /// Theme preference: "system", "dark", or "light"
-    var appTheme: String = Preferences().appTheme {
+    @Published var appTheme: String = Preferences().appTheme {
         didSet {
             preferences.appTheme = appTheme
             updateThemeAppearance()
@@ -34,7 +33,7 @@ final class AppModel {
     }
 
     /// Widget display style: "expanded" or "compact"
-    var widgetStyle: String = Preferences().widgetStyle {
+    @Published var widgetStyle: String = Preferences().widgetStyle {
         didSet {
             preferences.widgetStyle = widgetStyle
             FloatingWidgetController.shared.updateStyle()
@@ -42,7 +41,7 @@ final class AppModel {
     }
 
     /// Whether the Settings screen is being shown in the menu panel
-    var showingSettings: Bool = false
+    @Published var showingSettings: Bool = false
 
     /// Localization manager reference
     var localization: LocalizationManager {
@@ -72,12 +71,12 @@ final class AppModel {
     /// initialiser) — but that does not matter: the read falls back to the old
     /// key on its own when the new one is missing, so correctness does not
     /// depend on whether `preferences.migrate()` in `init()` has run yet.
-    var showsPercentInMenuBar = Preferences().showsPercentInMenuBar {
+    @Published var showsPercentInMenuBar = Preferences().showsPercentInMenuBar {
         didSet { preferences.showsPercentInMenuBar = showsPercentInMenuBar }
     }
 
     /// Whether the floating desktop widget HUD is active.
-    var showFloatingWidget = Preferences().showFloatingWidget {
+    @Published var showFloatingWidget = Preferences().showFloatingWidget {
         didSet {
             preferences.showFloatingWidget = showFloatingWidget
             FloatingWidgetController.shared.setVisible(showFloatingWidget)
@@ -85,7 +84,7 @@ final class AppModel {
     }
 
     /// Transparency / opacity of the desktop HUD.
-    var widgetOpacity: Double = Preferences().widgetOpacity {
+    @Published var widgetOpacity: Double = Preferences().widgetOpacity {
         didSet {
             preferences.widgetOpacity = widgetOpacity
             FloatingWidgetController.shared.updateOpacity(widgetOpacity)
@@ -93,7 +92,7 @@ final class AppModel {
     }
 
     /// Whether the desktop HUD floats on top of other windows.
-    var widgetAlwaysOnTop: Bool = Preferences().widgetAlwaysOnTop {
+    @Published var widgetAlwaysOnTop: Bool = Preferences().widgetAlwaysOnTop {
         didSet {
             preferences.widgetAlwaysOnTop = widgetAlwaysOnTop
             FloatingWidgetController.shared.updateAlwaysOnTop(widgetAlwaysOnTop)
@@ -101,14 +100,73 @@ final class AppModel {
     }
 
     /// Which question the menu bar answers. See `MenuBarMetric`.
-    var menuBarMetric = Preferences().menuBarMetric {
+    @Published var menuBarMetric = Preferences().menuBarMetric {
         didSet { preferences.menuBarMetric = menuBarMetric }
+    }
+
+    /// How the menu bar glyph is drawn. See `MenuBarIconStyle`.
+    @Published var menuBarIconStyle = Preferences().menuBarIconStyle {
+        didSet { preferences.menuBarIconStyle = menuBarIconStyle }
+    }
+
+    /// Whether threshold usage notifications are on. Off by default.
+    @Published var notificationsEnabled = Preferences().notificationsEnabled {
+        didSet {
+            preferences.notificationsEnabled = notificationsEnabled
+            if notificationsEnabled { NotificationManager.requestAuthorizationIfNeeded() }
+        }
+    }
+
+    /// The usage percentages that trigger a notification.
+    @Published var notificationThresholds = Preferences().notificationThresholds {
+        didSet { preferences.notificationThresholds = notificationThresholds }
+    }
+
+    /// Whether a threshold notification plays the system sound.
+    @Published var notificationSoundEnabled = Preferences().notificationSoundEnabled {
+        didSet { preferences.notificationSoundEnabled = notificationSoundEnabled }
+    }
+
+    /// Whether the app may switch the active CLI account on its own when it
+    /// runs dry. Off by default, since it rewrites CLI credential files
+    /// unattended — see `Preferences.autoSwitchEnabled`.
+    @Published var autoSwitchEnabled = Preferences().autoSwitchEnabled {
+        didSet { preferences.autoSwitchEnabled = autoSwitchEnabled }
+    }
+
+    /// Whether the pace glyph (ahead / on pace / burning fast) is shown next
+    /// to usage percentages. Purely visual — on by default.
+    @Published var paceEstimationEnabled = Preferences().paceEstimationEnabled {
+        didSet { preferences.paceEstimationEnabled = paceEstimationEnabled }
+    }
+
+    /// Whether the active Claude account's usage is written to the
+    /// statusline cache after every poll. Off by default — see
+    /// `Preferences.statuslineEnabled`.
+    @Published var statuslineEnabled = Preferences().statuslineEnabled {
+        didSet { preferences.statuslineEnabled = statuslineEnabled }
+    }
+
+    /// Whether the poll interval shortens automatically after recent CLI
+    /// activity. See `Preferences.adaptiveRefreshEnabled`.
+    @Published var adaptiveRefreshEnabled = Preferences().adaptiveRefreshEnabled {
+        didSet { preferences.adaptiveRefreshEnabled = adaptiveRefreshEnabled }
+    }
+
+    /// Toggles one threshold in and out of `notificationThresholds` — the
+    /// checkbox binding in Settings.
+    func toggleNotificationThreshold(_ threshold: Int) {
+        if notificationThresholds.contains(threshold) {
+            notificationThresholds.removeAll { $0 == threshold }
+        } else {
+            notificationThresholds.append(threshold)
+        }
     }
 
     /// The slider in Settings is limited to 60...1800; `Preferences` clamps to
     /// the same bounds on read and write, so here we merely mirror the result
     /// of that clamp into `intervalSeconds` rather than computing it twice.
-    var intervalSeconds: Double = Preferences().refreshIntervalSeconds {
+    @Published var intervalSeconds: Double = Preferences().refreshIntervalSeconds {
         didSet {
             let target = Preferences.clampRefreshInterval(intervalSeconds)
             guard target == intervalSeconds else {
@@ -124,10 +182,10 @@ final class AppModel {
     /// rather than assumed: registration can fail, and it can also land in
     /// `.requiresApproval` when the user has switched the item off in System
     /// Settings, which is not a failure but is not "on" either.
-    private(set) var launchesAtLogin = SMAppService.mainApp.status == .enabled
+    @Published private(set) var launchesAtLogin = SMAppService.mainApp.status == .enabled
     /// Set when the system refused the last change, so the panel can say so
     /// instead of quietly flipping the switch back.
-    private(set) var launchAtLoginProblem: String?
+    @Published private(set) var launchAtLoginProblem: String?
 
     func setLaunchAtLogin(_ wanted: Bool) {
         do {
@@ -152,7 +210,7 @@ final class AppModel {
     }
 
     /// A newer release, once one is found and while it has not been waved away.
-    private(set) var availableUpdate: AvailableUpdate?
+    @Published private(set) var availableUpdate: AvailableUpdate?
 
     /// What this build calls itself, which is what any newer version is
     /// compared against.
@@ -175,10 +233,10 @@ final class AppModel {
     /// failed check is silent by design.
     private static let updateCheckInterval: TimeInterval = 6 * 3600
     private var lastUpdateCheck: Date?
-    private(set) var isCheckingForUpdate = false
+    @Published private(set) var isCheckingForUpdate = false
     /// Set only by a manual check, so a silent background poll never pops an
     /// "up to date" message the user did not ask for.
-    private(set) var justConfirmedUpToDate = false
+    @Published private(set) var justConfirmedUpToDate = false
 
     private func checkForUpdateIfDue() async {
         let now = Date()
@@ -213,7 +271,21 @@ final class AppModel {
     private let preferences = Preferences()
     private let store = AccountStore.default
     private let poller: Poller
+    private let thresholdWatcher = ThresholdWatcher()
+    private let statuslineCaches: [Provider: StatuslineCache] = Dictionary(
+        uniqueKeysWithValues: Provider.allCases.map { ($0, StatuslineCache(provider: $0)) }
+    )
     private var loopTask: Task<Void, Never>?
+    /// Anti-flapping state for auto-switch, keyed by provider. A manual
+    /// switch always wins for `manualSwitchGrace` after it happens; an
+    /// automatic switch will not repeat for the same provider within
+    /// `autoSwitchCooldown` — comfortably longer than the 60-second poll
+    /// floor, so a provider does not bounce between two accounts every
+    /// cycle.
+    private var lastManualSwitch: [Provider: Date] = [:]
+    private var lastAutoSwitch: [Provider: Date] = [:]
+    private static let manualSwitchGrace: TimeInterval = 120
+    private static let autoSwitchCooldown: TimeInterval = 300
     /// A handle on the sign-in currently in progress. Kept here rather than in
     /// the view so that "Cancel" and closing the window can genuinely interrupt
     /// it: `LoginFlow.logIn` responds to cancellation of this task by releasing
@@ -221,6 +293,7 @@ final class AppModel {
     /// of merely hiding the window and leaving the listener — and, for Codex,
     /// port 1455 — occupied for the life of the process.
     private var loginTask: Task<Void, Never>?
+    private var cancellables = Set<AnyCancellable>()
 
     init() {
         for legacyDir in AccountStore.legacyDirectories {
@@ -247,6 +320,16 @@ final class AppModel {
         startLoop()
         updateThemeAppearance()
         FloatingWidgetController.shared.configure(with: self)
+        isStatuslineInstalled = statuslineInstaller.isInstalled
+
+        // LocalizationManager is a separate ObservableObject reached through
+        // `localization`, a computed property — not a stored, @Published
+        // property of this class — so its own changes (language switch)
+        // would not otherwise trigger a re-render of views that read
+        // `model.localization.currentLanguage`. Forward its publisher.
+        LocalizationManager.shared.objectWillChange
+            .sink { [weak self] in self?.objectWillChange.send() }
+            .store(in: &cancellables)
     }
 
     /// See `MenuBarReading.all` — the logic lives in the core so it can be
@@ -259,10 +342,10 @@ final class AppModel {
         return MenuBarReading.all(
             accounts: accounts,
             usage: usage,
-            // The menu bar, cockpit and HUD must describe the same account.
-            // Alternative aggregate metrics belong in reporting, not in the
-            // live account indicator.
-            metric: .activeAccount,
+            // Honor the user's "Menu Bar Metric" choice in Settings — it was
+            // previously hardcoded to .activeAccount, silently ignoring that
+            // picker no matter what the user selected.
+            metric: menuBarMetric,
             activeEmails: activeEmails
         )
     }
@@ -304,8 +387,24 @@ final class AppModel {
 
     private var autoDismissBannerTask: Task<Void, Never>?
 
+    /// Handles `fuelswitch://switch?id=<account.id>`, opened by a shell
+    /// function from `LauncherScriptGenerator`. Silently ignores anything
+    /// that isn't that exact shape — there's no UI to report a malformed URL to.
+    func handleLauncherURL(_ url: URL) {
+        guard url.scheme == "fuelswitch", url.host == "switch" else { return }
+        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+              let id = components.queryItems?.first(where: { $0.name == "id" })?.value,
+              let account = accounts.first(where: { $0.id == id })
+        else { return }
+        switchTo(account: account)
+    }
+
     func switchTo(account: Account) {
         autoDismissBannerTask?.cancel()
+        // A manual switch always wins over auto-switch for a grace window —
+        // otherwise the very next poll could immediately reverse the choice
+        // the user just made by hand.
+        lastManualSwitch[account.provider] = Date()
         do {
             try CLISwitcher.switch(to: account)
             reloadActiveAccounts()
@@ -346,6 +445,30 @@ final class AppModel {
         try? store.remove(id: id)
         usage[id] = nil
         loadAccounts()
+        Task { await thresholdWatcher.forget(accountId: id) }
+    }
+
+    private let statuslineInstaller = StatuslineInstaller()
+    @Published private(set) var isStatuslineInstalled = false
+
+    func installStatusline() {
+        try? statuslineInstaller.install()
+        isStatuslineInstalled = statuslineInstaller.isInstalled
+    }
+
+    func uninstallStatusline() {
+        try? statuslineInstaller.uninstall()
+        isStatuslineInstalled = statuslineInstaller.isInstalled
+    }
+
+    /// Sets or clears an account's display nickname. `nil`/blank clears it,
+    /// falling back to the email everywhere it's shown.
+    func rename(id: String, nickname: String?) {
+        guard var account = accounts.first(where: { $0.id == id }) else { return }
+        let trimmed = nickname?.trimmingCharacters(in: .whitespacesAndNewlines)
+        account.nickname = (trimmed?.isEmpty ?? true) ? nil : trimmed
+        try? store.upsert(account)
+        loadAccounts()
     }
 
     /// Redeems a rate-limit reset credit for an OpenAI Codex account.
@@ -381,9 +504,13 @@ final class AppModel {
         case reconnected(String)
         /// Switched active account in CLI
         case switched(Provider, String)
+        /// The app itself switched the active account because the previous
+        /// one ran out of quota — distinct from `.switched`, which the user
+        /// triggered by clicking "Engage".
+        case autoSwitched(Provider, from: String, to: String)
     }
 
-    private(set) var loginState: LoginState = .idle
+    @Published private(set) var loginState: LoginState = .idle
 
     /// Starts a sign-in in the background and reports through `loginState`.
     /// There is no name to ask for — the provider tells us the email — so this
@@ -443,6 +570,7 @@ final class AppModel {
     /// enough to land in one.
     private func checkImmediately(_ account: Account) async {
         await poller.forgetState(id: account.id)
+        await thresholdWatcher.forget(accountId: account.id)
         usage[account.id] = await poller.refresh(account: account, interval: intervalSeconds)
         loadAccounts()
     }
@@ -502,10 +630,26 @@ final class AppModel {
     /// its start, so this introduces no extra duplicate request.
     private func waitForNextRefresh() async {
         var elapsed: TimeInterval = 0
-        while elapsed < intervalSeconds, !Task.isCancelled {
+        while elapsed < effectiveIntervalSeconds, !Task.isCancelled {
             try? await Task.sleep(for: .seconds(1))
             elapsed += 1
         }
+    }
+
+    /// `intervalSeconds`, shortened when `adaptiveRefreshEnabled` and the CLI
+    /// was used recently. See `AdaptiveRefreshPolicy`.
+    private var effectiveIntervalSeconds: TimeInterval {
+        guard adaptiveRefreshEnabled else { return intervalSeconds }
+        return AdaptiveRefreshPolicy.effectiveInterval(baseInterval: intervalSeconds, sinceLastCliActivity: timeSinceLastCliActivity())
+    }
+
+    private func timeSinceLastCliActivity() -> TimeInterval? {
+        let urls = [CLISwitcher.claudeConfigURL, CLISwitcher.codexAuthURL, CLISwitcher.geminiConfigURL]
+        let mtimes = urls.compactMap { url -> Date? in
+            (try? FileManager.default.attributesOfItem(atPath: url.path)[.modificationDate]) as? Date
+        }
+        guard let mostRecent = mtimes.max() else { return nil }
+        return Date().timeIntervalSince(mostRecent)
     }
 
     /// The only place that actually queries the `Poller`. Checking and setting
@@ -535,10 +679,109 @@ final class AppModel {
             interval: intervalSeconds,
             forced: forced,
             onResult: { [weak self] id, accountUsage in
-                self?.usage[id] = accountUsage
+                guard let self else { return }
+                self.usage[id] = accountUsage
+                guard let account = self.accounts.first(where: { $0.id == id }) else { return }
+                Task { await self.checkThresholds(account: account, usage: accountUsage) }
+                self.checkAutoSwitch(provider: account.provider)
+                self.updateStatuslineCache(account: account, usage: accountUsage)
             }
         )
         loadAccounts()
         isRefreshing = false
+    }
+
+    /// Posts a notification for every newly-crossed threshold on this
+    /// account's session and weekly windows. Skipped for anything but fresh
+    /// data — a cached or error result carries the same percent as the last
+    /// poll, which `ThresholdWatcher` would not re-fire on anyway, but there
+    /// is no reason to even ask.
+    private func checkThresholds(account: Account, usage: AccountUsage) async {
+        guard notificationsEnabled, usage.staleness == .fresh else { return }
+        let thresholds = notificationThresholds
+        for window in [usage.session, usage.weekly] {
+            guard let crossing = await thresholdWatcher.evaluate(
+                accountId: account.id,
+                windowLabel: window.label,
+                percent: window.percent,
+                thresholds: thresholds
+            ) else { continue }
+
+            let windowName = window.label == "5 hours" ? t(.fiveHourSession) : t(.weeklyQuota)
+            NotificationManager.postThresholdNotification(
+                accountId: account.id,
+                windowLabel: crossing.windowLabel,
+                title: String(format: t(.notificationThresholdTitle), account.provider.displayName),
+                body: String(format: t(.notificationThresholdBody), windowName, crossing.threshold),
+                soundEnabled: notificationSoundEnabled
+            )
+        }
+    }
+
+    /// Switches the active CLI account away from one that just ran fully
+    /// dry, respecting the manual-switch grace window and the cooldown
+    /// between automatic switches (see the properties above).
+    private func checkAutoSwitch(provider: Provider) {
+        guard autoSwitchEnabled else { return }
+        let now = Date()
+        if let manual = lastManualSwitch[provider], now.timeIntervalSince(manual) < Self.manualSwitchGrace {
+            return
+        }
+        if let auto = lastAutoSwitch[provider], now.timeIntervalSince(auto) < Self.autoSwitchCooldown {
+            return
+        }
+
+        let activeEmail: String?
+        switch provider {
+        case .anthropic: activeEmail = activeClaudeEmail
+        case .openai: activeEmail = activeCodexEmail
+        case .gemini: activeEmail = activeGeminiEmail
+        }
+
+        guard let decision = AutoSwitchDecider.decide(
+            provider: provider,
+            accounts: accounts,
+            usage: usage,
+            activeEmail: activeEmail
+        ) else { return }
+
+        do {
+            try CLISwitcher.switch(to: decision.to)
+            reloadActiveAccounts()
+            lastAutoSwitch[provider] = now
+            loginState = .autoSwitched(provider, from: decision.from.email, to: decision.to.email)
+            NotificationManager.postAutoSwitchNotification(
+                title: String(format: t(.autoSwitchNotificationTitle), provider.displayName),
+                body: String(format: t(.autoSwitchNotificationBody), decision.from.email, decision.to.email),
+                identifier: "autoswitch|\(provider.rawValue)|\(now.timeIntervalSince1970)"
+            )
+        } catch {
+            loginState = .failed(provider, "Auto-switch failed: \(error.localizedDescription)")
+        }
+    }
+
+    /// Writes the account's usage to its provider's statusline cache file, so
+    /// the generated statusline script can show it — but only for the
+    /// account actually active on that provider's CLI, and only when the
+    /// poll succeeded (a stale cached result carries a last-known percent
+    /// that's already whatever the script would otherwise still be showing).
+    private func updateStatuslineCache(account: Account, usage: AccountUsage) {
+        guard statuslineEnabled, usage.staleness == .fresh else { return }
+        let activeEmail: String?
+        switch account.provider {
+        case .anthropic: activeEmail = activeClaudeEmail
+        case .openai: activeEmail = activeCodexEmail
+        case .gemini: activeEmail = activeGeminiEmail
+        }
+        guard activeEmail == account.email, let cache = statuslineCaches[account.provider] else { return }
+
+        let snapshot = StatuslineSnapshot(
+            provider: account.provider,
+            email: account.email,
+            sessionPercent: (usage.session.percent * 10).rounded() / 10,
+            weeklyPercent: (usage.weekly.percent * 10).rounded() / 10,
+            fetchedAt: usage.fetchedAt
+        )
+        try? cache.write(snapshot)
     }
 }

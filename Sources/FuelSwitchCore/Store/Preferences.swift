@@ -17,12 +17,20 @@ public struct Preferences {
     private static let refreshIntervalNewKey = "refreshInterval"
     private static let refreshIntervalOldKey = "interwal"
     private static let menuBarMetricKey = "menuBarMetric"
+    private static let menuBarIconStyleKey = "menuBarIconStyle"
     private static let dismissedUpdateKey = "dismissedUpdateVersion"
     private static let showFloatingWidgetKey = "showFloatingWidget"
     private static let widgetOpacityKey = "widgetOpacity"
     private static let widgetAlwaysOnTopKey = "widgetAlwaysOnTop"
     private static let widgetStyleKey = "widgetStyle"
     private static let appThemeKey = "appTheme"
+    private static let notificationsEnabledKey = "notificationsEnabled"
+    private static let notificationThresholdsKey = "notificationThresholds"
+    private static let notificationSoundEnabledKey = "notificationSoundEnabled"
+    private static let autoSwitchEnabledKey = "autoSwitchEnabled"
+    private static let paceEstimationEnabledKey = "paceEstimationEnabled"
+    private static let statuslineEnabledKey = "statuslineEnabled"
+    private static let adaptiveRefreshEnabledKey = "adaptiveRefreshEnabled"
 
     public init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -90,6 +98,92 @@ public struct Preferences {
                 ?? .activeAccount
         }
         nonmutating set { defaults.set(newValue.rawValue, forKey: Self.menuBarMetricKey) }
+    }
+
+    /// How the menu bar glyph is drawn. An unrecognised stored value falls
+    /// back to the default rather than failing.
+    public var menuBarIconStyle: MenuBarIconStyle {
+        get {
+            (defaults.string(forKey: Self.menuBarIconStyleKey)).flatMap(MenuBarIconStyle.init(rawValue:))
+                ?? .gauge
+        }
+        nonmutating set { defaults.set(newValue.rawValue, forKey: Self.menuBarIconStyleKey) }
+    }
+
+    /// Whether threshold usage notifications are turned on. Off by default —
+    /// a new feature that reaches outside the app (posting to Notification
+    /// Center) should not surprise anyone who upgrades.
+    public var notificationsEnabled: Bool {
+        get { defaults.bool(forKey: Self.notificationsEnabledKey) }
+        nonmutating set { defaults.set(newValue, forKey: Self.notificationsEnabledKey) }
+    }
+
+    /// The usage percentages that trigger a notification. Stored as `[Int]`
+    /// directly — `UserDefaults` supports array-of-number natively, no
+    /// encoding needed.
+    public var notificationThresholds: [Int] {
+        get { (defaults.array(forKey: Self.notificationThresholdsKey) as? [Int]) ?? [75, 90, 95] }
+        nonmutating set { defaults.set(newValue, forKey: Self.notificationThresholdsKey) }
+    }
+
+    /// Whether a threshold notification plays the system sound.
+    public var notificationSoundEnabled: Bool {
+        get {
+            if let value = defaults.object(forKey: Self.notificationSoundEnabledKey) as? Bool {
+                return value
+            }
+            return true
+        }
+        nonmutating set { defaults.set(newValue, forKey: Self.notificationSoundEnabledKey) }
+    }
+
+    /// Whether the app may switch the active CLI account on its own when
+    /// the active one runs dry. Off by default — this rewrites CLI
+    /// credential files unattended, so it is opt-in even though the
+    /// underlying `CLISwitcher.switch(to:)` call is the same one the
+    /// "Engage" button already uses.
+    public var autoSwitchEnabled: Bool {
+        get { defaults.bool(forKey: Self.autoSwitchEnabledKey) }
+        nonmutating set { defaults.set(newValue, forKey: Self.autoSwitchEnabledKey) }
+    }
+
+    /// Whether the pace glyph (ahead / on pace / burning fast) is shown next
+    /// to usage percentages. Purely visual, no side effect on credentials,
+    /// so it defaults on — but still gets a toggle for anyone who finds it noisy.
+    public var paceEstimationEnabled: Bool {
+        get {
+            if let value = defaults.object(forKey: Self.paceEstimationEnabledKey) as? Bool {
+                return value
+            }
+            return true
+        }
+        nonmutating set { defaults.set(newValue, forKey: Self.paceEstimationEnabledKey) }
+    }
+
+    /// Whether the active account's usage is written to the statusline cache
+    /// after every poll, for the generated Claude Code statusline script to
+    /// read. Off by default — it's an opt-in integration, not a display tweak.
+    public var statuslineEnabled: Bool {
+        get {
+            if let value = defaults.object(forKey: Self.statuslineEnabledKey) as? Bool {
+                return value
+            }
+            return false
+        }
+        nonmutating set { defaults.set(newValue, forKey: Self.statuslineEnabledKey) }
+    }
+
+    /// Whether the poll interval is shortened automatically when the CLI was
+    /// used recently. Opt-in, layered on top of the manual interval slider
+    /// rather than replacing it.
+    public var adaptiveRefreshEnabled: Bool {
+        get {
+            if let value = defaults.object(forKey: Self.adaptiveRefreshEnabledKey) as? Bool {
+                return value
+            }
+            return false
+        }
+        nonmutating set { defaults.set(newValue, forKey: Self.adaptiveRefreshEnabledKey) }
     }
 
     /// The version whose update notice was dismissed. Storing the version

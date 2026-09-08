@@ -3,7 +3,7 @@ import AppKit
 import FuelSwitchCore
 
 struct MenuContentView: View {
-    @Bindable var model: AppModel
+    @ObservedObject var model: AppModel
     @State private var listHeight: CGFloat = 0
     @State private var selectedFilter: ProviderFilter = .all
 
@@ -417,6 +417,13 @@ struct MenuContentView: View {
                     .font(.system(size: 10))
                     .foregroundStyle(FuelSwitchTheme.textTertiary)
             }
+        case .autoSwitched(let provider, let from, let to):
+            bannerRow(text: String(format: model.t(.autoSwitchedBanner), provider.displayName, from, to), tint: FuelSwitchTheme.amber) {
+                Button(model.t(.dismiss)) { model.dismissLoginState() }
+                    .buttonStyle(.plain)
+                    .font(.system(size: 10))
+                    .foregroundStyle(FuelSwitchTheme.textTertiary)
+            }
         }
     }
 
@@ -535,7 +542,9 @@ struct MenuContentView: View {
                         onSwitch: { model.switchTo(account: account) },
                         refresh: { model.refreshAccount(id: account.id) },
                         remove: { model.remove(id: account.id) },
-                        onRedeemReset: { model.redeemCodexReset(account: account) }
+                        onRedeemReset: { model.redeemCodexReset(account: account) },
+                        paceEnabled: model.paceEstimationEnabled,
+                        onRename: { nickname in model.rename(id: account.id, nickname: nickname) }
                     )
                 }
             }

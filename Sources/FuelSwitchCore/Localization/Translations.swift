@@ -115,6 +115,46 @@ public enum TranslationKey: String, Sendable, CaseIterable {
     case toggleHudHelp = "toggle_hud_help"
     case addProviderAccount = "add_provider_account"
     case operationFailed = "operation_failed"
+
+    // Notifications & Auto-Switch
+    case notificationsTitle = "notifications_title"
+    case notificationsToggle = "notifications_toggle"
+    case notificationsSoundToggle = "notifications_sound_toggle"
+    case notificationThresholdsLabel = "notification_thresholds_label"
+    case notificationThresholdTitle = "notification_threshold_title"
+    case notificationThresholdBody = "notification_threshold_body"
+    case autoSwitchTitle = "auto_switch_title"
+    case autoSwitchToggle = "auto_switch_toggle"
+    case autoSwitchExplanation = "auto_switch_explanation"
+    case autoSwitchedBanner = "auto_switched_banner"
+    case autoSwitchNotificationTitle = "auto_switch_notification_title"
+    case autoSwitchNotificationBody = "auto_switch_notification_body"
+
+    // Pace Estimation
+    case paceEstimationToggle = "pace_estimation_toggle"
+
+    // Menu Bar Icon Style
+    case menuBarIconStyleLabel = "menu_bar_icon_style_label"
+    case iconStyleGauge = "icon_style_gauge"
+    case iconStyleBattery = "icon_style_battery"
+    case iconStylePercentOnly = "icon_style_percent_only"
+    case iconStyleMonochrome = "icon_style_monochrome"
+
+    // Per-Profile Launcher
+    case launcherTitle = "launcher_title"
+    case launcherExplanation = "launcher_explanation"
+    case copyShellSnippet = "copy_shell_snippet"
+    case shellSnippetCopied = "shell_snippet_copied"
+
+    // Claude Code Statusline
+    case statuslineTitle = "statusline_title"
+    case statuslineToggle = "statusline_toggle"
+    case statuslineExplanation = "statusline_explanation"
+    case statuslineInstall = "statusline_install"
+    case statuslineUninstall = "statusline_uninstall"
+
+    // Adaptive Refresh
+    case adaptiveRefreshToggle = "adaptive_refresh_toggle"
 }
 
 public struct Translations {

@@ -100,6 +100,38 @@ extension Translations {
         .telemetryInProgress: "Telemetry in progress…",
         .toggleHudHelp: "Toggle floating desktop HUD and switch between Compact and Expanded styles",
         .addProviderAccount: "Add %@ account",
-        .operationFailed: "Unable to complete this action."
+        .operationFailed: "Unable to complete this action.",
+        .notificationsTitle: "Notifications",
+        .notificationsToggle: "Notify me at usage thresholds",
+        .notificationsSoundToggle: "Play sound",
+        .notificationThresholdsLabel: "Notify at:",
+        .notificationThresholdTitle: "%@ fuel low",
+        .notificationThresholdBody: "%@ is at %d%% used.",
+        .autoSwitchTitle: "Auto-Switch",
+        .autoSwitchToggle: "Automatically switch tanks when one runs dry",
+        .autoSwitchExplanation: "When the active account hits 100%, FuelSwitch switches the CLI to the account with the most fuel left. Off by default.",
+        .autoSwitchedBanner: "Auto-switched active %@ tank from %@ to %@.",
+        .autoSwitchNotificationTitle: "FuelSwitch auto-switched %@",
+        .autoSwitchNotificationBody: "%@ ran dry. Switched to %@.",
+        .paceEstimationToggle: "Show pace indicator (ahead / on pace / burning fast)",
+        .menuBarIconStyleLabel: "Icon style",
+        .iconStyleGauge: "Gauge",
+        .iconStyleBattery: "Battery",
+        .iconStylePercentOnly: "Percent only",
+        .iconStyleMonochrome: "Monochrome",
+        .launcherTitle: "Per-Profile Launcher",
+        .launcherExplanation: "Copy a shell function for each account below. Paste it into ~/.zshrc, then run e.g. `fs-work` in Terminal to switch the CLI to that account without opening FuelSwitch AI.",
+        .copyShellSnippet: "Copy Shell Snippet",
+        .shellSnippetCopied: "Copied!",
+
+        // Claude Code Statusline
+        .statuslineTitle: "Claude Code Statusline",
+        .statuslineToggle: "Show FuelSwitch AI usage in the Claude Code statusline",
+        .statuslineExplanation: "Writes the active account's usage to a small cache file after every poll, and installs a generated script as your Claude Code statusLine. Only as fresh as your poll interval (up to 30 minutes) — not real-time.",
+        .statuslineInstall: "Install",
+        .statuslineUninstall: "Uninstall",
+
+        // Adaptive Refresh
+        .adaptiveRefreshToggle: "Shorten polling automatically after recent CLI activity"
     ]
 }

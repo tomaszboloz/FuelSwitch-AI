@@ -100,6 +100,38 @@ extension Translations {
         .removeCredit: "Сбросы: %d",
         .toggleHudHelp: "Показать плавающий HUD и переключать компактный и расширенный стили",
         .addProviderAccount: "Добавить аккаунт %@",
-        .operationFailed: "Не удалось выполнить это действие."
+        .operationFailed: "Не удалось выполнить это действие.",
+        .notificationsTitle: "Уведомления",
+        .notificationsToggle: "Уведомлять о порогах использования",
+        .notificationsSoundToggle: "Воспроизводить звук",
+        .notificationThresholdsLabel: "Уведомлять при:",
+        .notificationThresholdTitle: "%@ — мало топлива",
+        .notificationThresholdBody: "%@ использовано на %d%%.",
+        .autoSwitchTitle: "Автопереключение",
+        .autoSwitchToggle: "Автоматически переключать аккаунт при исчерпании лимита",
+        .autoSwitchExplanation: "Когда активный аккаунт достигает 100%, FuelSwitch переключает CLI на аккаунт с наибольшим запасом. По умолчанию выключено.",
+        .autoSwitchedBanner: "Активный бак %@ автоматически переключён с %@ на %@.",
+        .autoSwitchNotificationTitle: "FuelSwitch автоматически переключил %@",
+        .autoSwitchNotificationBody: "%@ закончился. Переключено на %@.",
+        .paceEstimationToggle: "Показывать индикатор темпа (с опережением / в темпе / быстрый расход)",
+        .menuBarIconStyleLabel: "Стиль значка",
+        .iconStyleGauge: "Индикатор",
+        .iconStyleBattery: "Батарея",
+        .iconStylePercentOnly: "Только процент",
+        .iconStyleMonochrome: "Монохромный",
+        .launcherTitle: "Лаунчер профилей",
+        .launcherExplanation: "Скопируйте ниже функцию оболочки для каждой учётной записи. Вставьте её в ~/.zshrc, затем выполните, например, `fs-work` в терминале, чтобы переключить CLI на эту учётную запись без открытия FuelSwitch AI.",
+        .copyShellSnippet: "Скопировать сниппет",
+        .shellSnippetCopied: "Скопировано!",
+
+        // Claude Code Statusline
+        .statuslineTitle: "Строка состояния Claude Code",
+        .statuslineToggle: "Показывать использование FuelSwitch AI в строке состояния Claude Code",
+        .statuslineExplanation: "После каждого опроса записывает использование активной учётной записи в небольшой файл кеша и устанавливает сгенерированный скрипт как statusLine Claude Code. Актуальность ограничена интервалом опроса (до 30 минут) — не в реальном времени.",
+        .statuslineInstall: "Установить",
+        .statuslineUninstall: "Удалить",
+
+        // Adaptive Refresh
+        .adaptiveRefreshToggle: "Автоматически сокращать интервал опроса после недавней активности CLI"
     ]
 }

@@ -43,16 +43,23 @@ enum MenuBarIcon {
         var body: some View {
             Image(nsImage: MenuBarIcon.image(
                 readings: model.menuBarReadings,
-                showsPercent: model.showsPercentInMenuBar
+                showsPercent: model.showsPercentInMenuBar,
+                iconStyle: model.menuBarIconStyle
             ))
         }
     }
 
-    static func image(readings: [MenuBarReading], showsPercent: Bool) -> NSImage {
+    static func image(readings: [MenuBarReading], showsPercent: Bool, iconStyle: MenuBarIconStyle = .gauge) -> NSImage {
+        // percentOnly has no glyph to speak of, so the text is the entire
+        // point of the style — it always shows regardless of the separate
+        // showsPercent toggle.
+        let effectiveShowsPercent = iconStyle == .percentOnly ? true : showsPercent
+        let showsGlyph = iconStyle != .percentOnly
+
         // No accounts at all still needs a glyph to click on.
         let parts: [(provider: Provider?, fill: Double?, text: String?)] = readings.isEmpty
             ? [(nil, nil, nil)]
-            : readings.map { (provider: $0.provider, fill: $0.fill, text: showsPercent ? $0.text : nil) }
+            : readings.map { (provider: $0.provider, fill: $0.fill, text: effectiveShowsPercent ? $0.text : nil) }
 
         let textAttributes: [NSAttributedString.Key: Any] = [
             .font: textFont,
@@ -64,19 +71,19 @@ enum MenuBarIcon {
             .foregroundColor: NSColor.labelColor,
         ]
 
-        let totalHeight: CGFloat = showsPercent ? 20 : glyph.height
+        let totalHeight: CGFloat = effectiveShowsPercent ? 20 : glyph.height
 
         var width: CGFloat = 0
         for (index, part) in parts.enumerated() {
             if index > 0 { width += betweenReadings }
 
-            if !showsPercent, let provider = part.provider {
+            if !effectiveShowsPercent, let provider = part.provider {
                 let badgeStr = provider.monogram as NSString
                 let badgeTextSize = badgeStr.size(withAttributes: [.font: badgeFont])
                 width += (badgeTextSize.width + 5) + 3
             }
 
-            width += glyph.width
+            if showsGlyph { width += glyph.width }
 
             if let text = part.text {
                 let textSize = (text as NSString).size(withAttributes: textAttributes)
@@ -94,7 +101,7 @@ enum MenuBarIcon {
 
                 let gaugeY = (totalHeight - glyph.height) / 2
 
-                if !showsPercent, let provider = part.provider {
+                if !effectiveShowsPercent, let provider = part.provider {
                     let badgeStr = provider.monogram as NSString
                     let badgeTextSize = badgeStr.size(withAttributes: [.font: badgeFont])
                     let badgeW = badgeTextSize.width + 5
@@ -110,8 +117,20 @@ enum MenuBarIcon {
                     x += badgeW + 3
                 }
 
-                draw(fill: part.fill, in: NSRect(x: x, y: gaugeY, width: glyph.width, height: glyph.height))
-                x += glyph.width
+                if showsGlyph {
+                    let glyphRect = NSRect(x: x, y: gaugeY, width: glyph.width, height: glyph.height)
+                    switch iconStyle {
+                    case .percentOnly:
+                        break // unreachable: showsGlyph is false whenever iconStyle is .percentOnly
+                    case .gauge:
+                        drawGauge(fill: part.fill, in: glyphRect, monochrome: false)
+                    case .monochrome:
+                        drawGauge(fill: part.fill, in: glyphRect, monochrome: true)
+                    case .battery:
+                        drawBattery(fill: part.fill, in: glyphRect)
+                    }
+                    x += glyph.width
+                }
 
                 if let text = part.text {
                     x += glyphToText
@@ -141,14 +160,15 @@ enum MenuBarIcon {
     }
 
     /// `fill` ranges over 0...100; `nil` draws the outline alone, so missing
-    /// data does not look like a completely empty account.
-    private static func draw(fill: Double?, in rect: NSRect) {
+    /// data does not look like a completely empty account. `monochrome`
+    /// suppresses the low-fuel orange tint for anyone who finds it distracting.
+    private static func drawGauge(fill: Double?, in rect: NSRect, monochrome: Bool) {
         let body = rect.insetBy(dx: 1, dy: 1.5)
         let radius: CGFloat = 3.5
 
         let outline = NSBezierPath(roundedRect: body, xRadius: radius, yRadius: radius)
         outline.lineWidth = 1.3
-        let isReserve = (fill ?? 100) < 20
+        let isReserve = !monochrome && (fill ?? 100) < 20
         let fuelColor = isReserve ? NSColor.systemOrange : NSColor.labelColor
         fuelColor.setStroke()
         outline.stroke()
@@ -168,6 +188,43 @@ enum MenuBarIcon {
         NSBezierPath(roundedRect: inner, xRadius: radius - 1.6, yRadius: radius - 1.6).setClip()
         fuelColor.setFill()
         NSBezierPath(rect: NSRect(x: inner.minX, y: inner.minY, width: inner.width, height: height)).fill()
+        NSGraphicsContext.restoreGraphicsState()
+    }
+
+    /// A horizontal battery shape with a small nub, filled left to right.
+    /// `fill` ranges over 0...100; `nil` draws the outline alone.
+    private static func drawBattery(fill: Double?, in rect: NSRect) {
+        let nubWidth: CGFloat = 1.6
+        let bodyRect = NSRect(
+            x: rect.minX,
+            y: rect.minY + rect.height * 0.28,
+            width: rect.width - nubWidth - 1,
+            height: rect.height * 0.44
+        )
+        let radius: CGFloat = 1.5
+
+        let outline = NSBezierPath(roundedRect: bodyRect, xRadius: radius, yRadius: radius)
+        outline.lineWidth = 1.2
+        let isReserve = (fill ?? 100) < 20
+        let fuelColor = isReserve ? NSColor.systemOrange : NSColor.labelColor
+        fuelColor.setStroke()
+        outline.stroke()
+
+        let nubRect = NSRect(x: bodyRect.maxX + 1, y: bodyRect.midY - 2, width: nubWidth, height: 4)
+        fuelColor.setFill()
+        NSBezierPath(roundedRect: nubRect, xRadius: 0.6, yRadius: 0.6).fill()
+
+        guard let fill, fill > 0 else { return }
+
+        let inner = bodyRect.insetBy(dx: 1.4, dy: 1.4)
+        let ratio = min(max(fill / 100, 0), 1)
+        let width = inner.width * ratio
+        guard width > 0.4 else { return }
+
+        NSGraphicsContext.saveGraphicsState()
+        NSBezierPath(roundedRect: inner, xRadius: max(0, radius - 1.4), yRadius: max(0, radius - 1.4)).setClip()
+        fuelColor.setFill()
+        NSBezierPath(rect: NSRect(x: inner.minX, y: inner.minY, width: width, height: inner.height)).fill()
         NSGraphicsContext.restoreGraphicsState()
     }
 }

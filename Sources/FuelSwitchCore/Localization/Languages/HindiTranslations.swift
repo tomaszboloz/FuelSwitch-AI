@@ -100,6 +100,38 @@ extension Translations {
         .removeCredit: "रीसेट: %d",
         .toggleHudHelp: "फ्लोटिंग HUD दिखाएँ और कॉम्पैक्ट व विस्तृत शैली बदलें",
         .addProviderAccount: "%@ खाता जोड़ें",
-        .operationFailed: "यह कार्रवाई पूरी नहीं की जा सकी।"
+        .operationFailed: "यह कार्रवाई पूरी नहीं की जा सकी।",
+        .notificationsTitle: "सूचनाएं",
+        .notificationsToggle: "उपयोग सीमा पर सूचित करें",
+        .notificationsSoundToggle: "ध्वनि बजाएं",
+        .notificationThresholdsLabel: "इस पर सूचित करें:",
+        .notificationThresholdTitle: "%@ में ईंधन कम है",
+        .notificationThresholdBody: "%@ का %d%% उपयोग हो चुका है।",
+        .autoSwitchTitle: "ऑटो-स्विच",
+        .autoSwitchToggle: "खाता खाली होने पर स्वचालित रूप से टैंक बदलें",
+        .autoSwitchExplanation: "जब सक्रिय खाता 100% पर पहुंचता है, तो FuelSwitch CLI को सबसे अधिक शेष ईंधन वाले खाते पर बदल देता है। डिफ़ॉल्ट रूप से बंद।",
+        .autoSwitchedBanner: "सक्रिय %@ टैंक को %@ से %@ में स्वचालित रूप से बदला गया।",
+        .autoSwitchNotificationTitle: "FuelSwitch ने %@ को स्वचालित रूप से बदला",
+        .autoSwitchNotificationBody: "%@ खाली हो गया। %@ पर स्विच किया गया।",
+        .paceEstimationToggle: "गति संकेतक दिखाएं (आगे / गति में / तेज़ खपत)",
+        .menuBarIconStyleLabel: "आइकन शैली",
+        .iconStyleGauge: "गेज",
+        .iconStyleBattery: "बैटरी",
+        .iconStylePercentOnly: "केवल प्रतिशत",
+        .iconStyleMonochrome: "मोनोक्रोम",
+        .launcherTitle: "प्रोफ़ाइल लॉन्चर",
+        .launcherExplanation: "नीचे प्रत्येक खाते के लिए एक शेल फ़ंक्शन कॉपी करें। इसे ~/.zshrc में पेस्ट करें, फिर टर्मिनल में उदाहरण के लिए `fs-work` चलाकर FuelSwitch AI खोले बिना CLI को उस खाते पर स्विच करें।",
+        .copyShellSnippet: "शेल स्निपेट कॉपी करें",
+        .shellSnippetCopied: "कॉपी हो गया!",
+
+        // Claude Code Statusline
+        .statuslineTitle: "Claude Code स्टेटसलाइन",
+        .statuslineToggle: "Claude Code स्टेटसलाइन में FuelSwitch AI उपयोग दिखाएं",
+        .statuslineExplanation: "हर पोल के बाद सक्रिय खाते के उपयोग को एक छोटी कैश फ़ाइल में लिखता है और जनरेट की गई स्क्रिप्ट को आपके Claude Code statusLine के रूप में इंस्टॉल करता है। ताज़गी केवल आपके पोल अंतराल (30 मिनट तक) जितनी है — वास्तविक समय में नहीं।",
+        .statuslineInstall: "इंस्टॉल करें",
+        .statuslineUninstall: "अनइंस्टॉल करें",
+
+        // Adaptive Refresh
+        .adaptiveRefreshToggle: "हाल की CLI गतिविधि के बाद पोलिंग को स्वचालित रूप से छोटा करें"
     ]
 }

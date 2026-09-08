@@ -62,6 +62,11 @@ public struct Account: Codable, Sendable, Equatable, Identifiable {
     /// Cached raw idToken (useful for restoring auth in Codex CLI).
     public var idToken: String?
 
+    /// A user-chosen label, shown instead of the email where space is tight
+    /// (e.g. the generated launcher shell function). Optional so accounts
+    /// saved by older versions decode without it.
+    public var nickname: String?
+
     /// An account is identified by provider plus email, so signing the same
     /// account in again overwrites the existing entry rather than adding a
     /// duplicate.
@@ -78,7 +83,8 @@ public struct Account: Codable, Sendable, Equatable, Identifiable {
         needsReauth: Bool = false,
         organizationName: String? = nil,
         hasSubscription: Bool = false,
-        idToken: String? = nil
+        idToken: String? = nil,
+        nickname: String? = nil
     ) {
         self.provider = provider
         self.email = email
@@ -91,6 +97,7 @@ public struct Account: Codable, Sendable, Equatable, Identifiable {
         self.organizationName = organizationName
         self.hasSubscription = hasSubscription
         self.idToken = idToken
+        self.nickname = nickname
     }
 }
 

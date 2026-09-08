@@ -1,9 +1,12 @@
 import SwiftUI
+import AppKit
 import FuelSwitchCore
 
 struct SettingsView: View {
-    @Bindable var model: AppModel
+    @ObservedObject var model: AppModel
     let close: () -> Void
+
+    @State private var snippetCopied = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -159,9 +162,31 @@ struct SettingsView: View {
                                     .font(.system(size: 11, weight: .medium))
                                     .foregroundStyle(FuelSwitchTheme.textPrimary)
                                 Spacer()
-                                Text(model.t(.metricActive))
-                                    .font(.system(size: 11, weight: .semibold))
-                                    .foregroundStyle(FuelSwitchTheme.amber)
+                                Picker("", selection: $model.menuBarMetric) {
+                                    ForEach(MenuBarMetric.allCases) { metric in
+                                        Text(metricTitle(metric)).tag(metric)
+                                    }
+                                }
+                                .labelsHidden()
+                                .pickerStyle(.menu)
+                                .frame(maxWidth: 150)
+                            }
+
+                            Divider().background(FuelSwitchTheme.borderSubtle)
+
+                            HStack {
+                                Text(model.t(.menuBarIconStyleLabel))
+                                    .font(.system(size: 11, weight: .medium))
+                                    .foregroundStyle(FuelSwitchTheme.textPrimary)
+                                Spacer()
+                                Picker("", selection: $model.menuBarIconStyle) {
+                                    ForEach(MenuBarIconStyle.allCases) { style in
+                                        Text(iconStyleTitle(style)).tag(style)
+                                    }
+                                }
+                                .labelsHidden()
+                                .pickerStyle(.menu)
+                                .frame(maxWidth: 150)
                             }
 
                             Divider().background(FuelSwitchTheme.borderSubtle)
@@ -177,6 +202,100 @@ struct SettingsView: View {
                                     .labelsHidden()
                                     .toggleStyle(.switch)
                             }
+
+                            Divider().background(FuelSwitchTheme.borderSubtle)
+
+                            HStack(alignment: .center, spacing: 12) {
+                                Text(model.t(.paceEstimationToggle))
+                                    .font(.system(size: 11))
+                                    .foregroundStyle(FuelSwitchTheme.textPrimary)
+                                    .lineLimit(nil)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                Spacer(minLength: 16)
+                                Toggle("", isOn: $model.paceEstimationEnabled)
+                                    .labelsHidden()
+                                    .toggleStyle(.switch)
+                            }
+                        }
+                    }
+
+                    // SECTION 3B: Notifications
+                    settingsCard(title: model.t(.notificationsTitle), icon: "bell.badge.fill") {
+                        VStack(alignment: .leading, spacing: 10) {
+                            HStack(alignment: .center, spacing: 12) {
+                                Text(model.t(.notificationsToggle))
+                                    .font(.system(size: 11))
+                                    .foregroundStyle(FuelSwitchTheme.textPrimary)
+                                    .lineLimit(nil)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                Spacer(minLength: 16)
+                                Toggle("", isOn: $model.notificationsEnabled)
+                                    .labelsHidden()
+                                    .toggleStyle(.switch)
+                            }
+
+                            if model.notificationsEnabled {
+                                Divider().background(FuelSwitchTheme.borderSubtle)
+
+                                VStack(alignment: .leading, spacing: 6) {
+                                    Text(model.t(.notificationThresholdsLabel))
+                                        .font(.system(size: 11, weight: .medium))
+                                        .foregroundStyle(FuelSwitchTheme.textPrimary)
+                                    HStack(spacing: 16) {
+                                        ForEach([75, 90, 95], id: \.self) { threshold in
+                                            Button {
+                                                model.toggleNotificationThreshold(threshold)
+                                            } label: {
+                                                HStack(spacing: 4) {
+                                                    Image(systemName: model.notificationThresholds.contains(threshold) ? "checkmark.square.fill" : "square")
+                                                        .foregroundStyle(model.notificationThresholds.contains(threshold) ? FuelSwitchTheme.amber : FuelSwitchTheme.textTertiary)
+                                                    Text("\(threshold)%")
+                                                        .font(.system(size: 11))
+                                                        .foregroundStyle(FuelSwitchTheme.textPrimary)
+                                                }
+                                            }
+                                            .buttonStyle(.plain)
+                                        }
+                                    }
+                                }
+
+                                Divider().background(FuelSwitchTheme.borderSubtle)
+
+                                HStack(alignment: .center, spacing: 12) {
+                                    Text(model.t(.notificationsSoundToggle))
+                                        .font(.system(size: 11))
+                                        .foregroundStyle(FuelSwitchTheme.textPrimary)
+                                        .lineLimit(nil)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                    Spacer(minLength: 16)
+                                    Toggle("", isOn: $model.notificationSoundEnabled)
+                                        .labelsHidden()
+                                        .toggleStyle(.switch)
+                                }
+                            }
+                        }
+                    }
+
+                    // SECTION 3C: Auto-Switch
+                    settingsCard(title: model.t(.autoSwitchTitle), icon: "arrow.triangle.swap") {
+                        VStack(alignment: .leading, spacing: 10) {
+                            HStack(alignment: .center, spacing: 12) {
+                                Text(model.t(.autoSwitchToggle))
+                                    .font(.system(size: 11))
+                                    .foregroundStyle(FuelSwitchTheme.textPrimary)
+                                    .lineLimit(nil)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                Spacer(minLength: 16)
+                                Toggle("", isOn: $model.autoSwitchEnabled)
+                                    .labelsHidden()
+                                    .toggleStyle(.switch)
+                            }
+
+                            Text(model.t(.autoSwitchExplanation))
+                                .font(.system(size: 9.5))
+                                .foregroundStyle(FuelSwitchTheme.textTertiary)
+                                .lineLimit(nil)
+                                .fixedSize(horizontal: false, vertical: true)
                         }
                     }
 
@@ -194,6 +313,20 @@ struct SettingsView: View {
                                         .foregroundStyle(FuelSwitchTheme.amber)
                                 }
                                 Slider(value: $model.intervalSeconds, in: 60...1800, step: 60)
+                            }
+
+                            Divider().background(FuelSwitchTheme.borderSubtle)
+
+                            HStack(alignment: .center, spacing: 12) {
+                                Text(model.t(.adaptiveRefreshToggle))
+                                    .font(.system(size: 11))
+                                    .foregroundStyle(FuelSwitchTheme.textPrimary)
+                                    .lineLimit(nil)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                Spacer(minLength: 16)
+                                Toggle("", isOn: $model.adaptiveRefreshEnabled)
+                                    .labelsHidden()
+                                    .toggleStyle(.switch)
                             }
 
                             Divider().background(FuelSwitchTheme.borderSubtle)
@@ -220,6 +353,83 @@ struct SettingsView: View {
                                     .lineLimit(nil)
                                     .fixedSize(horizontal: false, vertical: true)
                             }
+                        }
+                    }
+
+                    // SECTION 4B: Per-Profile Launcher
+                    settingsCard(title: model.t(.launcherTitle), icon: "terminal.fill") {
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text(model.t(.launcherExplanation))
+                                .font(.system(size: 10.5))
+                                .foregroundStyle(FuelSwitchTheme.textSecondary)
+                                .lineLimit(nil)
+                                .fixedSize(horizontal: false, vertical: true)
+
+                            Button {
+                                copyShellSnippet()
+                            } label: {
+                                Text(snippetCopied ? model.t(.shellSnippetCopied) : model.t(.copyShellSnippet))
+                                    .font(.system(size: 11, weight: .bold))
+                            }
+                            .buttonStyle(.plain)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
+                            .background(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .fill(FuelSwitchTheme.amber.opacity(0.14))
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .strokeBorder(FuelSwitchTheme.amber.opacity(0.35), lineWidth: 0.8)
+                            )
+                            .foregroundStyle(FuelSwitchTheme.amber)
+                            .disabled(model.accounts.isEmpty)
+                        }
+                    }
+
+                    // SECTION 4C: Claude Code Statusline
+                    settingsCard(title: model.t(.statuslineTitle), icon: "chart.bar.doc.horizontal") {
+                        VStack(alignment: .leading, spacing: 10) {
+                            HStack(alignment: .center, spacing: 12) {
+                                Text(model.t(.statuslineToggle))
+                                    .font(.system(size: 11))
+                                    .foregroundStyle(FuelSwitchTheme.textPrimary)
+                                    .lineLimit(nil)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                Spacer(minLength: 16)
+                                Toggle("", isOn: $model.statuslineEnabled)
+                                    .labelsHidden()
+                                    .toggleStyle(.switch)
+                            }
+
+                            Text(model.t(.statuslineExplanation))
+                                .font(.system(size: 10.5))
+                                .foregroundStyle(FuelSwitchTheme.textSecondary)
+                                .lineLimit(nil)
+                                .fixedSize(horizontal: false, vertical: true)
+
+                            Button {
+                                if model.isStatuslineInstalled {
+                                    model.uninstallStatusline()
+                                } else {
+                                    model.installStatusline()
+                                }
+                            } label: {
+                                Text(model.isStatuslineInstalled ? model.t(.statuslineUninstall) : model.t(.statuslineInstall))
+                                    .font(.system(size: 11, weight: .bold))
+                            }
+                            .buttonStyle(.plain)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
+                            .background(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .fill(FuelSwitchTheme.amber.opacity(0.14))
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .strokeBorder(FuelSwitchTheme.amber.opacity(0.35), lineWidth: 0.8)
+                            )
+                            .foregroundStyle(FuelSwitchTheme.amber)
                         }
                     }
 
@@ -274,6 +484,35 @@ struct SettingsView: View {
         .frame(minHeight: 540)
         .background(FuelSwitchTheme.bgDeep)
         .environment(\.layoutDirection, model.localization.currentLanguage.layoutDirection)
+    }
+
+    private func metricTitle(_ metric: MenuBarMetric) -> String {
+        switch metric {
+        case .activeAccount: model.t(.metricActive)
+        case .bestAccount: model.t(.metricBest)
+        case .worstAccount: model.t(.metricBusiest)
+        case .accountsWithRoom: model.t(.metricWithRoom)
+        }
+    }
+
+    private func iconStyleTitle(_ style: MenuBarIconStyle) -> String {
+        switch style {
+        case .gauge: model.t(.iconStyleGauge)
+        case .battery: model.t(.iconStyleBattery)
+        case .percentOnly: model.t(.iconStylePercentOnly)
+        case .monochrome: model.t(.iconStyleMonochrome)
+        }
+    }
+
+    private func copyShellSnippet() {
+        let snippet = LauncherScriptGenerator.shellFunction(accounts: model.accounts)
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(snippet, forType: .string)
+        snippetCopied = true
+        Task {
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            snippetCopied = false
+        }
     }
 
     private func settingsCard<Content: View>(title: String, icon: String, @ViewBuilder content: () -> Content) -> some View {

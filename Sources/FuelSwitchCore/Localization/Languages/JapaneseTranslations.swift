@@ -100,6 +100,38 @@ extension Translations {
         .removeCredit: "リセット: %d",
         .toggleHudHelp: "フローティング HUD を表示し、コンパクト表示と拡張表示を切り替えます",
         .addProviderAccount: "%@ アカウントを追加",
-        .operationFailed: "この操作を完了できませんでした。"
+        .operationFailed: "この操作を完了できませんでした。",
+        .notificationsTitle: "通知",
+        .notificationsToggle: "使用量のしきい値で通知する",
+        .notificationsSoundToggle: "サウンドを再生",
+        .notificationThresholdsLabel: "通知するしきい値:",
+        .notificationThresholdTitle: "%@ の残量が少なくなっています",
+        .notificationThresholdBody: "%@ の使用率が %d%% になりました。",
+        .autoSwitchTitle: "自動切り替え",
+        .autoSwitchToggle: "枯渇したら自動的にアカウントを切り替える",
+        .autoSwitchExplanation: "アクティブなアカウントが100%に達すると、FuelSwitchは残量が最も多いアカウントにCLIを切り替えます。デフォルトではオフです。",
+        .autoSwitchedBanner: "アクティブな%@タンクを%@から%@へ自動的に切り替えました。",
+        .autoSwitchNotificationTitle: "FuelSwitchが%@を自動的に切り替えました",
+        .autoSwitchNotificationBody: "%@が枯渇したため、%@に切り替えました。",
+        .paceEstimationToggle: "ペース表示を表示（先行 / 標準 / 急速消費）",
+        .menuBarIconStyleLabel: "アイコンスタイル",
+        .iconStyleGauge: "ゲージ",
+        .iconStyleBattery: "バッテリー",
+        .iconStylePercentOnly: "パーセントのみ",
+        .iconStyleMonochrome: "モノクロ",
+        .launcherTitle: "プロファイル別ランチャー",
+        .launcherExplanation: "以下の各アカウント用のシェル関数をコピーし、~/.zshrc に貼り付けてください。ターミナルで例えば `fs-work` を実行すると、FuelSwitch AI を開かずにCLIをそのアカウントへ切り替えられます。",
+        .copyShellSnippet: "シェルスニペットをコピー",
+        .shellSnippetCopied: "コピーしました！",
+
+        // Claude Code Statusline
+        .statuslineTitle: "Claude Codeステータスライン",
+        .statuslineToggle: "Claude CodeのステータスラインにFuelSwitch AIの使用状況を表示",
+        .statuslineExplanation: "ポーリングのたびにアクティブアカウントの使用状況を小さなキャッシュファイルへ書き込み、生成したスクリプトをClaude CodeのstatusLineとしてインストールします。鮮度はポーリング間隔（最大30分）まで — リアルタイムではありません。",
+        .statuslineInstall: "インストール",
+        .statuslineUninstall: "アンインストール",
+
+        // Adaptive Refresh
+        .adaptiveRefreshToggle: "直近のCLI操作の後は自動でポーリング間隔を短くする"
     ]
 }

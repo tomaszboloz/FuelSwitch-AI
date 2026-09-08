@@ -18,10 +18,18 @@ Created by [Tomasz Bołoz](https://www.damtox.pl). Inspired by Headroom AI.
 
 ## Features
 
-- **1-click CLI switching** — swap active credentials for Claude Code (`~/.claude.json` + Keychain) and Codex (`~/.codex/auth.json`) without restarting anything.
+- **1-click CLI switching** — swap active credentials for Claude Code (`~/.claude.json` + Keychain), Codex (`~/.codex/auth.json`), and Gemini CLI without restarting anything.
+- **Threshold notifications** — a native macOS notification at 75/90/95% usage (configurable), for each account and window, before you hit the wall — not after.
+- **Auto-switch on quota hit** — when the active account runs dry, automatically switch to the best-available same-provider account, with a cooldown against flapping. Opt-in, off by default.
+- **Pace projection** — a glyph next to each account's usage showing whether it's ahead of, on, or burning faster than its quota window's pace.
+- **Menu bar icon styles** — gauge, battery, percent-only, or monochrome.
+- **Per-profile launcher** — a generated shell snippet (`fs-work`, `fs-personal`, …) that switches the active CLI account straight from the terminal via a `fuelswitch://` URL, no need to open the app.
+- **Claude Code statusline integration** — installs a generated script as your Claude Code `statusLine`, showing Claude, Codex, and Gemini usage together in one line inside every Claude Code session.
+- **Adaptive refresh** — shortens the poll interval automatically after recent CLI activity, layered on top of your manually chosen interval.
 - **Floating HUD** — a draggable, always-on-top panel with the same live data as the main window, in expanded or compact layout.
 - **Reset countdowns** — every quota window shows exactly when it resets, not just the current percentage.
 - **Local-only** — account tokens live in `~/Library/Application Support/FuelSwitch/accounts.json` (`0600` permissions). No servers, no analytics, no telemetry.
+- **Every feature above has its own off switch** in Settings — nothing new ships as forced-on.
 
 ## Installation
 

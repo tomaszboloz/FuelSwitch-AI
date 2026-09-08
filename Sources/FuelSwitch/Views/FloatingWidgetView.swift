@@ -4,7 +4,7 @@ import FuelSwitchCore
 /// The Floating Desktop HUD Widget for FuelSwitch AI.
 /// Supports Expanded Dashboard & Compact Mini-Bar styles.
 struct FloatingWidgetView: View {
-    @Bindable var model: AppModel
+    @ObservedObject var model: AppModel
     let onClose: () -> Void
 
     enum Tab: Hashable {

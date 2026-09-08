@@ -3,7 +3,7 @@ import FuelSwitchCore
 
 @main
 struct FuelSwitchApp: App {
-    @State private var model = AppModel()
+    @StateObject private var model = AppModel()
 
     var body: some Scene {
         // One scene, and deliberately so. Adding an account used to open a
@@ -14,6 +14,7 @@ struct FuelSwitchApp: App {
         // with it is gone.
         MenuBarExtra {
             MenuContentView(model: model)
+                .onOpenURL { model.handleLauncherURL($0) }
         } label: {
             MenuBarIcon.label(for: model)
         }

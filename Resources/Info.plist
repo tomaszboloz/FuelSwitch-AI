@@ -8,10 +8,20 @@
     <key>CFBundleExecutable</key><string>FuelSwitch</string>
     <key>CFBundleIconFile</key><string>AppIcon</string>
     <key>CFBundlePackageType</key><string>APPL</string>
-    <key>CFBundleShortVersionString</key><string>1.0.0</string>
-    <key>CFBundleVersion</key><string>1</string>
+    <key>CFBundleShortVersionString</key><string>1.0.2</string>
+    <key>CFBundleVersion</key><string>3</string>
     <key>NSHumanReadableCopyright</key><string>Copyright © 2026 Tomasz Bołoz (https://www.damtox.pl). All rights reserved.</string>
-    <key>LSMinimumSystemVersion</key><string>14.0</string>
+    <key>LSMinimumSystemVersion</key><string>13.0</string>
     <key>LSUIElement</key><true/>
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleURLName</key><string>ai.fuelswitch.app.launcher</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>fuelswitch</string>
+            </array>
+        </dict>
+    </array>
 </dict>
 </plist>

@@ -32,13 +32,18 @@ app: bundle
 	codesign --force --sign - $(APP)
 	@echo "Built $(APP) (ad-hoc signed, this machine only)"
 
+# Universal binary: SwiftPM emits a lipo'd fat executable to
+# .build/apple/Products/Release when given two --arch flags. A plain
+# "swift build -c release" only produces this machine's own arch, which
+# macOS refuses to launch at all on the other CPU family ("this app is
+# not supported on this device" — an architecture mismatch, not an OS one).
 bundle: icon
-	swift build -c release
+	swift build -c release --arch arm64 --arch x86_64
 	rm -rf $(APP)
 	mkdir -p $(APP)/Contents/MacOS $(APP)/Contents/Resources
 	cp Resources/Info.plist $(APP)/Contents/Info.plist
 	cp Resources/AppIcon.icns $(APP)/Contents/Resources/AppIcon.icns
-	cp .build/release/FuelSwitch $(APP)/Contents/MacOS/FuelSwitch
+	cp .build/apple/Products/Release/FuelSwitch $(APP)/Contents/MacOS/FuelSwitch
 
 # The icon is drawn from code rather than stored as a binary nobody can edit.
 icon: Resources/AppIcon.icns

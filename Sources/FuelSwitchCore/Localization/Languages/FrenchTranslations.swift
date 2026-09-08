@@ -100,6 +100,38 @@ extension Translations {
         .removeCredit: "Réinitialisations : %d",
         .toggleHudHelp: "Afficher le HUD flottant et basculer entre les styles compact et étendu",
         .addProviderAccount: "Ajouter un compte %@",
-        .operationFailed: "Impossible d’effectuer cette action."
+        .operationFailed: "Impossible d’effectuer cette action.",
+        .notificationsTitle: "Notifications",
+        .notificationsToggle: "M’avertir aux seuils d’utilisation",
+        .notificationsSoundToggle: "Jouer un son",
+        .notificationThresholdsLabel: "Avertir à :",
+        .notificationThresholdTitle: "%@ — carburant faible",
+        .notificationThresholdBody: "%@ est utilisé à %d%%.",
+        .autoSwitchTitle: "Changement automatique",
+        .autoSwitchToggle: "Changer de réservoir automatiquement quand un compte est épuisé",
+        .autoSwitchExplanation: "Quand le compte actif atteint 100%, FuelSwitch bascule le CLI vers le compte avec le plus de carburant restant. Désactivé par défaut.",
+        .autoSwitchedBanner: "Réservoir %@ actif basculé automatiquement de %@ vers %@.",
+        .autoSwitchNotificationTitle: "FuelSwitch a basculé automatiquement %@",
+        .autoSwitchNotificationBody: "%@ était à sec. Basculé vers %@.",
+        .paceEstimationToggle: "Afficher l'indicateur de rythme (en avance / au rythme / consommation rapide)",
+        .menuBarIconStyleLabel: "Style d'icône",
+        .iconStyleGauge: "Jauge",
+        .iconStyleBattery: "Batterie",
+        .iconStylePercentOnly: "Pourcentage seul",
+        .iconStyleMonochrome: "Monochrome",
+        .launcherTitle: "Lanceur par profil",
+        .launcherExplanation: "Copiez ci-dessous une fonction shell pour chaque compte. Collez-la dans ~/.zshrc, puis exécutez par exemple `fs-work` dans le terminal pour basculer le CLI vers ce compte sans ouvrir FuelSwitch AI.",
+        .copyShellSnippet: "Copier l'extrait shell",
+        .shellSnippetCopied: "Copié !",
+
+        // Claude Code Statusline
+        .statuslineTitle: "Barre d'état Claude Code",
+        .statuslineToggle: "Afficher l'utilisation de FuelSwitch AI dans la barre d'état de Claude Code",
+        .statuslineExplanation: "Écrit l'utilisation du compte actif dans un petit fichier de cache après chaque interrogation et installe un script généré comme statusLine de Claude Code. Aussi frais que votre intervalle d'interrogation (jusqu'à 30 minutes) seulement — pas en temps réel.",
+        .statuslineInstall: "Installer",
+        .statuslineUninstall: "Désinstaller",
+
+        // Adaptive Refresh
+        .adaptiveRefreshToggle: "Raccourcir automatiquement l'interrogation après une activité CLI récente"
     ]
 }

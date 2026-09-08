@@ -100,6 +100,38 @@ extension Translations {
         .removeCredit: "عمليات إعادة التعيين: %d",
         .toggleHudHelp: "إظهار HUD العائم والتبديل بين النمطين المضغوط والموسع",
         .addProviderAccount: "إضافة حساب %@",
-        .operationFailed: "تعذر إكمال هذا الإجراء."
+        .operationFailed: "تعذر إكمال هذا الإجراء.",
+        .notificationsTitle: "الإشعارات",
+        .notificationsToggle: "أعلمني عند بلوغ حدود الاستخدام",
+        .notificationsSoundToggle: "تشغيل صوت",
+        .notificationThresholdsLabel: "أعلم عند:",
+        .notificationThresholdTitle: "%@ — وقود منخفض",
+        .notificationThresholdBody: "تم استخدام %@ بنسبة %d%%.",
+        .autoSwitchTitle: "التبديل التلقائي",
+        .autoSwitchToggle: "بدّل الحساب تلقائيًا عند نفاد أحدها",
+        .autoSwitchExplanation: "عندما يصل الحساب النشط إلى 100%، يقوم FuelSwitch بتبديل الواجهة إلى الحساب صاحب أكبر قدر من الوقود المتبقي. معطّل افتراضيًا.",
+        .autoSwitchedBanner: "تم تبديل خزان %@ النشط تلقائيًا من %@ إلى %@.",
+        .autoSwitchNotificationTitle: "قام FuelSwitch بتبديل %@ تلقائيًا",
+        .autoSwitchNotificationBody: "نفد وقود %@. تم التبديل إلى %@.",
+        .paceEstimationToggle: "إظهار مؤشر الوتيرة (متقدم / بالوتيرة / استهلاك سريع)",
+        .menuBarIconStyleLabel: "نمط الأيقونة",
+        .iconStyleGauge: "مقياس",
+        .iconStyleBattery: "بطارية",
+        .iconStylePercentOnly: "النسبة المئوية فقط",
+        .iconStyleMonochrome: "أحادي اللون",
+        .launcherTitle: "مشغل حسب الملف الشخصي",
+        .launcherExplanation: "انسخ دالة الصدفة (shell) لكل حساب أدناه، والصقها في ~/.zshrc، ثم شغّل مثلاً `fs-work` في الطرفية لتبديل CLI إلى هذا الحساب دون فتح FuelSwitch AI.",
+        .copyShellSnippet: "نسخ مقتطف الصدفة",
+        .shellSnippetCopied: "تم النسخ!",
+
+        // Claude Code Statusline
+        .statuslineTitle: "شريط حالة Claude Code",
+        .statuslineToggle: "إظهار استخدام FuelSwitch AI في شريط حالة Claude Code",
+        .statuslineExplanation: "يكتب استخدام الحساب النشط إلى ملف ذاكرة تخزين مؤقت صغير بعد كل استطلاع، ويثبّت نصًا برمجيًا تم إنشاؤه كـ statusLine الخاص بـ Claude Code. حداثته مرتبطة بفاصل الاستطلاع فقط (حتى 30 دقيقة) — وليست فورية.",
+        .statuslineInstall: "تثبيت",
+        .statuslineUninstall: "إلغاء التثبيت",
+
+        // Adaptive Refresh
+        .adaptiveRefreshToggle: "تقصير الاستطلاع تلقائيًا بعد نشاط حديث في CLI"
     ]
 }
