@@ -25,8 +25,8 @@ public enum AutoSwitchDecider {
     ///   account is better handled by the threshold notification, not by
     ///   silently moving the user's session.
     /// - `minimumCandidateRemaining`: a replacement must have at least this
-    ///   much headroom, so the active account is never swapped for another
-    ///   account that is itself about to run dry.
+    ///   much capacity left, so the active account is never swapped for
+    ///   another account that is itself about to run dry.
     public static func decide(
         provider: Provider,
         accounts: [Account],
