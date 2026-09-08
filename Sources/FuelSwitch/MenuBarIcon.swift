@@ -38,7 +38,14 @@ enum MenuBarIcon {
     }
 
     struct MenuBarLabelView: View {
-        var model: AppModel
+        // Must be @ObservedObject, not a plain `var` — without it SwiftUI
+        // never subscribes to `model`'s @Published changes, so the label
+        // paints once at launch and freezes. Claude looked fine anyway
+        // because its usage is bootstrapped synchronously from
+        // ~/.claude.json before that first paint; Codex and Gemini have no
+        // such bootstrap, so they froze empty even as `usage` kept updating
+        // correctly underneath.
+        @ObservedObject var model: AppModel
 
         var body: some View {
             Image(nsImage: MenuBarIcon.image(
