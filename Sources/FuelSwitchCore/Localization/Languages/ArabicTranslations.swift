@@ -132,6 +132,21 @@ extension Translations {
         .statuslineUninstall: "إلغاء التثبيت",
 
         // Adaptive Refresh
-        .adaptiveRefreshToggle: "تقصير الاستطلاع تلقائيًا بعد نشاط حديث في CLI"
+        .adaptiveRefreshToggle: "تقصير الاستطلاع تلقائيًا بعد نشاط حديث في CLI",
+
+        // Usage Heatmap
+        .usageHeatmapTitle: "خريطة استخدام حرارية",
+        .usageHeatmapToggle: "إظهار خريطة استخدام Claude Code الحرارية المحلية",
+        .usageHeatmapExplanation: "يحلّل سجلات جلسات Claude Code المحلية (~/.claude/projects) لإنشاء خريطة حرارية للرموز على مدى 90 يومًا. محلي بالكامل — لا يتم رفع أي شيء.",
+        .usageHeatmapLoading: "جارٍ قراءة سجلات الجلسات المحلية…",
+        .usageHeatmapEmpty: "لا يوجد استخدام مسجل لـ Claude Code بعد",
+        .usageHeatmapSummarySuffix: "رمزًا خلال آخر 90 يومًا",
+
+        // Sparkle Automatic Updates
+        .sparkleUpdatesTitle: "التحديثات التلقائية",
+        .sparkleAutoCheckToggle: "التحقق تلقائيًا من التحديثات في الخلفية",
+        .sparkleAutoDownloadToggle: "تنزيل التحديثات وتثبيتها تلقائيًا",
+        .sparkleExplanation: "يستخدم Sparkle للتحقق من GitHub Releases وفق جدوله الخاص. يتم التحقق من التنزيلات بتوقيع قبل التثبيت. معطّل افتراضيًا.",
+        .sparkleCheckNowButton: "التحقق الآن"
     ]
 }

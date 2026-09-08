@@ -47,40 +47,17 @@ final class FloatingWidgetController: NSObject, NSWindowDelegate {
         let isCompact = model.widgetStyle == "compact"
         let current = panel.frame
 
-        if isCompact {
-            // Save expanded frame before shrinking
-            UserDefaults.standard.set(NSStringFromRect(current), forKey: expandedFrameKey)
+        let bounds = FloatingWidgetLayout.bounds(forCompact: isCompact)
+        panel.minSize = bounds.minSize
+        panel.maxSize = bounds.maxSize
 
-            // A pill presents both 5h and weekly fuel for every connected
-            // provider.  Keep a full single row available so the values are
-            // never clipped when Claude, Codex and Gemini are all connected.
-            panel.minSize = NSSize(width: 580, height: 42)
-            panel.maxSize = NSSize(width: 900, height: 70)
+        // Save the frame of the style we're leaving, so switching back restores it.
+        let otherStyleKey = isCompact ? expandedFrameKey : compactFrameKey
+        UserDefaults.standard.set(NSStringFromRect(current), forKey: otherStyleKey)
 
-            var targetRect = NSRect(x: current.minX, y: current.maxY - 46, width: max(current.width, 660), height: 46)
-            if let saved = UserDefaults.standard.string(forKey: compactFrameKey) {
-                let r = NSRectFromString(saved)
-                if r.width >= 580 && r.height >= 40 && r.height <= 70 {
-                    targetRect = NSRect(x: current.minX, y: current.maxY - r.height, width: r.width, height: r.height)
-                }
-            }
-            panel.setFrame(targetRect, display: true, animate: true)
-        } else {
-            // Save compact frame before expanding
-            UserDefaults.standard.set(NSStringFromRect(current), forKey: compactFrameKey)
-
-            panel.minSize = NSSize(width: 260, height: 160)
-            panel.maxSize = NSSize(width: 900, height: 900)
-
-            var targetRect = NSRect(x: current.minX, y: current.maxY - 320, width: max(current.width, 340), height: 320)
-            if let saved = UserDefaults.standard.string(forKey: expandedFrameKey) {
-                let r = NSRectFromString(saved)
-                if r.width >= 260 && r.height >= 160 {
-                    targetRect = NSRect(x: current.minX, y: current.maxY - r.height, width: r.width, height: r.height)
-                }
-            }
-            panel.setFrame(targetRect, display: true, animate: true)
-        }
+        let savedFrame = UserDefaults.standard.string(forKey: currentFrameKey).map(NSRectFromString)
+        let targetRect = FloatingWidgetLayout.targetFrame(currentFrame: current, switchingToCompact: isCompact, savedFrame: savedFrame)
+        panel.setFrame(targetRect, display: true, animate: true)
     }
 
     private func showWidget() {
@@ -92,24 +69,9 @@ final class FloatingWidgetController: NSObject, NSWindowDelegate {
         }
 
         let isCompact = model.widgetStyle == "compact"
-        let defaultRect = isCompact
-            ? NSRect(x: 120, y: 150, width: 660, height: 46)
-            : NSRect(x: 120, y: 150, width: 340, height: 340)
-        var initialRect = defaultRect
-
         let saveKey = isCompact ? compactFrameKey : expandedFrameKey
-        if let savedString = UserDefaults.standard.string(forKey: saveKey) {
-            let savedRect = NSRectFromString(savedString)
-            if isCompact {
-                if savedRect.width >= 580 && savedRect.height >= 40 && savedRect.height <= 70 {
-                    initialRect = savedRect
-                }
-            } else {
-                if savedRect.width >= 260 && savedRect.height >= 160 {
-                    initialRect = savedRect
-                }
-            }
-        }
+        let savedFrame = UserDefaults.standard.string(forKey: saveKey).map(NSRectFromString)
+        let initialRect = FloatingWidgetLayout.initialFrame(isCompact: isCompact, savedFrame: savedFrame)
 
         let newPanel = NSPanel(
             contentRect: initialRect,
@@ -134,8 +96,9 @@ final class FloatingWidgetController: NSObject, NSWindowDelegate {
         newPanel.hasShadow = true
         newPanel.alphaValue = CGFloat(model.widgetOpacity)
         newPanel.delegate = self
-        newPanel.minSize = isCompact ? NSSize(width: 580, height: 42) : NSSize(width: 260, height: 160)
-        newPanel.maxSize = isCompact ? NSSize(width: 900, height: 70) : NSSize(width: 900, height: 900)
+        let newPanelBounds = FloatingWidgetLayout.bounds(forCompact: isCompact)
+        newPanel.minSize = newPanelBounds.minSize
+        newPanel.maxSize = newPanelBounds.maxSize
 
         let contentView = FloatingWidgetView(model: model, onClose: { [weak self] in
             model.showFloatingWidget = false

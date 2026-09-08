@@ -90,7 +90,7 @@ The `Makefile` has a full `make release` target (sign, notarize, staple, package
 | --- | --- | --- |
 | Claude Code | `~/.claude.json` | `Claude Code-credentials` |
 | Codex | `~/.codex/auth.json` | — (file-based) |
-| Gemini CLI | provider-managed OAuth token | — (file-based) |
+| Gemini CLI | `~/.gemini/google_accounts.json` + `~/.gemini/oauth_creds.json` | — (file-based) |
 
 Click an account in the menu bar panel or the HUD, then **Engage** — the CLI picks up the new credentials on its next call.
 

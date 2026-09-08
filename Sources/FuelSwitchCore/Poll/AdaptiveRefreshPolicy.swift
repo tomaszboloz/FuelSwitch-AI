@@ -6,7 +6,7 @@ import Foundation
 /// upward, and never goes below `Poller.minimumInterval`.
 ///
 /// "Recent activity" is approximated from the mtime of the CLI credential
-/// files (`CLISwitcher.claudeConfigURL`/`.codexAuthURL`/`.geminiConfigURL`).
+/// files (`CLISwitcher.claudeConfigURL`/`.codexAuthURL`/`.geminiOAuthCredsURL`).
 /// This is imprecise — a token refresh also touches these files — but it's
 /// the only activity signal available without watching process lists.
 public enum AdaptiveRefreshPolicy {

@@ -132,6 +132,21 @@ extension Translations {
         .statuslineUninstall: "Deinstallieren",
 
         // Adaptive Refresh
-        .adaptiveRefreshToggle: "Abfrageintervall nach kürzlicher CLI-Aktivität automatisch verkürzen"
+        .adaptiveRefreshToggle: "Abfrageintervall nach kürzlicher CLI-Aktivität automatisch verkürzen",
+
+        // Usage Heatmap
+        .usageHeatmapTitle: "Nutzungs-Heatmap",
+        .usageHeatmapToggle: "Lokale Claude-Code-Nutzungs-Heatmap anzeigen",
+        .usageHeatmapExplanation: "Wertet Ihre lokalen Claude-Code-Sitzungsprotokolle (~/.claude/projects) zu einer 90-Tage-Token-Heatmap aus. Vollständig lokal – nichts wird hochgeladen.",
+        .usageHeatmapLoading: "Lokale Sitzungsprotokolle werden gelesen …",
+        .usageHeatmapEmpty: "Noch keine Claude-Code-Nutzung erfasst",
+        .usageHeatmapSummarySuffix: "Tokens in den letzten 90 Tagen",
+
+        // Sparkle Automatic Updates
+        .sparkleUpdatesTitle: "Automatische Updates",
+        .sparkleAutoCheckToggle: "Automatisch im Hintergrund nach Updates suchen",
+        .sparkleAutoDownloadToggle: "Updates automatisch herunterladen und installieren",
+        .sparkleExplanation: "Verwendet Sparkle, um GitHub Releases nach eigenem Zeitplan zu prüfen. Downloads werden vor der Installation per Signatur verifiziert. Standardmäßig deaktiviert.",
+        .sparkleCheckNowButton: "Jetzt prüfen"
     ]
 }

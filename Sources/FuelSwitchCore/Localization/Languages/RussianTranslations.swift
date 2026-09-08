@@ -132,6 +132,21 @@ extension Translations {
         .statuslineUninstall: "Удалить",
 
         // Adaptive Refresh
-        .adaptiveRefreshToggle: "Автоматически сокращать интервал опроса после недавней активности CLI"
+        .adaptiveRefreshToggle: "Автоматически сокращать интервал опроса после недавней активности CLI",
+
+        // Usage Heatmap
+        .usageHeatmapTitle: "Тепловая карта использования",
+        .usageHeatmapToggle: "Показывать локальную тепловую карту использования Claude Code",
+        .usageHeatmapExplanation: "Анализирует локальные журналы сеансов Claude Code (~/.claude/projects) и строит тепловую карту токенов за 90 дней. Полностью локально — ничего не отправляется.",
+        .usageHeatmapLoading: "Чтение локальных журналов сеансов…",
+        .usageHeatmapEmpty: "Использование Claude Code пока не зафиксировано",
+        .usageHeatmapSummarySuffix: "токенов за последние 90 дней",
+
+        // Sparkle Automatic Updates
+        .sparkleUpdatesTitle: "Автоматические обновления",
+        .sparkleAutoCheckToggle: "Автоматически проверять обновления в фоновом режиме",
+        .sparkleAutoDownloadToggle: "Автоматически загружать и устанавливать обновления",
+        .sparkleExplanation: "Использует Sparkle для проверки GitHub Releases по собственному расписанию. Загрузки проверяются подписью перед установкой. По умолчанию отключено.",
+        .sparkleCheckNowButton: "Проверить сейчас"
     ]
 }

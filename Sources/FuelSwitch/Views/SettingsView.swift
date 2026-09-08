@@ -433,6 +433,87 @@ struct SettingsView: View {
                         }
                     }
 
+                    // SECTION 4D: Usage Heatmap
+                    settingsCard(title: model.t(.usageHeatmapTitle), icon: "square.grid.3x3.fill") {
+                        VStack(alignment: .leading, spacing: 10) {
+                            HStack(alignment: .center, spacing: 12) {
+                                Text(model.t(.usageHeatmapToggle))
+                                    .font(.system(size: 11))
+                                    .foregroundStyle(FuelSwitchTheme.textPrimary)
+                                    .lineLimit(nil)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                Spacer(minLength: 16)
+                                Toggle("", isOn: $model.usageHeatmapEnabled)
+                                    .labelsHidden()
+                                    .toggleStyle(.switch)
+                            }
+
+                            Text(model.t(.usageHeatmapExplanation))
+                                .font(.system(size: 10.5))
+                                .foregroundStyle(FuelSwitchTheme.textSecondary)
+                                .lineLimit(nil)
+                                .fixedSize(horizontal: false, vertical: true)
+
+                            if model.usageHeatmapEnabled {
+                                UsageHeatmapView(
+                                    days: model.usageHeatmapDays,
+                                    isLoading: model.usageHeatmapIsLoading,
+                                    loadingText: model.t(.usageHeatmapLoading),
+                                    emptyText: model.t(.usageHeatmapEmpty),
+                                    summarySuffix: model.t(.usageHeatmapSummarySuffix)
+                                )
+                            }
+                        }
+                    }
+
+                    // SECTION 4E: Sparkle Automatic Updates
+                    settingsCard(title: model.t(.sparkleUpdatesTitle), icon: "arrow.triangle.2.circlepath") {
+                        VStack(alignment: .leading, spacing: 10) {
+                            HStack(alignment: .center, spacing: 12) {
+                                Text(model.t(.sparkleAutoCheckToggle))
+                                    .font(.system(size: 11))
+                                    .foregroundStyle(FuelSwitchTheme.textPrimary)
+                                    .lineLimit(nil)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                Spacer(minLength: 16)
+                                Toggle("", isOn: $model.sparkleAutoCheckEnabled)
+                                    .labelsHidden()
+                                    .toggleStyle(.switch)
+                            }
+
+                            HStack(alignment: .center, spacing: 12) {
+                                Text(model.t(.sparkleAutoDownloadToggle))
+                                    .font(.system(size: 11))
+                                    .foregroundStyle(model.sparkleAutoCheckEnabled ? FuelSwitchTheme.textPrimary : FuelSwitchTheme.textTertiary)
+                                    .lineLimit(nil)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                Spacer(minLength: 16)
+                                Toggle("", isOn: $model.sparkleAutoDownloadEnabled)
+                                    .labelsHidden()
+                                    .toggleStyle(.switch)
+                                    .disabled(!model.sparkleAutoCheckEnabled)
+                            }
+
+                            Text(model.t(.sparkleExplanation))
+                                .font(.system(size: 10.5))
+                                .foregroundStyle(FuelSwitchTheme.textSecondary)
+                                .lineLimit(nil)
+                                .fixedSize(horizontal: false, vertical: true)
+
+                            HStack {
+                                Button {
+                                    model.checkForSparkleUpdateNow()
+                                } label: {
+                                    Text(model.t(.sparkleCheckNowButton))
+                                        .font(.system(size: 9.5, weight: .semibold))
+                                }
+                                .buttonStyle(.plain)
+                                .foregroundStyle(FuelSwitchTheme.amber)
+                                Spacer()
+                            }
+                        }
+                    }
+
                     // SECTION 5: Security & Credits
                     settingsCard(title: model.t(.securityTitle), icon: "shield.checkered") {
                         VStack(alignment: .leading, spacing: 6) {

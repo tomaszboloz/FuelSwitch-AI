@@ -155,6 +155,21 @@ public enum TranslationKey: String, Sendable, CaseIterable {
 
     // Adaptive Refresh
     case adaptiveRefreshToggle = "adaptive_refresh_toggle"
+
+    // Usage Heatmap
+    case usageHeatmapTitle = "usage_heatmap_title"
+    case usageHeatmapToggle = "usage_heatmap_toggle"
+    case usageHeatmapExplanation = "usage_heatmap_explanation"
+    case usageHeatmapLoading = "usage_heatmap_loading"
+    case usageHeatmapEmpty = "usage_heatmap_empty"
+    case usageHeatmapSummarySuffix = "usage_heatmap_summary_suffix"
+
+    // Sparkle Automatic Updates
+    case sparkleUpdatesTitle = "sparkle_updates_title"
+    case sparkleAutoCheckToggle = "sparkle_auto_check_toggle"
+    case sparkleAutoDownloadToggle = "sparkle_auto_download_toggle"
+    case sparkleExplanation = "sparkle_explanation"
+    case sparkleCheckNowButton = "sparkle_check_now_button"
 }
 
 public struct Translations {

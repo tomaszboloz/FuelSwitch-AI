@@ -6,3 +6,4 @@ DerivedData/
 
 # Local-only secrets (Gemini OAuth client, etc). Never commit this.
 .env
+*.DS_Store

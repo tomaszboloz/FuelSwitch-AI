@@ -132,6 +132,21 @@ extension Translations {
         .statuslineUninstall: "Désinstaller",
 
         // Adaptive Refresh
-        .adaptiveRefreshToggle: "Raccourcir automatiquement l'interrogation après une activité CLI récente"
+        .adaptiveRefreshToggle: "Raccourcir automatiquement l'interrogation après une activité CLI récente",
+
+        // Usage Heatmap
+        .usageHeatmapTitle: "Carte de chaleur d'utilisation",
+        .usageHeatmapToggle: "Afficher la carte de chaleur locale d'utilisation de Claude Code",
+        .usageHeatmapExplanation: "Analyse vos journaux de session Claude Code locaux (~/.claude/projects) en une carte de chaleur des tokens sur 90 jours. Entièrement local — rien n'est envoyé.",
+        .usageHeatmapLoading: "Lecture des journaux de session locaux…",
+        .usageHeatmapEmpty: "Aucune utilisation de Claude Code enregistrée pour l'instant",
+        .usageHeatmapSummarySuffix: "tokens au cours des 90 derniers jours",
+
+        // Sparkle Automatic Updates
+        .sparkleUpdatesTitle: "Mises à jour automatiques",
+        .sparkleAutoCheckToggle: "Rechercher automatiquement les mises à jour en arrière-plan",
+        .sparkleAutoDownloadToggle: "Télécharger et installer automatiquement les mises à jour",
+        .sparkleExplanation: "Utilise Sparkle pour vérifier les GitHub Releases selon son propre calendrier. Les téléchargements sont vérifiés par signature avant l'installation. Désactivé par défaut.",
+        .sparkleCheckNowButton: "Vérifier maintenant"
     ]
 }

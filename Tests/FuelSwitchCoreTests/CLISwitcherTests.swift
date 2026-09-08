@@ -132,4 +132,55 @@ import Foundation
         let oauthAccount = json?["oauthAccount"] as? [String: Any]
         #expect(oauthAccount?["organizationName"] as? String == "Example Org")
     }
+
+    @Test func readsActiveGeminiEmailFromGoogleAccountsFile() throws {
+        let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        let accountsFile = tempDir.appendingPathComponent("google_accounts.json")
+        let sample: [String: Any] = ["active": "gemini-user@gmail.com", "old": ["previous@gmail.com"]]
+        try JSONSerialization.data(withJSONObject: sample).write(to: accountsFile)
+
+        let email = CLISwitcher.activeGeminiEmail(url: accountsFile)
+        #expect(email == "gemini-user@gmail.com")
+    }
+
+    @Test func switchesGeminiAccountAndWritesBothRealFiles() throws {
+        let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        let accountsFile = tempDir.appendingPathComponent("google_accounts.json")
+        let credsFile = tempDir.appendingPathComponent("oauth_creds.json")
+
+        let existing: [String: Any] = ["active": "old-user@gmail.com", "old": []]
+        try JSONSerialization.data(withJSONObject: existing).write(to: accountsFile)
+
+        let expiry = Date(timeIntervalSince1970: 1_700_000_000)
+        let account = Account(
+            provider: .gemini,
+            email: "new-gemini@gmail.com",
+            accessToken: "gem-access-tok",
+            refreshToken: "gem-refresh-tok",
+            expiresAt: expiry,
+            idToken: "gem-id-tok"
+        )
+
+        try CLISwitcher.switchGemini(to: account, activeAccountURL: accountsFile, oauthCredsURL: credsFile)
+
+        #expect(CLISwitcher.activeGeminiEmail(url: accountsFile) == "new-gemini@gmail.com")
+
+        let accountsData = try Data(contentsOf: accountsFile)
+        let accountsJSON = try JSONSerialization.jsonObject(with: accountsData) as? [String: Any]
+        #expect(accountsJSON?["old"] as? [String] == ["old-user@gmail.com"])
+
+        let credsData = try Data(contentsOf: credsFile)
+        let credsJSON = try JSONSerialization.jsonObject(with: credsData) as? [String: Any]
+        #expect(credsJSON?["access_token"] as? String == "gem-access-tok")
+        #expect(credsJSON?["refresh_token"] as? String == "gem-refresh-tok")
+        #expect(credsJSON?["id_token"] as? String == "gem-id-tok")
+        #expect(credsJSON?["token_type"] as? String == "Bearer")
+        #expect(credsJSON?["expiry_date"] as? Int64 == 1_700_000_000_000)
+    }
 }

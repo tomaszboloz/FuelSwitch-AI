@@ -132,6 +132,21 @@ extension Translations {
         .statuslineUninstall: "卸载",
 
         // Adaptive Refresh
-        .adaptiveRefreshToggle: "在最近有 CLI 活动后自动缩短轮询间隔"
+        .adaptiveRefreshToggle: "在最近有 CLI 活动后自动缩短轮询间隔",
+
+        // Usage Heatmap
+        .usageHeatmapTitle: "使用量热力图",
+        .usageHeatmapToggle: "显示本地 Claude Code 使用量热力图",
+        .usageHeatmapExplanation: "解析本地的 Claude Code 会话日志（~/.claude/projects），生成 90 天的令牌使用热力图。完全本地处理——不会上传任何数据。",
+        .usageHeatmapLoading: "正在读取本地会话日志…",
+        .usageHeatmapEmpty: "尚未记录任何 Claude Code 使用情况",
+        .usageHeatmapSummarySuffix: "过去 90 天的令牌数",
+
+        // Sparkle Automatic Updates
+        .sparkleUpdatesTitle: "自动更新",
+        .sparkleAutoCheckToggle: "在后台自动检查更新",
+        .sparkleAutoDownloadToggle: "自动下载并安装更新",
+        .sparkleExplanation: "使用 Sparkle 按其自身计划检查 GitHub Releases。下载内容会在安装前通过签名验证。默认关闭。",
+        .sparkleCheckNowButton: "立即检查"
     ]
 }

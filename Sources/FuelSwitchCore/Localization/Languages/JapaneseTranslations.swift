@@ -132,6 +132,21 @@ extension Translations {
         .statuslineUninstall: "アンインストール",
 
         // Adaptive Refresh
-        .adaptiveRefreshToggle: "直近のCLI操作の後は自動でポーリング間隔を短くする"
+        .adaptiveRefreshToggle: "直近のCLI操作の後は自動でポーリング間隔を短くする",
+
+        // Usage Heatmap
+        .usageHeatmapTitle: "使用量ヒートマップ",
+        .usageHeatmapToggle: "ローカルのClaude Code使用量ヒートマップを表示",
+        .usageHeatmapExplanation: "ローカルのClaude Codeセッションログ（~/.claude/projects）を解析し、90日間のトークン使用量ヒートマップを作成します。完全にローカルで処理され、何も送信されません。",
+        .usageHeatmapLoading: "ローカルのセッションログを読み込み中…",
+        .usageHeatmapEmpty: "Claude Codeの使用記録はまだありません",
+        .usageHeatmapSummarySuffix: "過去90日間のトークン数",
+
+        // Sparkle Automatic Updates
+        .sparkleUpdatesTitle: "自動アップデート",
+        .sparkleAutoCheckToggle: "バックグラウンドで自動的にアップデートを確認",
+        .sparkleAutoDownloadToggle: "アップデートを自動的にダウンロードしてインストール",
+        .sparkleExplanation: "Sparkleを使い、独自のスケジュールでGitHub Releasesを確認します。ダウンロードはインストール前に署名で検証されます。デフォルトではオフです。",
+        .sparkleCheckNowButton: "今すぐ確認"
     ]
 }

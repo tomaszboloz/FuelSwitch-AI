@@ -21,6 +21,12 @@ endif
 # Credentials for notarytool:
 NOTARY_PROFILE ?= fuelswitch-notary
 
+# SwiftPM resolves Sparkle as a prebuilt xcframework under .build/artifacts;
+# the platform-slice folder name (macos-arm64_x86_64 today) is an SPM
+# implementation detail, so this is resolved with a wildcard rather than
+# hardcoded.
+SPARKLE_FRAMEWORK := $(firstword $(wildcard .build/artifacts/sparkle/Sparkle/Sparkle.xcframework/*/Sparkle.framework))
+
 .PHONY: app run test clean bundle icon sign staple dmg notarize release
 
 test:
@@ -44,6 +50,27 @@ bundle: icon
 	cp Resources/Info.plist $(APP)/Contents/Info.plist
 	cp Resources/AppIcon.icns $(APP)/Contents/Resources/AppIcon.icns
 	cp .build/apple/Products/Release/FuelSwitch $(APP)/Contents/MacOS/FuelSwitch
+	$(MAKE) embed-sparkle
+
+# Sparkle ships as a binary xcframework, so nothing embeds it into a manually
+# assembled bundle automatically. Nested components are signed bottom-up
+# (XPC services, nested Updater.app, the raw Autoupdate tool, then the
+# framework itself) before the outer app's own codesign runs in `app`/`sign`.
+# @executable_path/../Frameworks is added because SwiftPM's own rpaths
+# (checked with otool -l) only resolve Sparkle inside the build tree, not in
+# a bundle moved to another machine.
+embed-sparkle:
+	@test -n "$(SPARKLE_FRAMEWORK)" || (echo "Sparkle.framework not found under .build/artifacts — run 'swift build' first" && exit 1)
+	mkdir -p $(APP)/Contents/Frameworks
+	rm -rf $(APP)/Contents/Frameworks/Sparkle.framework
+	cp -R $(SPARKLE_FRAMEWORK) $(APP)/Contents/Frameworks/Sparkle.framework
+	codesign --force --sign - $(APP)/Contents/Frameworks/Sparkle.framework/Versions/Current/XPCServices/Downloader.xpc
+	codesign --force --sign - $(APP)/Contents/Frameworks/Sparkle.framework/Versions/Current/XPCServices/Installer.xpc
+	codesign --force --sign - $(APP)/Contents/Frameworks/Sparkle.framework/Versions/Current/Updater.app
+	codesign --force --sign - $(APP)/Contents/Frameworks/Sparkle.framework/Versions/Current/Autoupdate
+	codesign --force --sign - $(APP)/Contents/Frameworks/Sparkle.framework
+	otool -l $(APP)/Contents/MacOS/FuelSwitch | grep -q "@executable_path/../Frameworks" || \
+		install_name_tool -add_rpath "@executable_path/../Frameworks" $(APP)/Contents/MacOS/FuelSwitch
 
 # The icon is drawn from code rather than stored as a binary nobody can edit.
 icon: Resources/AppIcon.icns

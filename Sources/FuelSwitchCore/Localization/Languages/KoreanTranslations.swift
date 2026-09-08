@@ -132,6 +132,21 @@ extension Translations {
         .statuslineUninstall: "제거",
 
         // Adaptive Refresh
-        .adaptiveRefreshToggle: "최근 CLI 활동이 있으면 폴링 간격을 자동으로 단축"
+        .adaptiveRefreshToggle: "최근 CLI 활동이 있으면 폴링 간격을 자동으로 단축",
+
+        // Usage Heatmap
+        .usageHeatmapTitle: "사용량 히트맵",
+        .usageHeatmapToggle: "로컬 Claude Code 사용량 히트맵 표시",
+        .usageHeatmapExplanation: "로컬 Claude Code 세션 로그(~/.claude/projects)를 분석하여 90일간 토큰 사용량 히트맵을 생성합니다. 완전히 로컬에서 처리되며 아무것도 업로드되지 않습니다.",
+        .usageHeatmapLoading: "로컬 세션 로그 읽는 중…",
+        .usageHeatmapEmpty: "아직 기록된 Claude Code 사용량이 없습니다",
+        .usageHeatmapSummarySuffix: "지난 90일간 토큰",
+
+        // Sparkle Automatic Updates
+        .sparkleUpdatesTitle: "자동 업데이트",
+        .sparkleAutoCheckToggle: "백그라운드에서 자동으로 업데이트 확인",
+        .sparkleAutoDownloadToggle: "업데이트를 자동으로 다운로드 및 설치",
+        .sparkleExplanation: "Sparkle을 사용하여 자체 일정에 따라 GitHub Releases를 확인합니다. 다운로드는 설치 전에 서명으로 검증됩니다. 기본적으로 꺼져 있습니다.",
+        .sparkleCheckNowButton: "지금 확인"
     ]
 }

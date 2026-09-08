@@ -153,6 +153,34 @@ final class AppModel: ObservableObject {
         didSet { preferences.adaptiveRefreshEnabled = adaptiveRefreshEnabled }
     }
 
+    /// Whether Settings shows the local Claude Code usage heatmap. See
+    /// `Preferences.usageHeatmapEnabled`.
+    @Published var usageHeatmapEnabled = Preferences().usageHeatmapEnabled {
+        didSet {
+            preferences.usageHeatmapEnabled = usageHeatmapEnabled
+            if usageHeatmapEnabled { loadUsageHeatmap() }
+        }
+    }
+
+    @Published private(set) var usageHeatmapDays: [DailyTokenUsage] = []
+    @Published private(set) var usageHeatmapIsLoading = false
+
+    /// Parses `~/.claude/projects/**/*.jsonl` off the main thread and
+    /// publishes a zero-filled 90-day rollup. Safe to call repeatedly — a
+    /// run already in flight just gets superseded by the next one's result.
+    func loadUsageHeatmap() {
+        guard usageHeatmapEnabled else { return }
+        usageHeatmapIsLoading = true
+        Task.detached(priority: .utility) {
+            let entries = ClaudeProjectLogParser.parseAllProjects()
+            let days = ClaudeUsageRollup.lastDays(90, from: entries)
+            await MainActor.run {
+                self.usageHeatmapDays = days
+                self.usageHeatmapIsLoading = false
+            }
+        }
+    }
+
     /// Toggles one threshold in and out of `notificationThresholds` — the
     /// checkbox binding in Settings.
     func toggleNotificationThreshold(_ threshold: Int) {
@@ -268,6 +296,34 @@ final class AppModel: ObservableObject {
         }
     }
 
+    /// Opt-in unattended path: Sparkle downloads, verifies (EdDSA), and
+    /// installs a newer release in the background. Off by default, same as
+    /// every other side-effecting feature in this app.
+    private let sparkleUpdater = SparkleUpdateManager()
+
+    @Published var sparkleAutoCheckEnabled = Preferences().sparkleAutoCheckEnabled {
+        didSet {
+            preferences.sparkleAutoCheckEnabled = sparkleAutoCheckEnabled
+            sparkleUpdater.automaticallyChecksForUpdates = sparkleAutoCheckEnabled
+            if !sparkleAutoCheckEnabled {
+                sparkleAutoDownloadEnabled = false
+            }
+        }
+    }
+
+    @Published var sparkleAutoDownloadEnabled = Preferences().sparkleAutoDownloadEnabled {
+        didSet {
+            preferences.sparkleAutoDownloadEnabled = sparkleAutoDownloadEnabled
+            sparkleUpdater.automaticallyDownloadsUpdates = sparkleAutoDownloadEnabled
+        }
+    }
+
+    /// Opens Sparkle's own update window regardless of the automatic-check
+    /// toggle above — lets a user pull a real install without waiting.
+    func checkForSparkleUpdateNow() {
+        sparkleUpdater.checkForUpdates()
+    }
+
     private let preferences = Preferences()
     private let store = AccountStore.default
     private let poller: Poller
@@ -321,6 +377,9 @@ final class AppModel: ObservableObject {
         updateThemeAppearance()
         FloatingWidgetController.shared.configure(with: self)
         isStatuslineInstalled = statuslineInstaller.isInstalled
+        if usageHeatmapEnabled { loadUsageHeatmap() }
+        sparkleUpdater.automaticallyChecksForUpdates = sparkleAutoCheckEnabled
+        sparkleUpdater.automaticallyDownloadsUpdates = sparkleAutoDownloadEnabled
 
         // LocalizationManager is a separate ObservableObject reached through
         // `localization`, a computed property — not a stored, @Published
@@ -644,7 +703,7 @@ final class AppModel: ObservableObject {
     }
 
     private func timeSinceLastCliActivity() -> TimeInterval? {
-        let urls = [CLISwitcher.claudeConfigURL, CLISwitcher.codexAuthURL, CLISwitcher.geminiConfigURL]
+        let urls = [CLISwitcher.claudeConfigURL, CLISwitcher.codexAuthURL, CLISwitcher.geminiOAuthCredsURL]
         let mtimes = urls.compactMap { url -> Date? in
             (try? FileManager.default.attributesOfItem(atPath: url.path)[.modificationDate]) as? Date
         }

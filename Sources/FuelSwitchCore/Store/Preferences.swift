@@ -31,6 +31,9 @@ public struct Preferences {
     private static let paceEstimationEnabledKey = "paceEstimationEnabled"
     private static let statuslineEnabledKey = "statuslineEnabled"
     private static let adaptiveRefreshEnabledKey = "adaptiveRefreshEnabled"
+    private static let usageHeatmapEnabledKey = "usageHeatmapEnabled"
+    private static let sparkleAutoCheckEnabledKey = "sparkleAutoCheckEnabled"
+    private static let sparkleAutoDownloadEnabledKey = "sparkleAutoDownloadEnabled"
 
     public init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -184,6 +187,47 @@ public struct Preferences {
             return false
         }
         nonmutating set { defaults.set(newValue, forKey: Self.adaptiveRefreshEnabledKey) }
+    }
+
+    /// Whether the Settings window shows the local Claude Code usage heatmap,
+    /// parsed from `~/.claude/projects/**/*.jsonl` on disk. Off by default —
+    /// parsing every transcript file is real disk I/O, not a free display toggle.
+    public var usageHeatmapEnabled: Bool {
+        get {
+            if let value = defaults.object(forKey: Self.usageHeatmapEnabledKey) as? Bool {
+                return value
+            }
+            return false
+        }
+        nonmutating set { defaults.set(newValue, forKey: Self.usageHeatmapEnabledKey) }
+    }
+
+    /// Whether Sparkle checks for a new release in the background, on its own
+    /// schedule, instead of only when the user presses "Check for Updates".
+    /// Off by default — same opt-in convention as every other side-effecting
+    /// feature here.
+    public var sparkleAutoCheckEnabled: Bool {
+        get {
+            if let value = defaults.object(forKey: Self.sparkleAutoCheckEnabledKey) as? Bool {
+                return value
+            }
+            return false
+        }
+        nonmutating set { defaults.set(newValue, forKey: Self.sparkleAutoCheckEnabledKey) }
+    }
+
+    /// Whether Sparkle also downloads and installs a found update unattended,
+    /// rather than just notifying. Only meaningful alongside
+    /// `sparkleAutoCheckEnabled`; kept as its own switch because unattended
+    /// install is the riskier half.
+    public var sparkleAutoDownloadEnabled: Bool {
+        get {
+            if let value = defaults.object(forKey: Self.sparkleAutoDownloadEnabledKey) as? Bool {
+                return value
+            }
+            return false
+        }
+        nonmutating set { defaults.set(newValue, forKey: Self.sparkleAutoDownloadEnabledKey) }
     }
 
     /// The version whose update notice was dismissed. Storing the version

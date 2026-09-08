@@ -20,10 +20,24 @@ public enum CLISwitcher {
             .appendingPathComponent("auth.json")
     }
 
-    public static var geminiConfigURL: URL {
+    /// The real Gemini CLI's active-account pointer: `{"active": "<email>",
+    /// "old": [...]}`. Distinct from `geminiOAuthCredsURL` — this file names
+    /// which account is active, it holds no tokens itself.
+    public static var geminiActiveAccountURL: URL {
         FileManager.default.homeDirectoryForCurrentUser
             .appendingPathComponent(".gemini")
-            .appendingPathComponent("auth.json")
+            .appendingPathComponent("google_accounts.json")
+    }
+
+    /// The real Gemini CLI's OAuth token cache, in its own field names
+    /// (`access_token`/`refresh_token`/`expiry_date`/…). Earlier versions of
+    /// this switcher wrote a FuelSwitch-invented `~/.gemini/auth.json` that
+    /// the real Gemini CLI never reads, so switching never actually took
+    /// effect outside the app.
+    public static var geminiOAuthCredsURL: URL {
+        FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent(".gemini")
+            .appendingPathComponent("oauth_creds.json")
     }
 
     // MARK: - Active Account Detection
@@ -34,7 +48,7 @@ public enum CLISwitcher {
         knownAccounts: [Account] = [],
         claudeURL: URL = claudeConfigURL,
         codexURL: URL = codexAuthURL,
-        geminiURL: URL = geminiConfigURL
+        geminiURL: URL = geminiActiveAccountURL
     ) -> String? {
         switch provider {
         case .anthropic:
@@ -142,17 +156,16 @@ public enum CLISwitcher {
         return nil
     }
 
-    /// Reads active Gemini email from `~/.gemini/auth.json`.
-    public static func activeGeminiEmail(url: URL = geminiConfigURL, knownAccounts: [Account] = []) -> String? {
+    /// Reads the `active` key from `~/.gemini/google_accounts.json`, the real
+    /// Gemini CLI's active-account pointer file.
+    public static func activeGeminiEmail(url: URL = geminiActiveAccountURL, knownAccounts: [Account] = []) -> String? {
         guard FileManager.default.fileExists(atPath: url.path) else { return nil }
         guard let data = try? Data(contentsOf: url),
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
         else {
             return nil
         }
-        if let email = json["email"] as? String { return email }
-        if let account = json["account"] as? [String: Any], let email = account["email"] as? String { return email }
-        return nil
+        return json["active"] as? String
     }
 
     // MARK: - Account Switching
@@ -162,7 +175,8 @@ public enum CLISwitcher {
         to account: Account,
         claudeURL: URL = claudeConfigURL,
         codexURL: URL = codexAuthURL,
-        geminiURL: URL = geminiConfigURL
+        geminiActiveAccountURL: URL = geminiActiveAccountURL,
+        geminiOAuthCredsURL: URL = geminiOAuthCredsURL
     ) throws {
         switch account.provider {
         case .anthropic:
@@ -170,23 +184,44 @@ public enum CLISwitcher {
         case .openai:
             try switchCodex(to: account, url: codexURL)
         case .gemini:
-            try switchGemini(to: account, url: geminiURL)
+            try switchGemini(to: account, activeAccountURL: geminiActiveAccountURL, oauthCredsURL: geminiOAuthCredsURL)
         }
     }
 
-    /// Updates `~/.gemini/auth.json` with active account credentials.
-    public static func switchGemini(to account: Account, url: URL = geminiConfigURL) throws {
-        let dir = url.deletingLastPathComponent()
+    /// Updates the real Gemini CLI's own files: `google_accounts.json` (the
+    /// active-account pointer, with the previously active email preserved in
+    /// `old`) and `oauth_creds.json` (tokens, in the CLI's own field names —
+    /// `expiry_date` is epoch milliseconds, matching what the real CLI writes).
+    public static func switchGemini(
+        to account: Account,
+        activeAccountURL: URL = geminiActiveAccountURL,
+        oauthCredsURL: URL = geminiOAuthCredsURL
+    ) throws {
+        let dir = activeAccountURL.deletingLastPathComponent()
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        var dict: [String: Any] = [
-            "email": account.email,
+
+        var old: [String] = []
+        if let data = try? Data(contentsOf: activeAccountURL),
+           let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+            old = (json["old"] as? [String]) ?? []
+            if let previousActive = json["active"] as? String, previousActive != account.email, !old.contains(previousActive) {
+                old.append(previousActive)
+            }
+        }
+        let accountsDict: [String: Any] = ["active": account.email, "old": old]
+        let accountsData = try JSONSerialization.data(withJSONObject: accountsDict, options: [.prettyPrinted, .sortedKeys])
+        try atomicWrite(data: accountsData, to: activeAccountURL, permissions: 0o600)
+
+        var credsDict: [String: Any] = [
             "access_token": account.accessToken,
             "refresh_token": account.refreshToken,
-            "expires_at": ISO8601DateFormatter().string(from: account.expiresAt)
+            "scope": FuelSwitchConstants.geminiScopes,
+            "token_type": "Bearer",
+            "expiry_date": Int64(account.expiresAt.timeIntervalSince1970 * 1000)
         ]
-        if let plan = account.plan { dict["plan"] = plan }
-        let data = try JSONSerialization.data(withJSONObject: dict, options: [.prettyPrinted, .sortedKeys])
-        try atomicWrite(data: data, to: url, permissions: 0o600)
+        if let idToken = account.idToken { credsDict["id_token"] = idToken }
+        let credsData = try JSONSerialization.data(withJSONObject: credsDict, options: [.prettyPrinted, .sortedKeys])
+        try atomicWrite(data: credsData, to: oauthCredsURL, permissions: 0o600)
     }
 
     /// Updates `~/.claude.json` and the macOS Keychain credential `Claude Code-credentials`.

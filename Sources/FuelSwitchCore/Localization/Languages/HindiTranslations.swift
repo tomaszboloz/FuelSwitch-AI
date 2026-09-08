@@ -132,6 +132,21 @@ extension Translations {
         .statuslineUninstall: "अनइंस्टॉल करें",
 
         // Adaptive Refresh
-        .adaptiveRefreshToggle: "हाल की CLI गतिविधि के बाद पोलिंग को स्वचालित रूप से छोटा करें"
+        .adaptiveRefreshToggle: "हाल की CLI गतिविधि के बाद पोलिंग को स्वचालित रूप से छोटा करें",
+
+        // Usage Heatmap
+        .usageHeatmapTitle: "उपयोग हीटमैप",
+        .usageHeatmapToggle: "स्थानीय Claude Code उपयोग हीटमैप दिखाएं",
+        .usageHeatmapExplanation: "स्थानीय Claude Code सत्र लॉग (~/.claude/projects) का विश्लेषण करके 90 दिनों का टोकन उपयोग हीटमैप बनाता है। पूरी तरह स्थानीय — कुछ भी अपलोड नहीं होता।",
+        .usageHeatmapLoading: "स्थानीय सत्र लॉग पढ़े जा रहे हैं…",
+        .usageHeatmapEmpty: "अभी तक कोई Claude Code उपयोग दर्ज नहीं हुआ",
+        .usageHeatmapSummarySuffix: "पिछले 90 दिनों में टोकन",
+
+        // Sparkle Automatic Updates
+        .sparkleUpdatesTitle: "स्वचालित अपडेट",
+        .sparkleAutoCheckToggle: "बैकग्राउंड में स्वचालित रूप से अपडेट जांचें",
+        .sparkleAutoDownloadToggle: "अपडेट स्वचालित रूप से डाउनलोड और इंस्टॉल करें",
+        .sparkleExplanation: "अपने शेड्यूल पर GitHub Releases जांचने के लिए Sparkle का उपयोग करता है। इंस्टॉल करने से पहले डाउनलोड को हस्ताक्षर से सत्यापित किया जाता है। डिफ़ॉल्ट रूप से बंद।",
+        .sparkleCheckNowButton: "अभी जांचें"
     ]
 }
