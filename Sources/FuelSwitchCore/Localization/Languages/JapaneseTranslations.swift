@@ -1,6 +1,9 @@
 extension Translations {
     static let japaneseTable: [TranslationKey: String] = [
         .appName: "FuelSwitch AI",
+        .codexDesktopSyncTitle: "Codex アプリとアカウントを同期",
+        .codexDesktopSyncHelp: "Codex のアカウント切り替え時（自動切り替えを含む）に、通常の手順でアプリを再起動し、新しいログイン情報を読み込みます。実行中の作業が中断される場合があります。Codex CLI と同じ CODEX_HOME とローカル OAuth ログインが必要です。初期設定はオフです。",
+        .codexDesktopRestartFailed: "Codex を再起動できませんでした。アプリがインストールされているか、終了の確認待ちになっていないか確認して、再試行してください。",
         .tagline: "CLIアカウント切替＆使用量モニター",
         .ready: "準備完了",
         .active: "アクティブ",

@@ -1,6 +1,9 @@
 extension Translations {
     static let russianTable: [TranslationKey: String] = [
         .appName: "FuelSwitch AI",
+        .codexDesktopSyncTitle: "Синхронизировать аккаунт с приложением Codex",
+        .codexDesktopSyncHelp: "При смене аккаунта Codex (включая автоматическую) приложение штатно перезапускается для загрузки нового входа. Текущая работа может прерваться. Требуются тот же CODEX_HOME и локальный вход OAuth, что и в Codex CLI. По умолчанию отключено.",
+        .codexDesktopRestartFailed: "Не удалось перезапустить Codex. Проверьте, установлено ли приложение и не ожидает ли оно подтверждения выхода, затем повторите попытку.",
         .tagline: "Переключатель аккаунтов CLI и монитор квот",
         .ready: "Готово",
         .active: "АКТИВЕН",

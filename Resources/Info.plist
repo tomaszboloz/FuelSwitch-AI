@@ -8,8 +8,8 @@
     <key>CFBundleExecutable</key><string>FuelSwitch</string>
     <key>CFBundleIconFile</key><string>AppIcon</string>
     <key>CFBundlePackageType</key><string>APPL</string>
-    <key>CFBundleShortVersionString</key><string>1.0.5</string>
-    <key>CFBundleVersion</key><string>6</string>
+    <key>CFBundleShortVersionString</key><string>1.1.0</string>
+    <key>CFBundleVersion</key><string>7</string>
     <key>NSHumanReadableCopyright</key><string>Copyright © 2026 Tomasz Bołoz (https://www.damtox.pl). All rights reserved.</string>
     <key>LSMinimumSystemVersion</key><string>13.0</string>
     <key>LSUIElement</key><true/>

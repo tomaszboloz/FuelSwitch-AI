@@ -22,6 +22,37 @@ private struct StubOAuth: OAuthProvider {
     func refresh(refreshToken: String) async throws -> Tokens { try result.get() }
 }
 
+private actor RotatingOAuth: OAuthProvider {
+    nonisolated let requiredPort: UInt16 = 0
+    private(set) var calls = 0
+    nonisolated func authorizationURL(pkce: PKCE, redirectURI: String) -> URL { URL(string: "https://example.invalid")! }
+    func exchange(code: String, pkce: PKCE, redirectURI: String) async throws -> Tokens { throw OAuthError.invalidGrant }
+    func refresh(refreshToken: String) async throws -> Tokens {
+        calls += 1
+        try await Task.sleep(for: .milliseconds(30))
+        return Tokens(accessToken: "rotated-access", refreshToken: "rotated-refresh", expiresAt: .distantFuture, idToken: "new-id-token")
+    }
+}
+
+@Test func pollingAndSwitchingShareRotationAndKeepTheNewIdToken() async throws {
+    let directory = try temporaryDirectory()
+    defer { try? FileManager.default.removeItem(at: directory) }
+    let store = AccountStore(directory: directory)
+    let old = account(expiresAt: .distantPast)
+    try store.upsert(old)
+    let oauth = RotatingOAuth()
+    let poller = Poller(store: store, providers: [.anthropic: StubUsage(result: .success(usage(1)))], oauth: [.anthropic: oauth])
+    async let value = poller.refresh(account: old)
+    async let selected = poller.accountForSwitch(old)
+    _ = await value
+    let fresh = try await selected
+    #expect(await oauth.calls == 1)
+    #expect(fresh.idToken == "new-id-token")
+    #expect(try store.load().first?.refreshToken == "rotated-refresh")
+    #expect(try await poller.accountForSwitch(old).accessToken == "rotated-access")
+    #expect(await oauth.calls == 1)
+}
+
 /// A provider that counts its calls — the evidence that an account inside a
 /// backoff window is not queried again by `refreshAll()`.
 private actor CountingProvider: UsageProvider {

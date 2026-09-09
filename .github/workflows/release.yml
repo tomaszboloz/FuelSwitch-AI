@@ -89,6 +89,9 @@ jobs:
       contents: write
 
     steps:
+      - name: Check out release notes
+        uses: actions/checkout@v5
+
       - name: Download release artifacts
         uses: actions/download-artifact@v4
         with:
@@ -112,4 +115,5 @@ jobs:
             dist/${{ needs.provenance.outputs.provenance-name }}
           draft: false
           prerelease: false
-          generate_release_notes: true
+          body_path: RELEASE_NOTES.md
+          generate_release_notes: false

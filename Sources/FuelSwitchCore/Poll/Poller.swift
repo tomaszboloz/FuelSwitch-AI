@@ -13,6 +13,7 @@ public actor Poller {
     private let store: AccountStore
     private let providers: [Provider: any UsageProvider]
     private let oauth: [Provider: any OAuthProvider]
+    private let codexAuthURL: URL?
     /// The clock, injected from outside — plain `Date()` in production, a
     /// controllable clock in tests, so backoff windows measured in minutes can
     /// be moved without a real `Task.sleep`.
@@ -28,16 +29,65 @@ public actor Poller {
     /// has just started returning 429) would otherwise have a floor of zero and
     /// every forced refresh would hammer it.
     private var lastAttempt: [String: Date] = [:]
+    private var credentialRefreshes: [String: Task<Account, Error>] = [:]
+    private enum CredentialError: Error { case saveFailed, removed }
+
+    /// Switching and polling share one token refresh per account. Always load
+    /// the latest stored tokens so a UI snapshot cannot restore a rotated token.
+    public func accountForSwitch(_ account: Account) async throws -> Account {
+        if let task = credentialRefreshes[account.id] { return try await task.value }
+        let store = self.store
+        let provider = oauth[account.provider]
+        let codexAuthURL = self.codexAuthURL
+        let now = await clock()
+        // Recheck after the injected clock's suspension point.
+        if let task = credentialRefreshes[account.id] { return try await task.value }
+        let task = Task<Account, Error> {
+            guard var current = try store.load().first(where: { $0.id == account.id }) else {
+                throw CredentialError.removed
+            }
+            if current.provider == .openai, let codexAuthURL,
+               let newer = try CLISwitcher.newerCodexCredentials(for: current, url: codexAuthURL) {
+                current = newer
+                try store.upsert(current)
+            }
+            guard !current.needsReauth else { throw OAuthError.invalidGrant }
+            if Self.needsTokenRefresh(account: current, now: now) || (current.provider == .openai && current.idToken == nil) {
+                guard let provider else { throw OAuthError.invalidGrant }
+                let previous = current
+                let tokens = try await provider.refresh(refreshToken: current.refreshToken)
+                current.accessToken = tokens.accessToken
+                current.refreshToken = tokens.refreshToken
+                current.expiresAt = tokens.expiresAt
+                if let idToken = tokens.idToken { current.idToken = idToken }
+                current.needsReauth = false
+                // An account removed during a network request must stay removed.
+                guard try store.load().contains(where: { $0.id == current.id }) else {
+                    throw CredentialError.removed
+                }
+                do { try store.upsert(current) } catch { throw CredentialError.saveFailed }
+                if current.provider == .openai, let codexAuthURL {
+                    try CLISwitcher.syncCodexRefresh(from: previous, to: current, url: codexAuthURL)
+                }
+            }
+            return current
+        }
+        credentialRefreshes[account.id] = task
+        defer { credentialRefreshes[account.id] = nil }
+        return try await task.value
+    }
 
     public init(
         store: AccountStore,
         providers: [Provider: any UsageProvider],
         oauth: [Provider: any OAuthProvider] = [:],
+        codexAuthURL: URL? = nil,
         clock: @escaping @Sendable () async -> Date = { Date() }
     ) {
         self.store = store
         self.providers = providers
         self.oauth = oauth
+        self.codexAuthURL = codexAuthURL
         self.clock = clock
     }
 
@@ -82,28 +132,18 @@ public actor Poller {
     public func refresh(account: Account, interval: TimeInterval = Poller.baseInterval) async -> AccountUsage {
         var current = account
 
-        if Self.needsTokenRefresh(account: current, now: await clock()), let provider = oauth[account.provider] {
+        if oauth[account.provider] != nil {
             do {
-                let tokens = try await provider.refresh(refreshToken: current.refreshToken)
-                current.accessToken = tokens.accessToken
-                current.refreshToken = tokens.refreshToken
-                current.expiresAt = tokens.expiresAt
-                current.needsReauth = false
-                do {
-                    try store.upsert(current)
-                } catch {
-                    // Anthropic rotates the refresh token on EVERY refresh, so
-                    // the old one is already dead on the server. Failing to
-                    // store the new one means that in a moment we will hold no
-                    // working token at all, which is itself a failure deserving
-                    // backoff and a diagnosis in the row — not a silent `try?`
-                    // that would hide it.
-                    await increaseBackoff(account.id)
-                    return await lastValueOr(account: account, description: "Could not save the renewed token.")
-                }
+                current = try await accountForSwitch(account)
+            } catch CredentialError.saveFailed {
+                await increaseBackoff(account.id)
+                return await lastValueOr(account: account, description: "Could not save the renewed token.")
             } catch OAuthError.invalidGrant {
-                current.needsReauth = true
-                try? store.upsert(current)
+                if var stored = try? store.load().first(where: { $0.id == account.id }) {
+                    stored.needsReauth = true
+                    try? store.upsert(stored)
+                }
+                await increaseBackoff(account.id)
                 return await lastValueOr(account: account, description: "Rejected by the provider. Add this account again to renew it.")
             } catch {
                 await increaseBackoff(account.id)

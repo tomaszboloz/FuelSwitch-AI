@@ -1,5 +1,6 @@
 import Foundation
 import Security
+import Darwin
 
 /// Detects the currently active account in CLI tools (Claude Code and Codex)
 /// and allows switching between connected accounts by updating CLI credentials.
@@ -15,9 +16,14 @@ public enum CLISwitcher {
     }
 
     public static var codexAuthURL: URL {
-        FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent(".codex")
-            .appendingPathComponent("auth.json")
+        codexHome(environment: ProcessInfo.processInfo.environment).appendingPathComponent("auth.json")
+    }
+
+    public static func codexHome(environment: [String: String]) -> URL {
+        if let path = environment["CODEX_HOME"], !path.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return URL(fileURLWithPath: NSString(string: path).expandingTildeInPath, isDirectory: true)
+        }
+        return FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".codex")
     }
 
     /// The real Gemini CLI's active-account pointer: `{"active": "<email>",
@@ -114,17 +120,16 @@ public enum CLISwitcher {
 
     /// Reads active Codex email or account_id from `~/.codex/auth.json`.
     public static func activeCodexEmail(url: URL = codexAuthURL, knownAccounts: [Account] = []) -> String? {
-        guard FileManager.default.fileExists(atPath: url.path) else { return nil }
-        guard let data = try? Data(contentsOf: url),
+        guard let data = try? CodexAuthStore(url: url).load(),
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
               let tokens = json["tokens"] as? [String: Any]
         else {
             return nil
         }
 
-        // 1. Try reading profile.email from access_token (standard in Codex tokens)
-        if let accessToken = tokens["access_token"] as? String {
-            let claims = JWT.claims(accessToken)
+        // Codex displays identity from the ID token, not the access token.
+        if let idToken = tokens["id_token"] as? String {
+            let claims = JWT.claims(idToken)
             if let profile = claims["https://api.openai.com/profile"] as? [String: Any],
                let email = profile["email"] as? String {
                 return email
@@ -134,9 +139,9 @@ public enum CLISwitcher {
             }
         }
 
-        // 2. Try id_token claims
-        if let idToken = tokens["id_token"] as? String {
-            let claims = JWT.claims(idToken)
+        // Fallback for older FuelSwitch credentials lacking an ID token.
+        if let accessToken = tokens["access_token"] as? String {
+            let claims = JWT.claims(accessToken)
             if let profile = claims["https://api.openai.com/profile"] as? [String: Any],
                let email = profile["email"] as? String {
                 return email
@@ -208,9 +213,9 @@ public enum CLISwitcher {
                 old.append(previousActive)
             }
         }
+        old.removeAll { $0.lowercased() == account.email.lowercased() }
         let accountsDict: [String: Any] = ["active": account.email, "old": old]
         let accountsData = try JSONSerialization.data(withJSONObject: accountsDict, options: [.prettyPrinted, .sortedKeys])
-        try atomicWrite(data: accountsData, to: activeAccountURL, permissions: 0o600)
 
         var credsDict: [String: Any] = [
             "access_token": account.accessToken,
@@ -221,7 +226,15 @@ public enum CLISwitcher {
         ]
         if let idToken = account.idToken { credsDict["id_token"] = idToken }
         let credsData = try JSONSerialization.data(withJSONObject: credsDict, options: [.prettyPrinted, .sortedKeys])
+        let previousCreds = FileManager.default.fileExists(atPath: oauthCredsURL.path) ? try Data(contentsOf: oauthCredsURL) : nil
+        try FileManager.default.createDirectory(at: oauthCredsURL.deletingLastPathComponent(), withIntermediateDirectories: true)
         try atomicWrite(data: credsData, to: oauthCredsURL, permissions: 0o600)
+        do {
+            try atomicWrite(data: accountsData, to: activeAccountURL, permissions: 0o600)
+        } catch {
+            try restore(previousCreds, at: oauthCredsURL)
+            throw error
+        }
     }
 
     /// Updates `~/.claude.json` and the macOS Keychain credential `Claude Code-credentials`.
@@ -240,6 +253,7 @@ public enum CLISwitcher {
         let directory = url.deletingLastPathComponent()
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
 
+        let previousData = FileManager.default.fileExists(atPath: url.path) ? try Data(contentsOf: url) : nil
         var json: [String: Any] = [:]
         if FileManager.default.fileExists(atPath: url.path) {
             let data = try Data(contentsOf: url)
@@ -249,7 +263,7 @@ public enum CLISwitcher {
             json = existing
         }
 
-        var oauthAccount = (json["oauthAccount"] as? [String: Any]) ?? [:]
+        var oauthAccount: [String: Any] = [:]
         oauthAccount["emailAddress"] = account.email
         if let organizationName = account.organizationName {
             oauthAccount["organizationName"] = organizationName
@@ -257,53 +271,86 @@ public enum CLISwitcher {
             oauthAccount.removeValue(forKey: "organizationName")
         }
         json["oauthAccount"] = oauthAccount
+        json.removeValue(forKey: "cachedUsageUtilization")
 
         let updatedData = try JSONSerialization.data(withJSONObject: json, options: [.prettyPrinted, .sortedKeys])
         try atomicWrite(data: updatedData, to: url, permissions: 0o600)
 
         // The keychain is the credential source used by Claude Code.
-        try keychainUpdater(account)
+        do {
+            try keychainUpdater(account)
+        } catch {
+            try restore(previousData, at: url)
+            throw error
+        }
     }
 
     /// Updates `~/.codex/auth.json` with the account's tokens.
     public static func switchCodex(to account: Account, url: URL = codexAuthURL) throws {
-        let dir = url.deletingLastPathComponent()
-        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        try CodexAuthStore(url: url).save(Self.codexAuthData(for: account))
+    }
 
-        var json: [String: Any] = [:]
-        if FileManager.default.fileExists(atPath: url.path),
-           let existingData = try? Data(contentsOf: url),
-           let existing = (try? JSONSerialization.jsonObject(with: existingData)) as? [String: Any] {
-            json = existing
+    public static func validateCodexSwitch(to account: Account, url: URL = codexAuthURL) throws {
+        _ = try codexAuthData(for: account)
+        _ = try CodexAuthStore(url: url).mode()
+    }
+
+    /// Adopt tokens rotated by Codex itself, but only for this exact identity.
+    static func newerCodexCredentials(for account: Account, url: URL) throws -> Account? {
+        guard let data = try CodexAuthStore(url: url).load(),
+              let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+              json["auth_mode"] as? String == "chatgpt",
+              let tokens = json["tokens"] as? [String: String],
+              tokens["account_id"] == account.accountId,
+              let access = tokens["access_token"], let refresh = tokens["refresh_token"],
+              let idToken = tokens["id_token"],
+              let expiry = JWT.claims(access)["exp"] as? Double,
+              expiry > account.expiresAt.timeIntervalSince1970 else { return nil }
+        var updated = account
+        updated.accessToken = access
+        updated.refreshToken = refresh
+        updated.idToken = idToken
+        updated.expiresAt = Date(timeIntervalSince1970: expiry)
+        updated.needsReauth = false
+        _ = try codexAuthData(for: updated)
+        return updated
+    }
+
+    /// Do not undo an external account switch while a token refresh was in flight.
+    static func syncCodexRefresh(from old: Account, to updated: Account, url: URL) throws {
+        guard let data = try CodexAuthStore(url: url).load(),
+              let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+              json["auth_mode"] as? String == "chatgpt",
+              let tokens = json["tokens"] as? [String: String],
+              tokens["access_token"] == old.accessToken,
+              tokens["account_id"] == old.accountId else { return }
+        try switchCodex(to: updated, url: url)
+    }
+
+    /// Build a fresh identity; never merge token or API-key fields from the
+    /// previously signed-in account. Codex requires an id_token to deserialize.
+    static func codexAuthData(for account: Account) throws -> Data {
+        guard account.provider == .openai, !account.needsReauth,
+              !account.accessToken.isEmpty, !account.refreshToken.isEmpty,
+              let accountId = account.accountId, !accountId.isEmpty,
+              let idToken = account.idToken, !idToken.isEmpty else {
+            throw OAuthError.incompleteCodexIdentity
         }
-
-        json["auth_mode"] = "chatgpt"
-
-        var tokensDict: [String: Any] = (json["tokens"] as? [String: Any]) ?? [:]
-        tokensDict["access_token"] = account.accessToken
-        tokensDict["refresh_token"] = account.refreshToken
-        if let accountId = account.accountId {
-            tokensDict["account_id"] = accountId
+        let claims = JWT.claims(idToken)
+        let profile = claims["https://api.openai.com/profile"] as? [String: Any]
+        let email = claims["email"] as? String ?? profile?["email"] as? String
+        let auth = claims["https://api.openai.com/auth"] as? [String: Any]
+        guard email?.lowercased() == account.email.lowercased(),
+              (auth?["chatgpt_account_id"] as? String).map({ $0 == accountId }) ?? true else {
+            throw OAuthError.incompleteCodexIdentity
         }
-        if let idToken = account.idToken {
-            tokensDict["id_token"] = idToken
-        } else {
-            // If the account has no idToken cached, do NOT keep another account's old id_token
-            // Only keep it if its claims match this account's email/accountId
-            if let oldIdToken = tokensDict["id_token"] as? String {
-                let claims = JWT.claims(oldIdToken)
-                let email = claims["email"] as? String
-                if email?.lowercased() != account.email.lowercased() {
-                    tokensDict.removeValue(forKey: "id_token")
-                }
-            }
-        }
-
-        json["tokens"] = tokensDict
-        json["last_refresh"] = ISO8601DateFormatter().string(from: Date())
-
-        let data = try JSONSerialization.data(withJSONObject: json, options: [.prettyPrinted, .sortedKeys])
-        try atomicWrite(data: data, to: url, permissions: 0o600)
+        let json: [String: Any] = [
+            "auth_mode": "chatgpt", "OPENAI_API_KEY": NSNull(),
+            "tokens": ["access_token": account.accessToken, "refresh_token": account.refreshToken,
+                       "id_token": idToken, "account_id": accountId],
+            "last_refresh": ISO8601DateFormatter().string(from: Date())
+        ]
+        return try JSONSerialization.data(withJSONObject: json, options: [.prettyPrinted, .sortedKeys])
     }
 
     // MARK: - Keychain Helper
@@ -386,18 +433,25 @@ public enum CLISwitcher {
 
     // MARK: - File I/O Helper
 
-    private static func atomicWrite(data: Data, to url: URL, permissions: Int16) throws {
+    private static func restore(_ data: Data?, at url: URL) throws {
+        if let data { try atomicWrite(data: data, to: url, permissions: 0o600) }
+        else if FileManager.default.fileExists(atPath: url.path) { try FileManager.default.removeItem(at: url) }
+    }
+
+    static func atomicWrite(data: Data, to url: URL, permissions: Int16) throws {
         let dir = url.deletingLastPathComponent()
         let tempURL = dir.appendingPathComponent(".\(url.lastPathComponent).tmp.\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: tempURL) }
 
-        try data.write(to: tempURL, options: .atomic)
-        try FileManager.default.setAttributes(
-            [.posixPermissions: NSNumber(value: permissions)],
-            ofItemAtPath: tempURL.path
-        )
+        let descriptor = Darwin.open(tempURL.path, O_WRONLY | O_CREAT | O_EXCL, mode_t(permissions))
+        guard descriptor >= 0 else { throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO) }
+        let handle = FileHandle(fileDescriptor: descriptor, closeOnDealloc: true)
+        try handle.write(contentsOf: data)
+        try handle.synchronize()
+        try handle.close()
 
         if FileManager.default.fileExists(atPath: url.path) {
-            _ = try FileManager.default.replaceItemAt(url, withItemAt: tempURL)
+            _ = try FileManager.default.replaceItemAt(url, withItemAt: tempURL, options: .usingNewMetadataOnly)
         } else {
             try FileManager.default.moveItem(at: tempURL, to: url)
         }

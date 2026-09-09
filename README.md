@@ -95,10 +95,18 @@ The `Makefile` has a full `make release` target (sign, notarize, staple, package
 | CLI | Config file | Keychain |
 | --- | --- | --- |
 | Claude Code | `~/.claude.json` | `Claude Code-credentials` |
-| Codex | `~/.codex/auth.json` | — (file-based) |
+| Codex | `$CODEX_HOME/auth.json` (defaults to `~/.codex/auth.json`) | `Codex Auth` when direct `keyring` / `auto` storage is configured |
 | Gemini CLI | `~/.gemini/google_accounts.json` | `~/.gemini/oauth_creds.json` (file-based) |
 
-Switching an account swaps these files/Keychain entries atomically, so a running CLI session that re-reads its credentials picks up the new identity without a restart. Every switch is logged locally so you can see which account was active at any point in time.
+Each credential file is replaced atomically. Claude metadata is rolled back if its Keychain update fails; Gemini restores its previous credentials if updating the active-account pointer fails. Process crashes between writes are not a cross-file transaction. Running CLI sessions may cache their login and need to be restarted.
+
+### Codex desktop account sync (v1.1.0)
+
+Enable **Settings → Sync account with the Codex app** to apply account switches to the macOS Codex application as well. This setting is **off by default**. It applies to manual switches, launcher links and automatic quota-based switches. FuelSwitch prepares the latest credentials, requests a normal quit, waits for Codex to exit, saves the selected login and reopens the app. A refused or timed-out quit stops the switch; FuelSwitch never force-kills Codex. Restarting may interrupt running tasks.
+
+Codex must use the same `CODEX_HOME` and local ChatGPT OAuth credential store as FuelSwitch. Separate ChatGPT-hosted or externally managed login sessions are not changed by rewriting local Codex credentials. Explicit ephemeral/encrypted credential configurations are rejected instead of reporting a successful switch to an ignored file. Existing terminal sessions are not restarted.
+
+Switching now requires a complete matching Codex identity, clears previous API-key/token fields, refreshes expiring credentials and preserves rotated ID tokens. If an older saved account has no usable ID token, sign in to that account again. Token refreshes shared by polling and switching are coalesced. Newer credentials rotated by Codex itself are adopted for the same account; refreshing a different account does not overwrite the active login.
 
 ## Floating desktop widget
 
@@ -183,7 +191,7 @@ Only to poll each provider's own usage API/endpoint and to check GitHub Releases
 ### Account switching
 
 **7. How does account switching actually work?**
-FuelSwitch AI swaps the credential files/Keychain entries each CLI reads on startup or refresh: `~/.claude.json` plus the `Claude Code-credentials` Keychain item for Claude Code, `~/.codex/auth.json` for Codex, and `~/.gemini/google_accounts.json` + `~/.gemini/oauth_creds.json` for Gemini CLI. Switching is atomic, so a running session picks up the new identity without needing a terminal restart in most cases.
+FuelSwitch AI updates each provider's credential files or Keychain entries. Codex follows `CODEX_HOME` and its supported storage mode. Running CLI sessions may need to restart because authentication can be cached. For the macOS Codex app, enable the separate desktop synchronization setting to gracefully restart it after an account switch. See [Codex desktop account sync](#codex-desktop-account-sync-v110) for requirements and limitations.
 
 **8. Can I switch accounts without opening the app?**
 Yes, two ways: a generated per-profile shell snippet (e.g. `fs-work`, `fs-personal`) you can alias or run directly, and a `fuelswitch://` URL scheme you can trigger from a script, a Raycast/Alfred workflow, or a keyboard-launcher of your choice.

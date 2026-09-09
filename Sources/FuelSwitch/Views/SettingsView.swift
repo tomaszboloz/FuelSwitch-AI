@@ -276,6 +276,19 @@ struct SettingsView: View {
                         }
                     }
 
+                    settingsCard(title: model.t(.codexDesktopSyncTitle), icon: "desktopcomputer") {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Toggle(model.t(.codexDesktopSyncTitle), isOn: $model.codexDesktopSyncEnabled)
+                                .disabled(model.switchingProviders.contains(.openai))
+                                .toggleStyle(.switch)
+                                .font(.system(size: 11))
+                            Text(model.t(.codexDesktopSyncHelp))
+                                .font(.system(size: 10))
+                                .foregroundStyle(FuelSwitchTheme.textSecondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+
                     // SECTION 3C: Auto-Switch
                     settingsCard(title: model.t(.autoSwitchTitle), icon: "arrow.triangle.swap") {
                         VStack(alignment: .leading, spacing: 10) {

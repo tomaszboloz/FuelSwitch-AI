@@ -39,6 +39,12 @@ public struct Preferences {
         self.defaults = defaults
     }
 
+    /// Opt-in: switching Codex also gracefully restarts the desktop app.
+    public var codexDesktopSyncEnabled: Bool {
+        get { defaults.bool(forKey: "codexDesktopSyncEnabled") }
+        nonmutating set { defaults.set(newValue, forKey: "codexDesktopSyncEnabled") }
+    }
+
     /// Theme preference: "system", "dark", or "light"
     public var appTheme: String {
         get { defaults.string(forKey: Self.appThemeKey) ?? "system" }

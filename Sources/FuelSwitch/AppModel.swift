@@ -14,6 +14,10 @@ final class AppModel: ObservableObject {
     @Published private(set) var activeClaudeEmail: String?
     @Published private(set) var activeCodexEmail: String?
     @Published private(set) var activeGeminiEmail: String?
+    @Published private(set) var switchingProviders: Set<Provider> = []
+    @Published var codexDesktopSyncEnabled = Preferences().codexDesktopSyncEnabled {
+        didSet { preferences.codexDesktopSyncEnabled = codexDesktopSyncEnabled }
+    }
 
     /// Theme preference: "system", "dark", or "light"
     @Published var appTheme: String = Preferences().appTheme {
@@ -370,7 +374,8 @@ final class AppModel: ObservableObject {
                 .anthropic: AnthropicOAuth(),
                 .openai: OpenAIOAuth(),
                 .gemini: GeminiOAuth(),
-            ]
+            ],
+            codexAuthURL: CLISwitcher.codexAuthURL
         )
         loadAccounts()
         startLoop()
@@ -459,14 +464,17 @@ final class AppModel: ObservableObject {
     }
 
     func switchTo(account: Account) {
+        guard !switchingProviders.contains(account.provider) else { return }
         autoDismissBannerTask?.cancel()
         // A manual switch always wins over auto-switch for a grace window —
         // otherwise the very next poll could immediately reverse the choice
         // the user just made by hand.
         lastManualSwitch[account.provider] = Date()
-        do {
-            try CLISwitcher.switch(to: account)
-            reloadActiveAccounts()
+        switchingProviders.insert(account.provider)
+        Task {
+          defer { switchingProviders.remove(account.provider) }
+          do {
+            try await applyAccountSwitch(account)
             loginState = .switched(account.provider, account.email)
             autoDismissBannerTask = Task { @MainActor [weak self] in
                 try? await Task.sleep(for: .seconds(5))
@@ -475,8 +483,27 @@ final class AppModel: ObservableObject {
                     self?.dismissLoginState()
                 }
             }
-        } catch {
-            loginState = .failed(account.provider, "Failed to switch CLI account: \(error.localizedDescription)")
+          } catch {
+            loginState = .failed(account.provider, switchErrorDescription(error))
+          }
+        }
+    }
+
+    private func switchErrorDescription(_ error: Error) -> String {
+        if error is CodexDesktopSync.SyncError { return t(.codexDesktopRestartFailed) }
+        if error is OAuthError { return t(.sessionExpired) }
+        return t(.operationFailed)
+    }
+
+    private func applyAccountSwitch(_ account: Account) async throws {
+        let syncDesktop = account.provider == .openai && codexDesktopSyncEnabled
+        // Validate credentials before asking a running desktop app to quit.
+        let current = try await poller.accountForSwitch(account)
+        if current.provider == .openai { try CLISwitcher.validateCodexSwitch(to: current) }
+        try await CodexDesktopSync.performSwitch(enabled: syncDesktop) {
+            try CLISwitcher.switch(to: current)
+            loadAccounts()
+            if let value = usage[current.id] { updateStatuslineCache(account: current, usage: value) }
         }
     }
 
@@ -781,7 +808,7 @@ final class AppModel: ObservableObject {
     /// dry, respecting the manual-switch grace window and the cooldown
     /// between automatic switches (see the properties above).
     private func checkAutoSwitch(provider: Provider) {
-        guard autoSwitchEnabled else { return }
+        guard autoSwitchEnabled, !switchingProviders.contains(provider) else { return }
         let now = Date()
         if let manual = lastManualSwitch[provider], now.timeIntervalSince(manual) < Self.manualSwitchGrace {
             return
@@ -804,9 +831,11 @@ final class AppModel: ObservableObject {
             activeEmail: activeEmail
         ) else { return }
 
-        do {
-            try CLISwitcher.switch(to: decision.to)
-            reloadActiveAccounts()
+        switchingProviders.insert(provider)
+        Task {
+          defer { switchingProviders.remove(provider) }
+          do {
+            try await applyAccountSwitch(decision.to)
             lastAutoSwitch[provider] = now
             loginState = .autoSwitched(provider, from: decision.from.email, to: decision.to.email)
             NotificationManager.postAutoSwitchNotification(
@@ -814,8 +843,10 @@ final class AppModel: ObservableObject {
                 body: String(format: t(.autoSwitchNotificationBody), decision.from.email, decision.to.email),
                 identifier: "autoswitch|\(provider.rawValue)|\(now.timeIntervalSince1970)"
             )
-        } catch {
-            loginState = .failed(provider, "Auto-switch failed: \(error.localizedDescription)")
+          } catch {
+            lastAutoSwitch[provider] = Date()
+            loginState = .failed(provider, switchErrorDescription(error))
+          }
         }
     }
 
