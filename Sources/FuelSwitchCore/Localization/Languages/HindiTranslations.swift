@@ -1,6 +1,7 @@
 extension Translations {
     static let hindiTable: [TranslationKey: String] = [
         .appName: "FuelSwitch AI",
+        .updateCheckFailed: "अपडेट की जाँच नहीं हो सकी। अपना कनेक्शन जाँचें और फिर से प्रयास करें।",
         .codexDesktopSyncTitle: "Codex ऐप के साथ खाता सिंक करें",
         .codexDesktopSyncHelp: "Codex खाता बदलते समय (स्वचालित बदलाव सहित) नया लॉगिन लोड करने के लिए ऐप सामान्य रूप से फिर शुरू होता है। चल रहा काम बाधित हो सकता है। Codex CLI वाला CODEX_HOME और स्थानीय OAuth लॉगिन आवश्यक है। डिफ़ॉल्ट रूप से बंद।",
         .codexDesktopRestartFailed: "Codex फिर शुरू नहीं हो सका। जाँचें कि ऐप स्थापित है या बंद करने की पुष्टि की प्रतीक्षा कर रहा है, फिर प्रयास करें।",

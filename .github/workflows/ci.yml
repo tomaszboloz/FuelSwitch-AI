@@ -39,5 +39,8 @@ jobs:
       - name: Run Swift Tests
         run: swift test --parallel
 
+      - name: Test update publication safeguards
+        run: python3 -m unittest discover -s scripts -p 'test_*.py'
+
       - name: Build Application Bundle
         run: make app

@@ -69,6 +69,7 @@ public enum FuelSwitchConstants {
 
     /// Where the app looks for a newer release.
     public static let latestReleaseURL: URL? = URL(string: "https://api.github.com/repos/tomaszboloz/FuelSwitch-AI/releases/latest")
+    public static let updateFeedURL: URL? = URL(string: "https://raw.githubusercontent.com/tomaszboloz/FuelSwitch-AI/main/appcast.xml")
 }
 
 public enum UsageError: Error, Equatable {

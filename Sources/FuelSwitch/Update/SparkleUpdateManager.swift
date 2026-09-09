@@ -2,9 +2,8 @@ import Sparkle
 
 /// Thin AppKit-adjacent glue around Sparkle's updater, matching the project's
 /// convention of keeping framework wiring untested and out of FuelSwitchCore.
-/// `UpdateChecker` (FuelSwitchCore) stays the always-on, side-effect-free "is
-/// there a newer release" check used by the manual button in Settings; this
-/// class owns the opt-in, unattended background check-and-install path that
+/// `UpdateChecker` (FuelSwitchCore) reads the same feed for in-app status; this
+/// class owns both manual installation and the opt-in background path that
 /// Sparkle itself downloads, verifies (EdDSA), and installs.
 @MainActor
 final class SparkleUpdateManager {
@@ -26,10 +25,15 @@ final class SparkleUpdateManager {
 
     init() {
         controller = SPUStandardUpdaterController(
-            startingUpdater: true,
+            startingUpdater: false,
             updaterDelegate: nil,
             userDriverDelegate: nil
         )
+    }
+
+    /// Start only after the saved check/download preferences have been applied.
+    func start() {
+        controller.startUpdater()
     }
 
     func checkForUpdates() {

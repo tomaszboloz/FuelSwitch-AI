@@ -96,6 +96,7 @@ public enum TranslationKey: String, Sendable, CaseIterable {
     case checkForUpdates = "check_for_updates"
     case checkingForUpdates = "checking_for_updates"
     case upToDate = "up_to_date"
+    case updateCheckFailed = "update_check_failed"
     case geminiSetupTitle = "gemini_setup_title"
     case geminiSetupHelp = "gemini_setup_help"
     case geminiClientIdLabel = "gemini_client_id_label"

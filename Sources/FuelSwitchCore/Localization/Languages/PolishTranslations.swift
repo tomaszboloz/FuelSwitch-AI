@@ -1,6 +1,7 @@
 extension Translations {
     static let polishTable: [TranslationKey: String] = [
         .appName: "FuelSwitch AI",
+        .updateCheckFailed: "Nie udało się sprawdzić aktualizacji. Sprawdź połączenie i spróbuj ponownie.",
         .codexDesktopSyncTitle: "Synchronizuj konto z aplikacją Codex",
         .codexDesktopSyncHelp: "Przy zmianie konta Codex (także automatycznej) uruchom aplikację Codex ponownie, aby wczytała nowe logowanie. Może to przerwać trwającą pracę. Wymaga tego samego CODEX_HOME i lokalnego logowania OAuth co Codex CLI. Domyślnie wyłączone.",
         .codexDesktopRestartFailed: "Nie udało się ponownie uruchomić Codex. Sprawdź, czy aplikacja jest zainstalowana lub czeka na potwierdzenie zamknięcia, i spróbuj ponownie.",

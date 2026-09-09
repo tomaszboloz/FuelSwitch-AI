@@ -1,30 +1,27 @@
-# FuelSwitch AI 1.1.0 — Codex desktop account sync
+# FuelSwitch AI 1.1.1 — Working automatic updates
 
-Account switching can now update the login used by the macOS Codex app. Enable **Settings → Sync account with the Codex app**. This is opt-in and off by default. When enabled, manual, launcher and automatic Codex switches gracefully quit and reopen Codex to reload the selected local OAuth login. Running tasks may be interrupted. Refused or timed-out quits are reported without force-killing the app.
+Fixes the updater reporting version 1.0.5 as current after a newer GitHub release was published.
 
-## Fixed gaps
+## Fixes
 
-- Codex credential replacement now requires a complete matching identity and removes credentials left by the previous account, including API keys and account IDs.
-- Respect `CODEX_HOME` and file/direct-Keychain credential storage. Refuse unsupported storage instead of claiming a successful write to an ignored file.
-- Use the latest saved tokens for switching, preserve refreshed ID tokens and coalesce simultaneous polling/switch refresh requests.
-- Adopt newer tokens rotated by Codex itself and avoid undoing an external account switch when persisting refreshed credentials.
-- Serialize account switches per provider and update the active account/statusline after a successful write.
-- Restore Claude metadata on a Keychain write failure; clear previous-account cached limits and metadata.
-- Write Gemini credentials before its active-account pointer and restore credentials on pointer failure.
-- Create switcher temporary credential files with owner-only permissions and clean them up on failure.
-- Translate the new settings and desktop restart error into all 12 supported languages.
+- In-app update status and Sparkle now read the same installable-release feed. A GitHub tag without a signed update is no longer a separate source of truth.
+- Failed network requests, HTTP errors, and malformed feeds show a retry message instead of “up to date”. The message is translated into all 12 languages.
+- Both manual check buttons offer installation through Sparkle. Update banners open the installer instead of a browser download.
+- Saved automatic-check/download preferences are applied before starting Sparkle. Automatic checks and downloads remain opt-in in Settings; Sparkle handles installation/relaunch.
+- ZIP packaging preserves Sparkle framework symlinks. The previous ZIP packaging expanded those links and failed strict code-signature verification after extraction.
+- Every release must have an EdDSA signature matching the existing bundled public key. CI verifies the extracted app, verifies the archive signature, and publishes the feed only after the exact ZIP is publicly downloadable.
+- Feed publication is automatic, retry-safe, and refuses to replace a newer build with an older release.
 
-## Compatibility
+## Updating
 
-Requires macOS 13 or newer. The release bundle includes Apple Silicon and Intel binaries. Desktop synchronization requires Codex to use the same local OAuth store and `CODEX_HOME`; it does not change a separate ChatGPT-hosted login. Open terminal sessions may need a restart. Multi-file rollback handles reported errors, not a process crash between writes.
+In FuelSwitch AI Settings, check for updates. Version 1.0.5 can use its existing Sparkle updater and trusted key to install this release once the signed feed has been published. Enable both automatic-check and automatic-download switches for background updates. Installation/relaunch follows Sparkle's normal prompts and quit-time behavior; running work is not forcibly terminated.
 
-The Sparkle feed remains on the last signed update until a matching EdDSA-signed distribution is published. This tag does not claim to publish a new signed Sparkle update.
-
-Build number: 7.
+Requires macOS 13 or newer; includes Apple Silicon and Intel binaries. Build number: 8.
 
 ## Verification
 
-- 240 tests passed across 19 suites, including the opt-in desktop lifecycle, refusal/rollback paths, credential rotation and localization completeness.
-- Codex CLI 0.153.0 accepted the generated login in an isolated temporary CODEX_HOME (synthetic credentials; no real account switch).
-- Universal macOS release build passed for arm64 and x86_64.
-- A live desktop account switch was not performed; visual inspection was unavailable because macOS UI-access permissions were pending.
+- 244 offline Swift tests across 19 suites passed locally; an additional opt-in test checks the live production feed from version 1.0.5.
+- 10 release-feed regression tests passed, covering lost symlinks, missing signatures, incompatible keys, tag mismatch, duplicate build numbers, retries, and out-of-order publication.
+- The release workflow additionally verifies the packaged app and the exact published archive before updating the live feed.
+
+The app remains ad-hoc code-signed, not Apple-notarized. Sparkle archive verification uses the existing EdDSA update key. Automated tests do not simulate a complete GUI installation on the user's running copy.

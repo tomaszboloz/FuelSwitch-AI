@@ -46,7 +46,7 @@ FuelSwitch AI is a native Swift/SwiftUI menu bar app built for engineers jugglin
 ### Alerts & integrations
 - **Threshold notifications** — native macOS notifications at 75/90/95% usage (configurable), per account and per reset window, so you're warned before you hit the wall, not after.
 - **Claude Code statusline integration** — installs a generated script into Claude Code's `statusLine` setting, showing Claude, Codex, and Gemini usage together in one line inside every Claude Code session, with local caching so it doesn't add latency to your prompt.
-- **Update check** — a single, read-only request to GitHub Releases compares the installed version against the latest tag using real semver ordering (via Sparkle), so it never nags you about a "newer" version you already have installed.
+- **Updates** — in-app status and Sparkle use the same signed-release feed. Failed checks show an error, not “up to date”. Manual checks open the installer; background checks and downloads can be enabled separately in Settings.
 
 ### Everything else
 - **Light, dark, and system themes.**

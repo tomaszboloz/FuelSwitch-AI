@@ -1,6 +1,7 @@
 extension Translations {
     static let koreanTable: [TranslationKey: String] = [
         .appName: "FuelSwitch AI",
+        .updateCheckFailed: "업데이트를 확인할 수 없습니다. 연결을 확인하고 다시 시도하세요.",
         .codexDesktopSyncTitle: "Codex 앱과 계정 동기화",
         .codexDesktopSyncHelp: "Codex 계정을 전환할 때(자동 전환 포함) 앱을 정상적으로 다시 시작하여 새 로그인 정보를 불러옵니다. 진행 중인 작업이 중단될 수 있습니다. Codex CLI와 동일한 CODEX_HOME 및 로컬 OAuth 로그인이 필요합니다. 기본적으로 꺼져 있습니다.",
         .codexDesktopRestartFailed: "Codex를 다시 시작할 수 없습니다. 앱이 설치되어 있는지 또는 종료 확인을 기다리고 있는지 확인한 후 다시 시도하세요.",

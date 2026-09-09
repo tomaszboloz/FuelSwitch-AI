@@ -1,6 +1,7 @@
 extension Translations {
     static let chineseTable: [TranslationKey: String] = [
         .appName: "FuelSwitch AI",
+        .updateCheckFailed: "无法检查更新。请检查网络连接后重试。",
         .codexDesktopSyncTitle: "与 Codex 应用同步账户",
         .codexDesktopSyncHelp: "切换 Codex 账户时（包括自动切换），正常重启应用以加载新的登录信息。这可能中断正在进行的工作。需要与 Codex CLI 使用相同的 CODEX_HOME 和本地 OAuth 登录。默认关闭。",
         .codexDesktopRestartFailed: "无法重启 Codex。请检查应用是否已安装或正在等待退出确认，然后重试。",

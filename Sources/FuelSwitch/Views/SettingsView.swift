@@ -522,6 +522,7 @@ struct SettingsView: View {
                                 }
                                 .buttonStyle(.plain)
                                 .foregroundStyle(FuelSwitchTheme.amber)
+                                .disabled(model.isCheckingForUpdate)
                                 Spacer()
                             }
                         }
@@ -560,6 +561,14 @@ struct SettingsView: View {
                                     Text(model.t(.upToDate))
                                         .font(.system(size: 9.5))
                                         .foregroundStyle(FuelSwitchTheme.textTertiary)
+                                } else if model.updateCheckFailed {
+                                    Text(model.t(.updateCheckFailed))
+                                        .font(.system(size: 9.5))
+                                        .foregroundStyle(FuelSwitchTheme.amber)
+                                } else if let update = model.availableUpdate {
+                                    Text(String(format: model.t(.versionAvailable), update.version))
+                                        .font(.system(size: 9.5))
+                                        .foregroundStyle(FuelSwitchTheme.amber)
                                 }
                                 Spacer()
                             }

@@ -256,19 +256,18 @@ final class AppModel: ObservableObject {
     }
 
     func openUpdate() {
-        guard let update = availableUpdate else { return }
-        NSWorkspace.shared.open(update.url)
+        sparkleUpdater.checkForUpdates()
     }
 
-    /// Checked at launch and every six hours after. GitHub allows sixty
-    /// unauthenticated calls an hour, so this is nowhere near anything, and a
-    /// failed check is silent by design.
+    /// Poll the installable feed at launch and every six hours. A failed
+    /// background check is silent and does not claim the app is current.
     private static let updateCheckInterval: TimeInterval = 6 * 3600
     private var lastUpdateCheck: Date?
     @Published private(set) var isCheckingForUpdate = false
     /// Set only by a manual check, so a silent background poll never pops an
     /// "up to date" message the user did not ask for.
     @Published private(set) var justConfirmedUpToDate = false
+    @Published private(set) var updateCheckFailed = false
 
     private func checkForUpdateIfDue() async {
         let now = Date()
@@ -276,7 +275,7 @@ final class AppModel: ObservableObject {
             return
         }
         lastUpdateCheck = now
-        guard let found = await UpdateChecker().check(currentVersion: currentVersion) else { return }
+        guard let found = try? await UpdateChecker().check(currentVersion: currentVersion) else { return }
         guard preferences.dismissedUpdateVersion != found.version else { return }
         availableUpdate = found
     }
@@ -287,16 +286,22 @@ final class AppModel: ObservableObject {
         guard !isCheckingForUpdate else { return }
         isCheckingForUpdate = true
         justConfirmedUpToDate = false
+        updateCheckFailed = false
+        availableUpdate = nil
         Task {
+            defer { isCheckingForUpdate = false }
             lastUpdateCheck = Date()
-            let found = await UpdateChecker().check(currentVersion: currentVersion)
-            isCheckingForUpdate = false
-            guard let found else {
-                justConfirmedUpToDate = true
-                return
+            do {
+                guard let found = try await UpdateChecker().check(currentVersion: currentVersion) else {
+                    justConfirmedUpToDate = true
+                    return
+                }
+                preferences.dismissedUpdateVersion = nil
+                availableUpdate = found
+                sparkleUpdater.checkForUpdates()
+            } catch {
+                updateCheckFailed = true
             }
-            preferences.dismissedUpdateVersion = nil
-            availableUpdate = found
         }
     }
 
@@ -325,7 +330,7 @@ final class AppModel: ObservableObject {
     /// Opens Sparkle's own update window regardless of the automatic-check
     /// toggle above — lets a user pull a real install without waiting.
     func checkForSparkleUpdateNow() {
-        sparkleUpdater.checkForUpdates()
+        checkForUpdateNow()
     }
 
     private let preferences = Preferences()
@@ -385,6 +390,7 @@ final class AppModel: ObservableObject {
         if usageHeatmapEnabled { loadUsageHeatmap() }
         sparkleUpdater.automaticallyChecksForUpdates = sparkleAutoCheckEnabled
         sparkleUpdater.automaticallyDownloadsUpdates = sparkleAutoDownloadEnabled
+        sparkleUpdater.start()
 
         // LocalizationManager is a separate ObservableObject reached through
         // `localization`, a computed property — not a stored, @Published

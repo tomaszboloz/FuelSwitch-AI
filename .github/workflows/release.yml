@@ -7,6 +7,10 @@ on:
 
 permissions: {}
 
+concurrency:
+  group: signed-release
+  cancel-in-progress: false
+
 jobs:
   build:
     name: Build & Package
@@ -35,7 +39,14 @@ jobs:
           fi
 
       - name: Run Tests
-        run: swift test
+        run: |
+          swift test
+          python3 -m unittest discover -s scripts -p 'test_*.py'
+
+      - name: Require Sparkle signing key
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+        run: test -n "$SPARKLE_PRIVATE_KEY" || { echo "SPARKLE_PRIVATE_KEY must be configured before releasing"; exit 1; }
 
       - name: Build Application Bundle
         run: make app
@@ -45,7 +56,18 @@ jobs:
           mkdir -p .build/dist
           ditto ".build/FuelSwitch AI.app" ".build/dist/FuelSwitch AI.app"
           hdiutil create -volname "FuelSwitch AI" -srcfolder ".build/dist" -ov -format UDZO ".build/FuelSwitch-AI.dmg"
-          cd .build && zip -r "FuelSwitch-AI.zip" "FuelSwitch AI.app"
+          ditto -c -k --sequesterRsrc --keepParent ".build/FuelSwitch AI.app" ".build/FuelSwitch-AI.zip"
+
+      - name: Verify packaged app and sign the exact update archive
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+        run: |
+          ditto -x -k .build/FuelSwitch-AI.zip .build/update-verification
+          APP=".build/update-verification/FuelSwitch AI.app"
+          codesign --verify --deep --strict "$APP"
+          SIGNATURE=$(printf '%s' "$SPARKLE_PRIVATE_KEY" | .build/artifacts/sparkle/Sparkle/bin/sign_update --ed-key-file - -p .build/FuelSwitch-AI.zip)
+          swift scripts/verify_update.swift .build/FuelSwitch-AI.zip "$SIGNATURE" "$APP/Contents/Info.plist"
+          python3 scripts/update_feed.py generate .build/FuelSwitch-AI.zip "$SIGNATURE" "$GITHUB_REF_NAME" .build/appcast.xml
 
       - name: Generate SHA-256 Checksums
         working-directory: .build
@@ -68,6 +90,7 @@ jobs:
             .build/FuelSwitch-AI.zip
             .build/FuelSwitch-AI.dmg.sha256
             .build/FuelSwitch-AI.zip.sha256
+            .build/appcast.xml
           if-no-files-found: error
 
   provenance:
@@ -112,8 +135,41 @@ jobs:
             dist/FuelSwitch-AI.zip
             dist/FuelSwitch-AI.dmg.sha256
             dist/FuelSwitch-AI.zip.sha256
+            dist/appcast.xml
             dist/${{ needs.provenance.outputs.provenance-name }}
           draft: false
           prerelease: false
           body_path: RELEASE_NOTES.md
           generate_release_notes: false
+
+      # Old installations read main/appcast.xml. Publish it only after the
+      # exact signed ZIP is publicly available, never merely when a tag exists.
+      - name: Verify publicly downloadable update
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          curl --fail --location --retry 5 --retry-all-errors --output published.zip "https://github.com/tomaszboloz/FuelSwitch-AI/releases/download/$RELEASE_TAG/FuelSwitch-AI.zip"
+          cmp published.zip dist/FuelSwitch-AI.zip
+
+      - name: Check out update channel
+        uses: actions/checkout@v5
+        with:
+          ref: main
+          path: update-channel
+
+      - name: Publish signed appcast without rolling back newer releases
+        working-directory: update-channel
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for attempt in 1 2 3; do
+            git pull --rebase origin main
+            python3 ../scripts/update_feed.py promote ../dist/appcast.xml appcast.xml
+            git add appcast.xml
+            if ! git diff --cached --quiet; then
+              git commit -m "chore: publish signed Sparkle feed for ${GITHUB_REF_NAME}"
+            fi
+            if git push origin HEAD:main; then exit 0; fi
+          done
+          echo "Could not publish appcast; rerun this job after resolving the branch conflict"
+          exit 1

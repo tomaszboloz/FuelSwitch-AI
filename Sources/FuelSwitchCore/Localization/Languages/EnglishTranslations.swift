@@ -1,6 +1,7 @@
 extension Translations {
     static let englishTable: [TranslationKey: String] = [
         .appName: "FuelSwitch AI",
+        .updateCheckFailed: "Unable to check for updates. Check your connection and try again.",
         .codexDesktopSyncTitle: "Sync account with the Codex app",
         .codexDesktopSyncHelp: "When switching Codex accounts (including automatic switches), gracefully restart the Codex app to load the new login. Running work may be interrupted. Uses the same CODEX_HOME and local OAuth login as Codex CLI. Off by default.",
         .codexDesktopRestartFailed: "Could not restart Codex. Check whether Codex is installed or waiting for you to confirm quitting, then try again.",
