@@ -58,7 +58,7 @@ Wiersz zaznaczony oznacza „oglądam”, a „Aktywne” oznacza konto używane
 
 ## Widget i menu bar
 
-Widget regular: 320 × minimum 180 pt; nazwa aktywnego konta, 5 h i tydzień, liczby i malejące paski. Compact: 240 × minimum 110 pt; „Codex · Praca”, „5 h 100% · tydzień 43%”, dwa krótkie paski. Jeśli tekst nie mieści się w danym języku, zwiększyć wysokość, nie usuwać liczb. Nazwa dostawcy i rodzaju okna zawsze jawna.
+Widget rozwinięty: podgląd 360 × 362 pt, trzy wiersze dostawców, 5 h i tydzień, liczby i malejące paski. **Compact to pojedynczy poziomy pasek**, nie ekran, dashboard ani miniaturowe główne okno. Podgląd dla trzech dostawców: 900 × 56 pt. Każdy segment pokazuje dostawcę i dwa limity, np. „5 h 100% · Tydz. 43%”. Dla mniejszej liczby dostawców szerokość maleje; wysokość pozostaje paskowa. Przy dłuższych tłumaczeniach zwiększyć szerokość segmentu lub dać jawny wybór dostawców; nie usuwać liczb ani zawijać do ekranu. Screenshoty nie renderują nazw kont. `compact-light.png` to osobny przykład wąskiego **głównego okna**, a pliki `widget-compact-bar-*.png` pokazują widget.
 
 NSStatusItem korzysta z monochromatycznego template symbolu paliwa na normalnym poziomie; poniżej progu może użyć `.systemOrange` i tekstu dostępności. Ikona Dock i favicon są brandingiem, a znak w menu jest uproszczonym symbolem stanu, nie miniaturą z metalicznymi refleksami. Jeśli wymagane jest absolutnie identyczne logo w każdej powierzchni, potrzebny jest osobny wektorowy wariant tego samego zbiornika dla 16–18 pt; nie skalować bezrefleksyjnie rastra 3D.
 

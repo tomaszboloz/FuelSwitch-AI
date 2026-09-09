@@ -1,4 +1,15 @@
-# FuelSwitch AI 1.1.1 — Working automatic updates
+# FuelSwitch AI 1.1.2 — Widget previews and documentation
+
+Build number: 9. Requires macOS 13 or newer; Apple Silicon and Intel.
+
+- Add separate anonymous previews of expanded desktop widgets in light and dark appearance.
+- Show the compact widget as a single horizontal bar with numeric limits for Claude, Codex and Gemini, not a smaller main window.
+- Distinguish the narrow main-window preview from the compact desktop widget in the README and design specification.
+- Include reproducible native AppKit preview source. Account names are omitted at the source, not blurred over real data.
+- Keep the native v2 design explicitly labeled as a proposal. This release does not claim to implement the proposed production UI.
+- Retain signed automatic updates introduced in 1.1.1; the release pipeline validates the package and publishes the signed appcast after upload.
+
+## Included from 1.1.1 — Working automatic updates
 
 Fixes the updater reporting version 1.0.5 as current after a newer GitHub release was published.
 
@@ -16,7 +27,7 @@ Fixes the updater reporting version 1.0.5 as current after a newer GitHub releas
 
 In FuelSwitch AI Settings, check for updates. Version 1.0.5 can use its existing Sparkle updater and trusted key to install this release once the signed feed has been published. Enable both automatic-check and automatic-download switches for background updates. Installation/relaunch follows Sparkle's normal prompts and quit-time behavior; running work is not forcibly terminated.
 
-Requires macOS 13 or newer; includes Apple Silicon and Intel binaries. Build number: 8.
+The automatic-update fix was introduced in build 8; this release advances the build number to 9.
 
 ## Verification
 

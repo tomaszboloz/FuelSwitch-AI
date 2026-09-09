@@ -9,6 +9,9 @@ Status: projekt i izolowany prototyp AppKit, nie zmiana produkcyjnego interfejsu
 - `png/`: rozmiary 16, 32, 64, 128, 256, 512 @1x i @2x. `FuelSwitch.iconset/`: standardowy zestaw iconutil; 64 px reprezentuje wpis 32@2x, bo osobny wpis icon_64x64 nie należy do standardowego schematu.
 - `main-light.png`, `main-dark.png`: render głównego okna AppKit, obszar treści 1200 × 800 pt, z dodatkowym natywnym titlebarem.
 - `compact-light.png`: render obszaru treści 800 × 600 pt, zwinięty sidebar i uproszczony toolbar.
+- `widget-expanded-light.png`, `widget-expanded-dark.png`: rozwinięty widget 360 × 362 pt.
+- `widget-compact-bar-light.png`, `widget-compact-bar-dark.png`: kompaktowy widget jako poziomy pasek 900 × 56 pt; nie mylić z wąskim oknem głównym.
+- `WidgetPreview.swift`: odtwarzalny render obu widgetów bez nazw kont i bez połączeń sieciowych.
 - `NativePreview.swift`: kompilowalny prototyp, bez OAuth, dostępu do kont i zmian ustawień. Kontrolki działają demonstracyjnie; nie implementuje całej poniższej specyfikacji.
 - `INTERACTIONS.md`: stany, skróty, bezpieczeństwo, lokalizacja i kryteria odbioru.
 

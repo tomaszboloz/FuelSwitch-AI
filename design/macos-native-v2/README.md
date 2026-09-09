@@ -6,6 +6,8 @@ Pakiet projektowy, bez podmiany produkcyjnego UI.
 - [Interakcje i stany](INTERACTIONS.md)
 - [Ikona ICNS](FuelSwitch.icns)
 - [Light](main-light.png), [dark](main-dark.png), [compact](compact-light.png)
+- Widget rozwinięty: [light](widget-expanded-light.png), [dark](widget-expanded-dark.png).
+- Widget kompaktowy — poziomy pasek, nie okno: [light](widget-compact-bar-light.png), [dark](widget-compact-bar-dark.png).
 - [Źródło prototypu AppKit](NativePreview.swift)
 
 Uruchomienie lokalnego podglądu:
@@ -20,6 +22,8 @@ Eksport makiet (ostatni argument: absolutny katalog wynikowy):
 ```sh
 rtk proxy /tmp/fuelswitch-native-preview --export /Volumes/Kingston/www/fuelswitch-ai/design/macos-native-v2
 rtk proxy bash design/macos-native-v2/export-icon.sh
+rtk proxy swiftc -swift-version 6 design/macos-native-v2/WidgetPreview.swift -o /tmp/fuelswitch-widget-preview
+rtk proxy /tmp/fuelswitch-widget-preview /Volumes/Kingston/www/fuelswitch-ai/design/macos-native-v2
 ```
 
 Podgląd nie loguje się do kont, nie korzysta z Keychain i nie wykonuje operacji OAuth. Teksty i wartości są demonstracyjne. AppKit renderuje kontrolki zgodnie z wersją macOS hosta; wygląd nie jest zamrożony na Big Sur. Ikona `.icns` realizuje styl Big Sur+, a nie nowy warstwowy format Icon Composer.

@@ -149,13 +149,29 @@ The proposed design uses system colors, San Francisco typography, native window 
 
 ![Native macOS design preview, dark, account names hidden](design/macos-native-v2/main-dark.png)
 
-### Compact window
+### Expanded desktop widget — light and dark
+
+Anonymous design previews of the floating widget, separate from the main application window.
+
+![Expanded widget preview, light, account names hidden](design/macos-native-v2/widget-expanded-light.png)
+
+![Expanded widget preview, dark, account names hidden](design/macos-native-v2/widget-expanded-dark.png)
+
+### Compact desktop widget — horizontal bar
+
+The compact widget is a **single narrow horizontal bar**, not a reduced main window. Each provider keeps its numeric remaining limits visible. No account names are rendered.
+
+![Compact widget bar preview, light](design/macos-native-v2/widget-compact-bar-light.png)
+
+![Compact widget bar preview, dark](design/macos-native-v2/widget-compact-bar-dark.png)
+
+### Narrow main window — not the compact widget
 
 ![Native macOS compact design preview, account names hidden](design/macos-native-v2/compact-light.png)
 
 [Download the proposed fuel-tank icon (.icns)](design/macos-native-v2/FuelSwitch.icns) · [Run the AppKit prototype](design/macos-native-v2/README.md)
 
-The icon and design are proposal assets; they do not silently replace the installed app. The current 1.1.1 release fixes signed automatic updates. See [release notes](RELEASE_NOTES.md) and [release procedure](docs/RELEASING.md).
+The icon and design are proposal assets; they do not silently replace the installed app. Version 1.1.2 updates release metadata and documentation, including both widget layouts; it retains the signed automatic-update fix from 1.1.1. See [release notes](RELEASE_NOTES.md) and [release procedure](docs/RELEASING.md).
 
 ## How FuelSwitch AI compares
 
