@@ -1,4 +1,4 @@
-# FuelSwitch AI — Claude Code, Codex & Gemini CLI Usage Widget + Account Switcher
+# ⛽ FuelSwitch AI — Claude Code, Codex & Gemini CLI Usage Widget + Account Switcher
 
 **A native macOS menu bar app and floating HUD widget that monitors Claude Code, Codex CLI, and Gemini CLI usage limits in real time — with 1-click account switching between multiple accounts per provider.**
 
