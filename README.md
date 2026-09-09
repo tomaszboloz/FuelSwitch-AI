@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Platform: macOS 13+](https://img.shields.io/badge/platform-macOS%2013%2B-black.svg)](https://apple.com)
 [![Swift](https://img.shields.io/badge/Swift-6.0-orange.svg)](https://www.swift.org)
-[![Tests: 229](https://img.shields.io/badge/tests-229%20passing-brightgreen.svg)](#testing)
+[![Tests](https://img.shields.io/badge/tests-244%20Swift%20%2B%2010%20release-brightgreen.svg)](#testing)
 [![Languages: 12](https://img.shields.io/badge/localized-12%20languages-informational.svg)](#localization)
 
 [Why](#why) • [Features](#features) • [Account switching](#cli-account-switching) • [Floating widget](#floating-desktop-widget) • [Installation](#installation) • [Settings](#settings-reference) • [FAQ](#faq) • [Architecture](#architecture) • [Security](#security) • [Contributing](#contributing)
@@ -33,14 +33,14 @@ FuelSwitch AI is a native Swift/SwiftUI menu bar app built for engineers jugglin
 - **Adaptive refresh** — shortens the poll interval automatically when it detects recent CLI activity, layered on top of your manually chosen base interval, so idle time doesn't burn API calls.
 
 ### Account management & switching
-- **1-click CLI account switching** — swap the active credentials for Claude Code (`~/.claude.json` + macOS Keychain), Codex (`~/.codex/auth.json`), and Gemini CLI (`~/.gemini/google_accounts.json` + `~/.gemini/oauth_creds.json`) without restarting the CLI, your terminal, or your editor session.
+- **CLI account switching** — replace the active local credentials for Claude Code, Codex, and Gemini CLI. Codex respects `CODEX_HOME` and supported file/Keychain stores. Existing processes may need to reload their login; opt-in Codex desktop synchronization gracefully restarts that application.
 - **Account nicknames** — label accounts `work`, `personal`, `client-a` instead of reading raw email addresses off the panel.
 - **Per-profile launcher scripts** — FuelSwitch generates shell snippets (e.g. `fs-work`, `fs-personal`) that switch the active CLI account straight from the terminal, or via a `fuelswitch://` URL scheme, with no need to open the app UI at all.
 - **Auto-switch on quota hit** — when the active account runs dry, automatically fail over to the best available same-provider account, with a cooldown to prevent flapping between two nearly-exhausted accounts. Opt-in, off by default.
 
 ### Floating desktop widget
 - **Always-on-top HUD** — a small, floating window that sits above other apps so usage is visible at all times, not hidden behind a menu bar click. Off by default, one toggle in Settings to enable.
-- **Expanded and compact layouts** — expanded shows per-provider bars with labels; compact collapses to a minimal glyph strip for tight screen real estate.
+- **Expanded and compact layouts** — both keep numeric remaining limits visible alongside provider labels and decreasing bars.
 - **Click-through positioning** — drag it to any corner or edge; it persists across app restarts and reboots.
 
 ### Alerts & integrations
@@ -51,7 +51,7 @@ FuelSwitch AI is a native Swift/SwiftUI menu bar app built for engineers jugglin
 ### Everything else
 - **Light, dark, and system themes.**
 - **12 languages, RTL-aware** — see [Localization](#localization).
-- **Universal binary** — one `lipo`-merged executable for both Apple Silicon and Intel, targeting macOS 13 Sonoma and newer, built on Combine/`ObservableObject` rather than the macOS 14-only Observation framework specifically so Intel Macs on macOS 13 aren't locked out.
+- **Universal binary** — one `lipo`-merged executable for both Apple Silicon and Intel, targeting macOS 13 Ventura and newer, built on Combine/`ObservableObject` rather than the macOS 14-only Observation framework specifically so Intel Macs on macOS 13 aren't locked out.
 - **Local-only storage** — all account data lives at `~/Library/Application Support/FuelSwitch/accounts.json` with `0600` permissions forced on. Nothing is sent to any FuelSwitch server, because there isn't one.
 
 ## Localization
@@ -135,17 +135,27 @@ The floating widget is the always-on-top HUD counterpart to the menu bar item. I
 
 ## Screenshots
 
-### Menu Bar Status Item
-![Menu Bar Status Item](Screenshots/screen-pasek-menu.png)
+### Native macOS v2 design preview
 
-### Main Application Panel
-![Main Application Panel](Screenshots/screen-ustawienia.png)
+These are **native AppKit prototype renders, not screenshots of the released 1.1.1 UI**. Account names are omitted at the source; percentages are demonstration data. The earlier screenshots have been replaced to avoid publishing outdated UI and incomplete account-name redactions.
 
-### Floating Desktop HUD — Expanded
-![Floating Desktop HUD Expanded](Screenshots/screen-wigdet.png)
+The proposed design uses system colors, San Francisco typography, native window chrome, toolbar controls and tables. Orange is reserved for the fuel-tank brand and low-fuel warnings. The [design system](design/macos-native-v2/DESIGN-SYSTEM.md) and [interaction specification](design/macos-native-v2/INTERACTIONS.md) distinguish implemented prototype behavior from the remaining production work.
 
-### Floating Desktop HUD — Compact
-![Floating Desktop HUD Compact](Screenshots/screen-kompakt.png)
+### Light appearance
+
+![Native macOS design preview, light, account names hidden](design/macos-native-v2/main-light.png)
+
+### Dark appearance
+
+![Native macOS design preview, dark, account names hidden](design/macos-native-v2/main-dark.png)
+
+### Compact window
+
+![Native macOS compact design preview, account names hidden](design/macos-native-v2/compact-light.png)
+
+[Download the proposed fuel-tank icon (.icns)](design/macos-native-v2/FuelSwitch.icns) · [Run the AppKit prototype](design/macos-native-v2/README.md)
+
+The icon and design are proposal assets; they do not silently replace the installed app. The current 1.1.1 release fixes signed automatic updates. See [release notes](RELEASE_NOTES.md) and [release procedure](docs/RELEASING.md).
 
 ## How FuelSwitch AI compares
 
@@ -162,7 +172,7 @@ There's a growing category of Claude/Codex/Gemini usage trackers on GitHub — C
 | Per-account threshold notifications | ✅ | Rarely | Sometimes | ❌ |
 | 12-language localized UI, RTL-aware | ✅ | ❌ | Rarely | ❌ |
 | Local-only storage, no telemetry server | ✅ | Usually | Usually | Usually |
-| Test coverage published in-repo | ✅ (229 tests) | Varies | Varies | Varies |
+| Test coverage published in-repo | ✅ (244 offline Swift + 10 release tests) | Varies | Varies | Varies |
 
 This table describes categories, not any single named competitor — the point is where FuelSwitch AI sits: it's the intersection of "native macOS widget" and "actual account switcher," which is a narrower list than either category alone.
 
@@ -276,7 +286,7 @@ Not in the prebuilt Releases build, since that requires an active Apple Develope
 ### Development & testing
 
 **32. Is FuelSwitch AI actively tested?**
-Yes — 229 tests across 30 test files in the `FuelSwitchCoreTests` target, covering account switching, OAuth/PKCE flows, usage polling, statusline generation, localization completeness across all 12 languages, and floating widget layout persistence. `FuelSwitchCore` has no UI dependencies, which is what makes it fully unit-testable.
+Yes — 244 offline Swift tests across 19 suites, 10 release-feed tests, and an opt-in live update-feed check. Coverage includes account switching, OAuth/PKCE flows, usage polling, statusline generation, localization keys across all 12 languages, widget layout persistence and update failures. `FuelSwitchCore` has no UI dependencies. These tests do not certify complete GUI accessibility or a full interactive installation.
 
 **33. How do I run the tests myself?**
 `swift test --parallel` from the repo root after cloning.
@@ -296,7 +306,7 @@ FuelSwitchCore   domain logic: Account/LimitWindow/AccountUsage models,
 FuelSwitch       SwiftUI menu bar UI, settings, AppKit floating HUD
 ```
 
-`FuelSwitchCore` has no UI dependencies and is covered by its own test target — 229 tests across 30 test files, including full localization-completeness checks across all 12 languages.
+`FuelSwitchCore` has no UI dependencies and is covered by its own test target — 244 offline Swift tests across 19 suites plus an opt-in live update check, including localization-key completeness across all 12 languages. Release publication has another 10 regression tests.
 
 ## Security
 
