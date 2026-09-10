@@ -151,6 +151,5 @@ extension Translations {
         .sparkleAutoCheckToggle: "在后台自动检查更新",
         .sparkleAutoDownloadToggle: "自动下载并安装更新",
         .sparkleExplanation: "使用 Sparkle 按其自身计划检查 GitHub Releases。下载内容会在安装前通过签名验证。默认关闭。",
-        .sparkleCheckNowButton: "立即检查"
     ]
 }

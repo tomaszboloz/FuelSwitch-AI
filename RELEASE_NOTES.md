@@ -1,38 +1,22 @@
-# FuelSwitch AI 1.1.2 — Widget previews and documentation
+# FuelSwitch AI 1.1.3 — Update settings fix
 
-Build number: 9. Requires macOS 13 or newer; Apple Silicon and Intel.
-
-- Add separate anonymous previews of expanded desktop widgets in light and dark appearance.
-- Show the compact widget as a single horizontal bar with numeric limits for Claude, Codex and Gemini, not a smaller main window.
-- Distinguish the narrow main-window preview from the compact desktop widget in the README and design specification.
-- Include reproducible native AppKit preview source. Account names are omitted at the source, not blurred over real data.
-- Keep the native v2 design explicitly labeled as a proposal. This release does not claim to implement the proposed production UI.
-- Retain signed automatic updates introduced in 1.1.1; the release pipeline validates the package and publishes the signed appcast after upload.
-
-## Included from 1.1.1 — Working automatic updates
-
-Fixes the updater reporting version 1.0.5 as current after a newer GitHub release was published.
+Build number: 10. Requires macOS 13 or newer; Apple Silicon and Intel.
 
 ## Fixes
 
-- In-app update status and Sparkle now read the same installable-release feed. A GitHub tag without a signed update is no longer a separate source of truth.
-- Failed network requests, HTTP errors, and malformed feeds show a retry message instead of “up to date”. The message is translated into all 12 languages.
-- Both manual check buttons offer installation through Sparkle. Update banners open the installer instead of a browser download.
-- Saved automatic-check/download preferences are applied before starting Sparkle. Automatic checks and downloads remain opt-in in Settings; Sparkle handles installation/relaunch.
-- ZIP packaging preserves Sparkle framework symlinks. The previous ZIP packaging expanded those links and failed strict code-signature verification after extraction.
-- Every release must have an EdDSA signature matching the existing bundled public key. CI verifies the extracted app, verifies the archive signature, and publishes the feed only after the exact ZIP is publicly downloadable.
-- Feed publication is automatic, retry-safe, and refuses to replace a newer build with an older release.
+- Removed the duplicate "Check Now" button from the Sparkle Automatic Updates card in Settings. It called the exact same check as the "Check for Updates" button directly below it, so Settings showed two update-check controls stacked on top of each other for no reason.
+- Added a real "Download" button next to the "Version X.X.X is available" message in Settings, matching the menu bar update banner. Previously, finding an available update in Settings only showed text with no action to take — installing required going to the menu bar banner instead, which was not obvious.
+- Removed the now-unused `checkForSparkleUpdateNow()` model method and its `sparkleCheckNowButton` localization key (all 12 languages) along with the deleted button.
+
+The Sparkle Automatic Updates card still holds the automatic-check and automatic-download toggles, plus the explanation text; it is no longer a second place to trigger a manual check. Manual checks and installs now live in one place.
 
 ## Updating
 
-In FuelSwitch AI Settings, check for updates. Version 1.0.5 can use its existing Sparkle updater and trusted key to install this release once the signed feed has been published. Enable both automatic-check and automatic-download switches for background updates. Installation/relaunch follows Sparkle's normal prompts and quit-time behavior; running work is not forcibly terminated.
-
-The automatic-update fix was introduced in build 8; this release advances the build number to 9.
+In FuelSwitch AI Settings, check for updates as before. When one is available, click "Download" to open Sparkle's installer — that is now the only button that starts an actual update.
 
 ## Verification
 
-- 244 offline Swift tests across 19 suites passed locally; an additional opt-in test checks the live production feed from version 1.0.5.
-- 10 release-feed regression tests passed, covering lost symlinks, missing signatures, incompatible keys, tag mismatch, duplicate build numbers, retries, and out-of-order publication.
-- The release workflow additionally verifies the packaged app and the exact published archive before updating the live feed.
+- 245 offline Swift tests across 19 suites passed locally.
+- Release build (`swift build`, universal arm64/x86_64) compiles clean with no warnings from this change.
 
-The app remains ad-hoc code-signed, not Apple-notarized. Sparkle archive verification uses the existing EdDSA update key. Automated tests do not simulate a complete GUI installation on the user's running copy.
+The app remains ad-hoc code-signed, not Apple-notarized. Automated tests do not simulate a complete GUI installation on the user's running copy.

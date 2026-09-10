@@ -327,12 +327,6 @@ final class AppModel: ObservableObject {
         }
     }
 
-    /// Opens Sparkle's own update window regardless of the automatic-check
-    /// toggle above — lets a user pull a real install without waiting.
-    func checkForSparkleUpdateNow() {
-        checkForUpdateNow()
-    }
-
     private let preferences = Preferences()
     private let store = AccountStore.default
     private let poller: Poller

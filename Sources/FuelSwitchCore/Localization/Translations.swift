@@ -173,7 +173,6 @@ public enum TranslationKey: String, Sendable, CaseIterable {
     case sparkleAutoCheckToggle = "sparkle_auto_check_toggle"
     case sparkleAutoDownloadToggle = "sparkle_auto_download_toggle"
     case sparkleExplanation = "sparkle_explanation"
-    case sparkleCheckNowButton = "sparkle_check_now_button"
 }
 
 public struct Translations {

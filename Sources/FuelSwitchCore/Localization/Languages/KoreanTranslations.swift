@@ -151,6 +151,5 @@ extension Translations {
         .sparkleAutoCheckToggle: "백그라운드에서 자동으로 업데이트 확인",
         .sparkleAutoDownloadToggle: "업데이트를 자동으로 다운로드 및 설치",
         .sparkleExplanation: "Sparkle을 사용하여 자체 일정에 따라 GitHub Releases를 확인합니다. 다운로드는 설치 전에 서명으로 검증됩니다. 기본적으로 꺼져 있습니다.",
-        .sparkleCheckNowButton: "지금 확인"
     ]
 }

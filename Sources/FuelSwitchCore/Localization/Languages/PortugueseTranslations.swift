@@ -151,6 +151,5 @@ extension Translations {
         .sparkleAutoCheckToggle: "Verificar atualizações automaticamente em segundo plano",
         .sparkleAutoDownloadToggle: "Baixar e instalar atualizações automaticamente",
         .sparkleExplanation: "Usa o Sparkle para verificar os GitHub Releases em sua própria programação. Os downloads são verificados com uma assinatura antes da instalação. Desativado por padrão.",
-        .sparkleCheckNowButton: "Verificar agora"
     ]
 }

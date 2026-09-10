@@ -512,19 +512,6 @@ struct SettingsView: View {
                                 .foregroundStyle(FuelSwitchTheme.textSecondary)
                                 .lineLimit(nil)
                                 .fixedSize(horizontal: false, vertical: true)
-
-                            HStack {
-                                Button {
-                                    model.checkForSparkleUpdateNow()
-                                } label: {
-                                    Text(model.t(.sparkleCheckNowButton))
-                                        .font(.system(size: 9.5, weight: .semibold))
-                                }
-                                .buttonStyle(.plain)
-                                .foregroundStyle(FuelSwitchTheme.amber)
-                                .disabled(model.isCheckingForUpdate)
-                                Spacer()
-                            }
                         }
                     }
 
@@ -569,6 +556,18 @@ struct SettingsView: View {
                                     Text(String(format: model.t(.versionAvailable), update.version))
                                         .font(.system(size: 9.5))
                                         .foregroundStyle(FuelSwitchTheme.amber)
+                                    Button {
+                                        model.openUpdate()
+                                    } label: {
+                                        Text(model.t(.download))
+                                            .font(.system(size: 9.5, weight: .bold))
+                                    }
+                                    .buttonStyle(.plain)
+                                    .foregroundStyle(FuelSwitchTheme.amber)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 2)
+                                    .background(FuelSwitchTheme.amber.opacity(0.15))
+                                    .clipShape(RoundedRectangle(cornerRadius: 4))
                                 }
                                 Spacer()
                             }

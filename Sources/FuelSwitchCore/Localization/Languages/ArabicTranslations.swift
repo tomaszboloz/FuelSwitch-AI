@@ -151,6 +151,5 @@ extension Translations {
         .sparkleAutoCheckToggle: "التحقق تلقائيًا من التحديثات في الخلفية",
         .sparkleAutoDownloadToggle: "تنزيل التحديثات وتثبيتها تلقائيًا",
         .sparkleExplanation: "يستخدم Sparkle للتحقق من GitHub Releases وفق جدوله الخاص. يتم التحقق من التنزيلات بتوقيع قبل التثبيت. معطّل افتراضيًا.",
-        .sparkleCheckNowButton: "التحقق الآن"
     ]
 }
