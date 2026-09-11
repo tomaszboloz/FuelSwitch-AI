@@ -3,6 +3,13 @@ import Foundation
 public enum TranslationKey: String, Sendable, CaseIterable {
     // General & Branding
     case appName = "app_name"
+    case interfaceTemplate = "interface_template"
+    case templateClassic = "template_classic"
+    case templateNative = "template_native"
+    case templateHelp = "template_help"
+    case openMainWindow = "open_main_window"
+    case searchAccounts = "search_accounts"
+    case editNickname = "edit_nickname"
     case tagline = "tagline"
     case ready = "ready"
     case active = "active"

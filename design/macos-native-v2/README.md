@@ -1,6 +1,6 @@
-# FuelSwitch AI — Native macOS v2
+# ⛽ FuelSwitch AI — Native macOS v2
 
-Pakiet projektowy, bez podmiany produkcyjnego UI.
+Archiwalny pakiet projektowy. Od 1.2.0 natywny wariant jest do wyboru w aplikacji, a ikona jest wspólna dla obu szablonów. Aktualny zakres i rendery produkcyjnych widoków: [system szablonów](../../docs/INTERFACE-TEMPLATES.md). Poniższe makiety pozostają osobnym prototypem.
 
 - [Design system](DESIGN-SYSTEM.md)
 - [Interakcje i stany](INTERACTIONS.md)
@@ -30,6 +30,6 @@ Podgląd nie loguje się do kont, nie korzysta z Keychain i nie wykonuje operacj
 
 ## Prompt ikony
 
-Użyto wbudowanego imagegen, nie CLI/API fallback. Wynik 1254 × 1254 z alfa przeskalowano systemowym `sips` do 1024 × 1024 i wariantów, a `iconutil` zbudował ICNS. Bez podmiany `Resources/AppIcon.icns`.
+Użyto wbudowanego imagegen, nie CLI/API fallback. Wynik 1254 × 1254 z alfa przeskalowano systemowym `sips` do 1024 × 1024 i wariantów, a `iconutil` zbudował ICNS. Od 1.2.0 `make icon` kopiuje zatwierdzony ICNS i PNG favicon do `Resources`.
 
 > Use case: stylized-concept. Create a production macOS Big Sur-style application icon for FuelSwitch AI, square 1024x1024. Single premium three-dimensional fuel storage tank / compact metal jerrycan with rounded body, integrated carry handle and short fuel cap, slightly isometric perspective, large readable silhouette. Brushed warm silver metal edges and an inset glass fuel-level window visibly filled about two-thirds with rich orange fuel. Restrained physical detailing, top-left soft studio light, polished edge highlights, subtle reflections and contact shadow. Background tile: orange gradient with extremely subtle fine grain, macOS continuous squircle shape with generous standard icon safe-area margins, genuinely transparent outside tile. Tank occupies most of tile but comfortable margins; no text, letters, numbers, logos, watermarks, extra objects, scene, mockup presentation or multiple icons. Deliver one beautifully finished app icon; readability at 32 pixels matters.

@@ -5,15 +5,36 @@ import FuelSwitchCore
 struct FuelSwitchApp: App {
     @StateObject private var model = AppModel()
 
+    init() {
+        if let index = CommandLine.arguments.firstIndex(of: "--render-previews"),
+           CommandLine.arguments.indices.contains(index + 1) {
+            do {
+                try TemplatePreviewRenderer.render(to: CommandLine.arguments[index + 1])
+                exit(0)
+            } catch {
+                fputs("Preview rendering failed: \(error)\n", stderr)
+                exit(1)
+            }
+        }
+    }
+
     var body: some Scene {
-        // One scene, and deliberately so. Adding an account used to open a
-        // second window because it needed a text field, and a menu bar panel
-        // never becomes the key window. Now there is nothing to type — the
-        // provider reports the account's email — so the sign-in runs straight
-        // from the panel and the whole class of focus bugs that window brought
-        // with it is gone.
+        // The classic panel stays the default. Native workspace and widgets
+        // observe this same model; closing a window does not stop monitoring.
         MenuBarExtra {
-            MenuContentView(model: model)
+            Group {
+                if model.interfaceTemplate == .native {
+                    VStack(spacing: 12) {
+                        Button(model.t(.openMainWindow)) { NativeWindowController.shared.show(model: model) }
+                            .keyboardShortcut("o")
+                        NativeWidgetView(model: model, onClose: {}, compactOverride: false, showsClose: false)
+                            .frame(width: 440, height: 350)
+                        Button(model.t(.quit)) { NSApplication.shared.terminate(nil) }
+                    }.padding(12)
+                } else {
+                    MenuContentView(model: model)
+                }
+            }
                 .onOpenURL { model.handleLauncherURL($0) }
         } label: {
             MenuBarIcon.label(for: model)

@@ -1,6 +1,6 @@
 # FuelSwitch AI — natywny macOS / projekt v2
 
-Status: projekt i izolowany prototyp AppKit, nie zmiana produkcyjnego interfejsu. Data: 9 września 2026. Platforma bazowa: macOS 13+. Interfejs jest systemowy; pomarańczowy identyfikuje markę i ostrzeżenie o paliwie, nie zastępuje preferowanego akcentu użytkownika.
+Status historyczny: projekt i izolowany prototyp AppKit z 9 września 2026. Od wersji 1.2.0 aplikacja zawiera opcjonalny szablon Native macOS oparty na tym projekcie oraz wspólną ikonę. Zakres faktycznej implementacji i rendery produkcyjnych widoków opisuje [dokumentacja szablonów](../../docs/INTERFACE-TEMPLATES.md). Poniższa specyfikacja zawiera również założenia przyszłościowe; nie jest listą ukończonych funkcji. Platforma bazowa: macOS 13+.
 
 ## Materiały
 

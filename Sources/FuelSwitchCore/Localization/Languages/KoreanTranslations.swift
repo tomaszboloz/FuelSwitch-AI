@@ -1,6 +1,13 @@
 extension Translations {
     static let koreanTable: [TranslationKey: String] = [
         .appName: "FuelSwitch AI",
+        .editNickname: "별명 편집",
+        .interfaceTemplate: "인터페이스 템플릿",
+        .templateClassic: "클래식 (기본값)",
+        .templateNative: "macOS 네이티브",
+        .templateHelp: "레이아웃을 즉시 변경합니다. 계정, 한도 및 모양 설정은 변경되지 않습니다.",
+        .openMainWindow: "FuelSwitch AI 열기",
+        .searchAccounts: "계정 검색",
         .updateCheckFailed: "업데이트를 확인할 수 없습니다. 연결을 확인하고 다시 시도하세요.",
         .codexDesktopSyncTitle: "Codex 앱과 계정 동기화",
         .codexDesktopSyncHelp: "Codex 계정을 전환할 때(자동 전환 포함) 앱을 정상적으로 다시 시작하여 새 로그인 정보를 불러옵니다. 진행 중인 작업이 중단될 수 있습니다. Codex CLI와 동일한 CODEX_HOME 및 로컬 OAuth 로그인이 필요합니다. 기본적으로 꺼져 있습니다.",

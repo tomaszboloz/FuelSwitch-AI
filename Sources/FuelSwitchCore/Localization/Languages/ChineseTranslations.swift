@@ -1,6 +1,13 @@
 extension Translations {
     static let chineseTable: [TranslationKey: String] = [
         .appName: "FuelSwitch AI",
+        .editNickname: "编辑昵称",
+        .interfaceTemplate: "界面模板",
+        .templateClassic: "经典（默认）",
+        .templateNative: "macOS 原生",
+        .templateHelp: "立即更改布局。账户、限额和外观设置保持不变。",
+        .openMainWindow: "打开 FuelSwitch AI",
+        .searchAccounts: "搜索账户",
         .updateCheckFailed: "无法检查更新。请检查网络连接后重试。",
         .codexDesktopSyncTitle: "与 Codex 应用同步账户",
         .codexDesktopSyncHelp: "切换 Codex 账户时（包括自动切换），正常重启应用以加载新的登录信息。这可能中断正在进行的工作。需要与 Codex CLI 使用相同的 CODEX_HOME 和本地 OAuth 登录。默认关闭。",

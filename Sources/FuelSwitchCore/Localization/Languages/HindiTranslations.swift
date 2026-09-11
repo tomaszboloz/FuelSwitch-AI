@@ -1,6 +1,13 @@
 extension Translations {
     static let hindiTable: [TranslationKey: String] = [
         .appName: "FuelSwitch AI",
+        .editNickname: "उपनाम बदलें",
+        .interfaceTemplate: "इंटरफ़ेस टेम्पलेट",
+        .templateClassic: "क्लासिक (डिफ़ॉल्ट)",
+        .templateNative: "नेटिव macOS",
+        .templateHelp: "लेआउट तुरंत बदलता है। खाते, सीमाएँ और दिखावट की सेटिंग नहीं बदलतीं।",
+        .openMainWindow: "FuelSwitch AI खोलें",
+        .searchAccounts: "खाते खोजें",
         .updateCheckFailed: "अपडेट की जाँच नहीं हो सकी। अपना कनेक्शन जाँचें और फिर से प्रयास करें।",
         .codexDesktopSyncTitle: "Codex ऐप के साथ खाता सिंक करें",
         .codexDesktopSyncHelp: "Codex खाता बदलते समय (स्वचालित बदलाव सहित) नया लॉगिन लोड करने के लिए ऐप सामान्य रूप से फिर शुरू होता है। चल रहा काम बाधित हो सकता है। Codex CLI वाला CODEX_HOME और स्थानीय OAuth लॉगिन आवश्यक है। डिफ़ॉल्ट रूप से बंद।",

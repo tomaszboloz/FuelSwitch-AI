@@ -1,6 +1,13 @@
 extension Translations {
     static let portugueseTable: [TranslationKey: String] = [
         .appName: "FuelSwitch AI",
+        .editNickname: "Editar apelido",
+        .interfaceTemplate: "Modelo de interface",
+        .templateClassic: "Clássico (padrão)",
+        .templateNative: "Nativo do macOS",
+        .templateHelp: "Altera o layout imediatamente. As contas, os limites e as configurações de aparência não mudam.",
+        .openMainWindow: "Abrir FuelSwitch AI",
+        .searchAccounts: "Pesquisar contas",
         .updateCheckFailed: "Não foi possível verificar atualizações. Verifique sua conexão e tente novamente.",
         .codexDesktopSyncTitle: "Sincronizar a conta com o aplicativo Codex",
         .codexDesktopSyncHelp: "Ao trocar a conta Codex (inclusive automaticamente), reinicia o aplicativo normalmente para carregar o novo login. O trabalho em andamento pode ser interrompido. Requer o mesmo CODEX_HOME e login OAuth local do Codex CLI. Desativado por padrão.",

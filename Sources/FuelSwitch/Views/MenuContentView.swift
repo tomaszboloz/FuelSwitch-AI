@@ -82,7 +82,7 @@ struct MenuContentView: View {
                 Circle()
                     .fill(FuelSwitchTheme.amber.opacity(0.18))
                     .frame(width: 28, height: 28)
-                Image(systemName: "bolt.fill")
+                BrandIcon(size: 28)
                     .font(.system(size: 14, weight: .bold))
                     .foregroundStyle(FuelSwitchTheme.amber)
             }
@@ -363,7 +363,7 @@ struct MenuContentView: View {
 
     // MARK: - Banner Area
     @ViewBuilder
-    private var bannerArea: some View {
+    var bannerArea: some View {
         if let update = model.availableUpdate {
             bannerRow(text: String(format: model.t(.versionAvailable), update.version), tint: FuelSwitchTheme.amber) {
                 HStack(spacing: 8) {
@@ -673,7 +673,7 @@ struct MenuContentView: View {
         .frame(maxWidth: .infinity)
     }
 
-    private var isSigningIn: Bool {
+    var isSigningIn: Bool {
         if case .running = model.loginState { return true }
         return false
     }

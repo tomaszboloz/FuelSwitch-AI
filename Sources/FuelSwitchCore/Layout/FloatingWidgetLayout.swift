@@ -19,8 +19,13 @@ public enum FloatingWidgetLayout {
         maxSize: CGSize(width: 900, height: 900)
     )
 
-    public static func bounds(forCompact isCompact: Bool) -> Bounds {
-        isCompact ? compactBounds : expandedBounds
+    public static func bounds(forCompact isCompact: Bool, template: InterfaceTemplate = .classic) -> Bounds {
+        if template == .native {
+            return isCompact
+                ? Bounds(minSize: CGSize(width: 860, height: 70), maxSize: CGSize(width: 1400, height: 70))
+                : Bounds(minSize: CGSize(width: 380, height: 300), maxSize: CGSize(width: 900, height: 900))
+        }
+        return isCompact ? compactBounds : expandedBounds
     }
 
     /// Whether a previously-saved frame is still a legal size for the given

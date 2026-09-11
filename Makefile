@@ -49,6 +49,7 @@ bundle: icon
 	mkdir -p $(APP)/Contents/MacOS $(APP)/Contents/Resources
 	cp Resources/Info.plist $(APP)/Contents/Info.plist
 	cp Resources/AppIcon.icns $(APP)/Contents/Resources/AppIcon.icns
+	cp Resources/favicon.png $(APP)/Contents/Resources/favicon.png
 	cp .build/apple/Products/Release/FuelSwitch $(APP)/Contents/MacOS/FuelSwitch
 	$(MAKE) embed-sparkle
 
@@ -72,10 +73,10 @@ embed-sparkle:
 	otool -l $(APP)/Contents/MacOS/FuelSwitch | grep -q "@executable_path/../Frameworks" || \
 		install_name_tool -add_rpath "@executable_path/../Frameworks" $(APP)/Contents/MacOS/FuelSwitch
 
-# The icon is drawn from code rather than stored as a binary nobody can edit.
-icon: Resources/AppIcon.icns
-Resources/AppIcon.icns: Tools/make-icon.swift
-	swift Tools/make-icon.swift $@
+# Both interface templates use the final approved artwork.
+icon:
+	cp design/macos-native-v2/FuelSwitch.icns Resources/AppIcon.icns
+	cp design/macos-native-v2/png/icon_32x32.png Resources/favicon.png
 
 # Hardened runtime and a secure timestamp are both required before Apple will
 # notarize anything.

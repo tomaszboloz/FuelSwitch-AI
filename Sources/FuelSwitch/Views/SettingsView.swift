@@ -51,6 +51,16 @@ struct SettingsView: View {
                     // SECTION 1: Appearance, Theme & Language
                     settingsCard(title: model.t(.settingsAppearance), icon: "paintbrush.fill") {
                         VStack(alignment: .leading, spacing: 10) {
+                            Picker(model.t(.interfaceTemplate), selection: $model.interfaceTemplate) {
+                                ForEach(InterfaceTemplate.allCases) { template in
+                                    Text(model.t(template.titleKey)).tag(template)
+                                }
+                            }
+                            .pickerStyle(.menu)
+                            Text(model.t(.templateHelp))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            Divider()
                             // Language Picker
                             HStack {
                                 Text(model.t(.language))

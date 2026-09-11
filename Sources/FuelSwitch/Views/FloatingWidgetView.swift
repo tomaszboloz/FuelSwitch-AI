@@ -21,7 +21,9 @@ struct FloatingWidgetView: View {
 
     public var body: some View {
         Group {
-            if model.widgetStyle == "compact" {
+            if model.interfaceTemplate == .native {
+                NativeWidgetView(model: model, onClose: onClose)
+            } else if model.widgetStyle == "compact" {
                 compactBody
             } else {
                 expandedBody
@@ -40,7 +42,7 @@ struct FloatingWidgetView: View {
 
             HStack(spacing: 6) {
                 // Drag Handle / Logo
-                Image(systemName: "bolt.fill")
+                BrandIcon(size: 22)
                     .font(.system(size: 11, weight: .bold))
                     .foregroundStyle(FuelSwitchTheme.amber)
 
@@ -111,7 +113,7 @@ struct FloatingWidgetView: View {
     private func compactProviderPill(provider: Provider) -> some View {
         let accounts = model.accounts.filter { $0.provider == provider }
         let activeEmail = activeEmail(for: provider)
-        let activeAccount = accounts.first { $0.email.lowercased() == activeEmail?.lowercased() } ?? accounts.first
+        let activeAccount = accounts.first { $0.email.lowercased() == activeEmail?.lowercased() }
         let usage = activeAccount.flatMap { model.usage[$0.id] }
         let isActive = activeAccount.map { model.isAccountActive($0) } ?? false
 
@@ -228,7 +230,7 @@ struct FloatingWidgetView: View {
                 Circle()
                     .fill(FuelSwitchTheme.amber.opacity(0.18))
                     .frame(width: 22, height: 22)
-                Image(systemName: "bolt.fill")
+                BrandIcon(size: 28)
                     .font(.system(size: 11, weight: .bold))
                     .foregroundStyle(FuelSwitchTheme.amber)
             }

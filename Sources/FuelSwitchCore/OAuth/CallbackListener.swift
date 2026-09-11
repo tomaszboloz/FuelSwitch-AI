@@ -250,13 +250,18 @@ public final class CallbackListener: @unchecked Sendable {
         case 413: statusLine = "413 Payload Too Large"
         default: statusLine = "\(statusCode)"
         }
+        // Inline the shared icon: the one-shot listener closes after OAuth.
+        let icon = Bundle.main.url(forResource: "favicon", withExtension: "png")
+            .flatMap { try? Data(contentsOf: $0) }
+        let iconLink = icon.map { "<link rel=\"icon\" type=\"image/png\" href=\"data:image/png;base64,\($0.base64EncodedString())\">" } ?? ""
+        let body = "<!doctype html><html><head><meta charset=\"utf-8\"><title>FuelSwitch AI</title>\(iconLink)</head><body>\(message)</body></html>"
         let response = """
         HTTP/1.1 \(statusLine)\r
         Content-Type: text/html; charset=utf-8\r
-        Content-Length: \(message.utf8.count)\r
+        Content-Length: \(body.utf8.count)\r
         Connection: close\r
         \r
-        \(message)
+        \(body)
         """
         connection.send(content: Data(response.utf8), completion: .contentProcessed { _ in
             connection.cancel()

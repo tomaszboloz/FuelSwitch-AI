@@ -39,6 +39,12 @@ public struct Preferences {
         self.defaults = defaults
     }
 
+    /// Upgrades and unrecognized future values preserve the original layout.
+    public var interfaceTemplate: InterfaceTemplate {
+        get { defaults.string(forKey: "interfaceTemplate").flatMap(InterfaceTemplate.init(rawValue:)) ?? .classic }
+        nonmutating set { defaults.set(newValue.rawValue, forKey: "interfaceTemplate") }
+    }
+
     /// Opt-in: switching Codex also gracefully restarts the desktop app.
     public var codexDesktopSyncEnabled: Bool {
         get { defaults.bool(forKey: "codexDesktopSyncEnabled") }

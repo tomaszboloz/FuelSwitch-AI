@@ -6,9 +6,29 @@ import FuelSwitchCore
 
 @MainActor
 final class AppModel: ObservableObject {
+    private var isPreview = false
+
+    func displayUsage(for account: Account) -> AccountUsage? {
+        guard !account.needsReauth, let snapshot = usage[account.id] else { return nil }
+        if case .error = snapshot.staleness { return nil }
+        return snapshot
+    }
     @Published private(set) var accounts: [Account] = []
     @Published private(set) var usage: [String: AccountUsage] = [:]
     @Published private(set) var isRefreshing = false
+
+    @Published var interfaceTemplate = Preferences().interfaceTemplate {
+        didSet {
+            guard !isPreview else { return }
+            preferences.interfaceTemplate = interfaceTemplate
+            FloatingWidgetController.shared.updateTemplate()
+            if interfaceTemplate == .classic {
+                NativeWindowController.shared.close()
+            } else {
+                NativeWindowController.shared.show(model: self)
+            }
+        }
+    }
 
     /// Currently active account emails in the CLI config files.
     @Published private(set) var activeClaudeEmail: String?
@@ -22,6 +42,7 @@ final class AppModel: ObservableObject {
     /// Theme preference: "system", "dark", or "light"
     @Published var appTheme: String = Preferences().appTheme {
         didSet {
+            guard !isPreview else { return }
             preferences.appTheme = appTheme
             updateThemeAppearance()
         }
@@ -39,6 +60,7 @@ final class AppModel: ObservableObject {
     /// Widget display style: "expanded" or "compact"
     @Published var widgetStyle: String = Preferences().widgetStyle {
         didSet {
+            guard !isPreview else { return }
             preferences.widgetStyle = widgetStyle
             FloatingWidgetController.shared.updateStyle()
         }
@@ -354,14 +376,9 @@ final class AppModel: ObservableObject {
     private var loginTask: Task<Void, Never>?
     private var cancellables = Set<AnyCancellable>()
 
-    init() {
-        for legacyDir in AccountStore.legacyDirectories {
-            _ = try? StoreMigration.run(
-                from: legacyDir,
-                to: AccountStore.defaultDirectory
-            )
-        }
-        preferences.migrate()
+    /// Noninteractive documentation renderer: no account loading, migration,
+    /// polling, OAuth, updater or widget startup when a preview is requested.
+    init(preview: InterfaceTemplate? = nil, previewWidgetStyle: String = "expanded") {
         poller = Poller(
             store: store,
             providers: [
@@ -376,6 +393,27 @@ final class AppModel: ObservableObject {
             ],
             codexAuthURL: CLISwitcher.codexAuthURL
         )
+        if let preview {
+            isPreview = true
+            interfaceTemplate = preview
+            widgetStyle = previewWidgetStyle
+            appTheme = "system"
+            accounts = Provider.allCases.map { Account(provider: $0, email: "account@\($0.rawValue).example", nickname: $0.displayName) }
+            for (index, account) in accounts.enumerated() {
+                usage[account.id] = AccountUsage(
+                    session: LimitWindow(percent: [38.0, 84, 0][index], resetsAt: .now.addingTimeInterval(7200), label: "5h"),
+                    weekly: LimitWindow(percent: [57.0, 42, 57][index], resetsAt: .now.addingTimeInterval(86400), label: "7d"),
+                    scoped: [], fetchedAt: .now, staleness: .fresh)
+            }
+            activeClaudeEmail = accounts[0].email
+            activeCodexEmail = accounts[1].email
+            activeGeminiEmail = accounts[2].email
+            return
+        }
+        for legacyDir in AccountStore.legacyDirectories {
+            _ = try? StoreMigration.run(from: legacyDir, to: AccountStore.defaultDirectory)
+        }
+        preferences.migrate()
         loadAccounts()
         startLoop()
         updateThemeAppearance()
@@ -430,6 +468,7 @@ final class AppModel: ObservableObject {
     }
 
     func reloadActiveAccounts() {
+        guard !isPreview else { return }
         activeClaudeEmail = CLISwitcher.activeEmail(for: .anthropic, knownAccounts: accounts)
         activeCodexEmail = CLISwitcher.activeEmail(for: .openai, knownAccounts: accounts)
         activeGeminiEmail = CLISwitcher.activeEmail(for: .gemini, knownAccounts: accounts)

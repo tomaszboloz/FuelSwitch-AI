@@ -1,22 +1,29 @@
-# FuelSwitch AI 1.1.3 — Update settings fix
+# ⛽ FuelSwitch AI 1.2.0 — Choose your interface
 
-Build number: 10. Requires macOS 13 or newer; Apple Silicon and Intel.
+Build 11 · macOS 13+ · Apple Silicon and Intel
+
+## New
+
+- Settings → Appearance → Interface template offers **Classic (default)** and **Native macOS**. Selection persists and applies immediately, independently of light/dark mode and widget size. Existing installations keep Classic.
+- Native macOS adds a resizable account workspace, provider navigation, account search, active-account filtering, remaining-limit table and account details/actions. Open it from the menu bar; closing the window keeps monitoring running.
+- Native expanded widgets and horizontal compact bars share the existing account and quota model. Numeric remaining limits stay visible. Low-fuel indicators turn orange below 20%.
+- The approved orange fuel-tank artwork is the shared app icon and in-app brand mark in both templates. OAuth callback pages use a matching embedded favicon.
+- All new labels are translated into the 12 supported languages. Settings, account switching, Codex desktop synchronization and update preferences remain shared.
 
 ## Fixes
 
-- Removed the duplicate "Check Now" button from the Sparkle Automatic Updates card in Settings. It called the exact same check as the "Check for Updates" button directly below it, so Settings showed two update-check controls stacked on top of each other for no reason.
-- Added a real "Download" button next to the "Version X.X.X is available" message in Settings, matching the menu bar update banner. Previously, finding an available update in Settings only showed text with no action to take — installing required going to the menu bar banner instead, which was not obvious.
-- Removed the now-unused `checkForSparkleUpdateNow()` model method and its `sparkleCheckNowButton` localization key (all 12 languages) along with the deleted button.
+- The Classic compact widget no longer presents the first saved account as active when no active account can be matched.
+- Native views distinguish missing/error data from an empty tank and show cached-data status.
+- Template-aware widget geometry keeps Native compact mode a horizontal bar with room for numbers.
 
-The Sparkle Automatic Updates card still holds the automatic-check and automatic-download toggles, plus the explanation text; it is no longer a second place to trigger a manual check. Manual checks and installs now live in one place.
+## Verification and limits
 
-## Updating
+- 247 offline Swift tests passed (248 declared, one opt-in live test skipped), covering default/fallback selection, persistence, setting independence, localization completeness and compact geometry.
+- 13 release-feed and brand-asset tests passed; the universal arm64/x86_64 app built successfully and passed strict signature verification.
+- Documentation previews render production views with synthetic .example accounts, without loading credentials or starting polling.
+- This is a layout release, not a replacement of provider quota APIs. Provider integrations are unchanged; the render checks do not verify live account quotas.
+- Distribution remains ad-hoc code-signed, not Apple-notarized. Sparkle archives are separately signed. Automated checks are not a full interactive OAuth/install or accessibility audit.
 
-In FuelSwitch AI Settings, check for updates as before. When one is available, click "Download" to open Sparkle's installer — that is now the only button that starts an actual update.
+## Update
 
-## Verification
-
-- 245 offline Swift tests across 19 suites passed locally.
-- Release build (`swift build`, universal arm64/x86_64) compiles clean with no warnings from this change.
-
-The app remains ad-hoc code-signed, not Apple-notarized. Automated tests do not simulate a complete GUI installation on the user's running copy.
+Use Settings → Check for Updates → Download, or enable automatic checking and downloading in Settings. Classic remains selected until you explicitly choose Native macOS.
