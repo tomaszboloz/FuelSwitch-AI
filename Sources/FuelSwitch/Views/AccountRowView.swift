@@ -11,6 +11,7 @@ struct AccountRowView: View {
     let refresh: () -> Void
     let remove: () -> Void
     var onRedeemReset: (() -> Void)? = nil
+    var onClaudeReset: (() -> Void)? = nil
     var paceEnabled: Bool = false
     var onRename: ((String?) -> Void)? = nil
 
@@ -150,9 +151,10 @@ struct AccountRowView: View {
                 if confirmingRemoval {
                     inlineRemovalPrompt
                 } else {
-                    // OpenAI Codex Reset Credit indicator & action - always visible for Codex
-                    if account.provider == .openai {
-                        let credits = max(1, usage?.resetCreditsAvailable ?? 1)
+                    // OpenAI Codex reset credits and Claude's supported reset action.
+                    if account.provider == .openai,
+                       (usage?.resetCreditsAvailable ?? 0) > 0 {
+                        let credits = usage?.resetCreditsAvailable ?? 0
                         HStack(spacing: 6) {
                             HStack(spacing: 4) {
                                 Image(systemName: "bolt.badge.clock.fill")
@@ -168,7 +170,7 @@ struct AccountRowView: View {
 
                             Spacer()
 
-                            if let onRedeemReset {
+                            if let onRedeemReset, (usage?.resetCreditsAvailable ?? 0) > 0 {
                                 Button(action: onRedeemReset) {
                                     HStack(spacing: 3) {
                                         Image(systemName: "arrow.counterclockwise.circle.fill")
@@ -190,9 +192,33 @@ struct AccountRowView: View {
                                 }
                                 .buttonStyle(.plain)
                                 .help(loc.text(.redeemResetHelp))
+                                .disabled(confirmingRemoval)
                             }
                         }
                         .padding(.vertical, 1)
+                    } else if account.provider == .anthropic,
+                              let onClaudeReset {
+                            HStack(spacing: 6) {
+                                Image(systemName: "arrow.counterclockwise.circle.fill")
+                                    .font(.system(size: 9, weight: .bold))
+                                    .foregroundStyle(FuelSwitchTheme.amber)
+                                Text(loc.text(.openClaudeReset))
+                                    .font(.system(size: 9, weight: .bold))
+                                    .foregroundStyle(FuelSwitchTheme.amber)
+                                Spacer()
+                                Button(action: onClaudeReset) {
+                                    Text(loc.text(.resetLimit))
+                                        .font(.system(size: 9, weight: .bold))
+                                        .padding(.horizontal, 6)
+                                        .padding(.vertical, 2.5)
+                                        .background(RoundedRectangle(cornerRadius: 4).fill(FuelSwitchTheme.amber.opacity(0.16)))
+                                        .foregroundStyle(FuelSwitchTheme.amber)
+                                }
+                                .buttonStyle(.plain)
+                                .help(loc.text(.claudeResetHelp))
+                                .disabled(confirmingRemoval)
+                            }
+                            .padding(.vertical, 1)
                     }
 
                     // Fuel Gauges for all windows

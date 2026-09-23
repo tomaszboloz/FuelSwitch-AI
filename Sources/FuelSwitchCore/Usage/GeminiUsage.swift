@@ -36,7 +36,8 @@ public enum GeminiUsage {
         // Categorize by duration until reset: short-term (5-hour) vs long-term (weekly)
         let shortTermWindows = windows.filter { w in
             guard let resetsAt = w.resetsAt else { return false }
-            return resetsAt.timeIntervalSince(fetchedAt) <= 24 * 3600
+            let seconds = resetsAt.timeIntervalSince(fetchedAt)
+            return seconds >= 0 && seconds <= 24 * 3600
         }
         let weeklyWindows = windows.filter { w in
             guard let resetsAt = w.resetsAt else { return false }

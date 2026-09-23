@@ -1,6 +1,10 @@
 extension Translations {
     static let russianTable: [TranslationKey: String] = [
         .appName: "FuelSwitch AI",
+        .resetCompleted: "Лимит сброшен для %@.",
+        .resetFailed: "Не удалось сбросить лимит.",
+        .openClaudeReset: "Открыть сброс Claude",
+        .claudeResetHelp: "Откройте Claude: Настройки > Использование для официального сброса лимита.",
         .editNickname: "Изменить название",
         .interfaceTemplate: "Шаблон интерфейса",
         .templateClassic: "Классический (по умолчанию)",

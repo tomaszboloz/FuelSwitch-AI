@@ -1,6 +1,10 @@
 extension Translations {
     static let koreanTable: [TranslationKey: String] = [
         .appName: "FuelSwitch AI",
+        .resetCompleted: "%@의 한도를 재설정했습니다.",
+        .resetFailed: "한도를 재설정하지 못했습니다.",
+        .openClaudeReset: "Claude 재설정 열기",
+        .claudeResetHelp: "Claude의 설정 > 사용량을 열어 공식 한도 재설정을 사용하세요.",
         .editNickname: "별명 편집",
         .interfaceTemplate: "인터페이스 템플릿",
         .templateClassic: "클래식 (기본값)",

@@ -16,6 +16,8 @@ final class AppModel: ObservableObject {
     @Published private(set) var accounts: [Account] = []
     @Published private(set) var usage: [String: AccountUsage] = [:]
     @Published private(set) var isRefreshing = false
+    @Published private(set) var resettingProviders: Set<Provider> = []
+    @Published private(set) var resetResult: ResetResult?
 
     @Published var interfaceTemplate = Preferences().interfaceTemplate {
         didSet {
@@ -596,11 +598,74 @@ final class AppModel: ObservableObject {
         loadAccounts()
     }
 
-    /// Redeems a rate-limit reset credit for an OpenAI Codex account.
+    enum ResetResult: Equatable {
+        case completed(String)
+        case failed(String)
+    }
+
+    /// Redeems a rate-limit reset credit for an OpenAI Codex account and then
+    /// reads the provider again so every surface receives the same snapshot.
     func redeemCodexReset(account: Account) {
-        guard account.provider == .openai else { return }
-        // User request: "W codex limit limitów nie resetuj realnie limitu"
-        // Intentionally do not call OpenAI API to consume real rate-limit reset credits.
+        guard account.provider == .openai,
+              !resettingProviders.contains(.openai) else { return }
+
+        resettingProviders.insert(.openai)
+        resetResult = nil
+        let creditId = usage[account.id]?.resetCreditId
+
+        Task { [weak self] in
+            guard let self else { return }
+            defer { resettingProviders.remove(.openai) }
+            do {
+                // Resolve the latest stored credentials first. Codex refresh
+                // tokens rotate, and using the stale UI copy can make a valid
+                // reset look like a no-op or an unauthorized request.
+                let current = try await poller.accountForSwitch(account)
+                try await CodexUsageClient().consumeResetCredit(
+                    account: current,
+                    creditId: creditId
+                )
+
+                // Bypass the normal polling floor after a successful reset;
+                // the user needs the new values immediately.
+                await poller.forgetState(id: current.id)
+                usage[current.id] = await poller.refresh(
+                    account: current,
+                    interval: intervalSeconds
+                )
+                loadAccounts()
+                resetResult = .completed(current.email)
+            } catch {
+                resetResult = .failed(resetErrorDescription(error))
+            }
+        }
+    }
+
+    func isResetting(_ account: Account) -> Bool {
+        account.provider == .openai && resettingProviders.contains(.openai)
+    }
+
+    func dismissResetResult() {
+        resetResult = nil
+    }
+
+    private func resetErrorDescription(_ error: Error) -> String {
+        if let usageError = error as? UsageError {
+            switch usageError {
+            case .unauthorized: return t(.sessionExpired)
+            default: break
+            }
+        }
+        return t(.resetFailed)
+    }
+
+    /// Claude's official reset action currently lives in Claude web/Desktop
+    /// Settings > Usage. Claude Code's terminal and IDE integrations do not
+    /// expose the "Reset for free" button, so the app opens the supported page.
+    func openClaudeLimitReset(account: Account) {
+        guard account.provider == .anthropic,
+              let url = URL(string: "https://claude.ai/settings/usage") else { return }
+        NSWorkspace.shared.open(url)
     }
 
     /// Opens Settings screen

@@ -1,6 +1,10 @@
 extension Translations {
     static let hindiTable: [TranslationKey: String] = [
         .appName: "FuelSwitch AI",
+        .resetCompleted: "%@ की सीमा रीसेट हो गई।",
+        .resetFailed: "सीमा रीसेट नहीं हो सकी।",
+        .openClaudeReset: "Claude रीसेट खोलें",
+        .claudeResetHelp: "आधिकारिक सीमा रीसेट के लिए Claude: सेटिंग > उपयोग खोलें।",
         .editNickname: "उपनाम बदलें",
         .interfaceTemplate: "इंटरफ़ेस टेम्पलेट",
         .templateClassic: "क्लासिक (डिफ़ॉल्ट)",

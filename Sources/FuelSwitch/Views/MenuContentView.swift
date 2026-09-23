@@ -364,7 +364,24 @@ struct MenuContentView: View {
     // MARK: - Banner Area
     @ViewBuilder
     var bannerArea: some View {
-        if let update = model.availableUpdate {
+        if let resetResult = model.resetResult {
+            switch resetResult {
+            case .completed(let email):
+                bannerRow(text: String(format: model.t(.resetCompleted), email), tint: FuelSwitchTheme.emerald) {
+                    Button(model.t(.dismiss)) { model.dismissResetResult() }
+                        .buttonStyle(.plain)
+                        .font(.system(size: 10))
+                        .foregroundStyle(FuelSwitchTheme.textTertiary)
+                }
+            case .failed(let message):
+                bannerRow(text: message, tint: FuelSwitchTheme.crimson) {
+                    Button(model.t(.dismiss)) { model.dismissResetResult() }
+                        .buttonStyle(.plain)
+                        .font(.system(size: 10))
+                        .foregroundStyle(FuelSwitchTheme.textTertiary)
+                }
+            }
+        } else if let update = model.availableUpdate {
             bannerRow(text: String(format: model.t(.versionAvailable), update.version), tint: FuelSwitchTheme.amber) {
                 HStack(spacing: 8) {
                     Button(model.t(.download)) { model.openUpdate() }
@@ -543,6 +560,7 @@ struct MenuContentView: View {
                         refresh: { model.refreshAccount(id: account.id) },
                         remove: { model.remove(id: account.id) },
                         onRedeemReset: { model.redeemCodexReset(account: account) },
+                        onClaudeReset: { model.openClaudeLimitReset(account: account) },
                         paceEnabled: model.paceEstimationEnabled,
                         onRename: { nickname in model.rename(id: account.id, nickname: nickname) }
                     )

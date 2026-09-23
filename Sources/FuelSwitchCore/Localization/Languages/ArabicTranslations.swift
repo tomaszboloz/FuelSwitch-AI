@@ -1,6 +1,10 @@
 extension Translations {
     static let arabicTable: [TranslationKey: String] = [
         .appName: "FuelSwitch AI",
+        .resetCompleted: "تمت إعادة تعيين حد %@.",
+        .resetFailed: "تعذرت إعادة تعيين الحد.",
+        .openClaudeReset: "فتح إعادة تعيين Claude",
+        .claudeResetHelp: "افتح Claude: الإعدادات > الاستخدام لاستخدام إعادة التعيين الرسمية.",
         .editNickname: "تعديل الاسم المستعار",
         .interfaceTemplate: "قالب الواجهة",
         .templateClassic: "كلاسيكي (افتراضي)",

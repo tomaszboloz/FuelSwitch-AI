@@ -486,8 +486,8 @@ struct FloatingWidgetView: View {
             }
 
             // OpenAI Codex Reset indicator & action - always visible for Codex
-            if account.provider == .openai {
-                let credits = max(1, usage?.resetCreditsAvailable ?? 1)
+            if account.provider == .openai, (usage?.resetCreditsAvailable ?? 0) > 0 {
+                let credits = usage?.resetCreditsAvailable ?? 0
                 HStack(spacing: 6) {
                     HStack(spacing: 3) {
                         Image(systemName: "bolt.badge.clock.fill")
@@ -526,6 +526,29 @@ struct FloatingWidgetView: View {
                     }
                     .buttonStyle(.plain)
                     .help(model.t(.redeemResetHelp))
+                    .disabled(model.isResetting(account))
+                }
+            } else if account.provider == .anthropic {
+                HStack(spacing: 6) {
+                    Image(systemName: "arrow.counterclockwise.circle.fill")
+                        .font(.system(size: 8, weight: .bold))
+                        .foregroundStyle(FuelSwitchTheme.amber)
+                    Text(model.t(.openClaudeReset))
+                        .font(.system(size: 8, weight: .bold))
+                        .foregroundStyle(FuelSwitchTheme.amber)
+                    Spacer()
+                    Button {
+                        model.openClaudeLimitReset(account: account)
+                    } label: {
+                        Text(model.t(.resetLimit))
+                            .font(.system(size: 8, weight: .bold))
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 2)
+                            .background(RoundedRectangle(cornerRadius: 3).fill(FuelSwitchTheme.amber.opacity(0.16)))
+                            .foregroundStyle(FuelSwitchTheme.amber)
+                    }
+                    .buttonStyle(.plain)
+                    .help(model.t(.claudeResetHelp))
                 }
             }
 

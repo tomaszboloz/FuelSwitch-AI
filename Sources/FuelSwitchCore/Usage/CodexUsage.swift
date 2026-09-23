@@ -68,7 +68,7 @@ public struct CodexUsageClient: UsageProvider {
             scoped: parsed.scoped,
             fetchedAt: parsed.fetchedAt,
             staleness: parsed.staleness,
-            resetCreditsAvailable: max(1, resetCount),
+            resetCreditsAvailable: resetCount,
             resetCreditId: firstCreditId
         )
         return parsed

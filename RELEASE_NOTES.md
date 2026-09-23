@@ -1,8 +1,14 @@
-# ⛽ FuelSwitch AI 1.2.0 — Choose your interface
+# ⛽ FuelSwitch AI 1.2.1 — Limit reset for Claude and Codex
 
-Build 11 · macOS 13+ · Apple Silicon and Intel
+Build 12 · macOS 13+ · Apple Silicon and Intel
 
 ## New
+
+- Claude accounts now include a reset action in the main panel, Classic and Native widgets, and the Native account details view. It opens Claude's official Settings → Usage page, where eligible plans can use the one-time limit reset described in [Anthropic's instructions](https://support.claude.com/en/articles/17007452-what-is-a-limit-reset).
+- Codex reset credits now call the provider's consume endpoint, send the selected credit and a unique redemption request ID, refresh the account immediately, and report success or failure in the panel. The action is hidden when no reset credit is available.
+- Reset labels and status messages are translated across all 12 supported languages.
+
+## Interface carried forward
 
 - Settings → Appearance → Interface template offers **Classic (default)** and **Native macOS**. Selection persists and applies immediately, independently of light/dark mode and widget size. Existing installations keep Classic.
 - Native macOS adds a resizable account workspace, provider navigation, account search, active-account filtering, remaining-limit table and account details/actions. Open it from the menu bar; closing the window keeps monitoring running.
@@ -18,10 +24,10 @@ Build 11 · macOS 13+ · Apple Silicon and Intel
 
 ## Verification and limits
 
-- 247 offline Swift tests passed (248 declared, one opt-in live test skipped), covering default/fallback selection, persistence, setting independence, localization completeness and compact geometry.
+- 249 offline Swift tests passed (250 declared, one opt-in live test skipped), covering reset requests, zero-credit handling, default/fallback selection, persistence, localization completeness and compact geometry.
 - 13 release-feed and brand-asset tests passed; the universal arm64/x86_64 app built successfully and passed strict signature verification.
 - Documentation previews render production views with synthetic .example accounts, without loading credentials or starting polling.
-- This is a layout release, not a replacement of provider quota APIs. Provider integrations are unchanged; the render checks do not verify live account quotas.
+- Core provider quota reads remain unchanged; reset actions use the documented Claude web flow or the Codex reset-credit endpoint. The render checks do not verify live account quotas.
 - Distribution remains ad-hoc code-signed, not Apple-notarized. Sparkle archives are separately signed. Automated checks are not a full interactive OAuth/install or accessibility audit.
 
 ## Update

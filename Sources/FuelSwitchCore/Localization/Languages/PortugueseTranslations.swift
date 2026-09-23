@@ -1,6 +1,10 @@
 extension Translations {
     static let portugueseTable: [TranslationKey: String] = [
         .appName: "FuelSwitch AI",
+        .resetCompleted: "Limite redefinido para %@.",
+        .resetFailed: "Não foi possível redefinir o limite.",
+        .openClaudeReset: "Abrir redefinição do Claude",
+        .claudeResetHelp: "Abra o Claude: Definições > Utilização para usar a redefinição oficial.",
         .editNickname: "Editar apelido",
         .interfaceTemplate: "Modelo de interface",
         .templateClassic: "Clássico (padrão)",

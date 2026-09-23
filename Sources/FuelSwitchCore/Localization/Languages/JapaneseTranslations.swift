@@ -1,6 +1,10 @@
 extension Translations {
     static let japaneseTable: [TranslationKey: String] = [
         .appName: "FuelSwitch AI",
+        .resetCompleted: "%@ の制限をリセットしました。",
+        .resetFailed: "制限をリセットできませんでした。",
+        .openClaudeReset: "Claude のリセットを開く",
+        .claudeResetHelp: "Claude の「設定 > 使用量」を開いて公式のリセットを使用します。",
         .editNickname: "ニックネームを編集",
         .interfaceTemplate: "インターフェースのテンプレート",
         .templateClassic: "クラシック（デフォルト）",

@@ -1,6 +1,10 @@
 extension Translations {
     static let chineseTable: [TranslationKey: String] = [
         .appName: "FuelSwitch AI",
+        .resetCompleted: "已为 %@ 重置限制。",
+        .resetFailed: "无法重置限制。",
+        .openClaudeReset: "打开 Claude 重置",
+        .claudeResetHelp: "打开 Claude：设置 > 使用量，使用官方限制重置功能。",
         .editNickname: "编辑昵称",
         .interfaceTemplate: "界面模板",
         .templateClassic: "经典（默认）",

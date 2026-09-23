@@ -168,6 +168,10 @@ struct NativeAccountDetails: View {
                 Button(role: .destructive) { confirmingRemoval = true } label: {
                     Label(model.t(.remove), systemImage: "trash")
                 }
+                if account.provider == .anthropic {
+                    Button(model.t(.resetLimit)) { model.openClaudeLimitReset(account: account) }
+                        .help(model.t(.claudeResetHelp))
+                }
             }
             if account.needsReauth {
                 Text(model.t(.sessionExpired)).foregroundStyle(.orange)
@@ -184,8 +188,12 @@ struct NativeAccountDetails: View {
                     }
                 }
                 if account.provider == .openai, let credits = usage.resetCreditsAvailable, credits > 0 {
-                    // Reset redemption is intentionally disabled in AppModel.
-                    Text(String(format: model.t(.removeCredit), credits)).font(.caption)
+                    HStack(spacing: 8) {
+                        Text(String(format: model.t(.removeCredit), credits)).font(.caption)
+                        Button(model.t(.resetLimit)) { model.redeemCodexReset(account: account) }
+                            .disabled(model.isResetting(account))
+                            .help(model.t(.redeemResetHelp))
+                    }
                 }
             }
         }
@@ -343,6 +351,13 @@ struct NativeWidgetView: View {
             VStack(alignment: .leading, spacing: 0) {
                 Text(model.t(.weeklyQuota)).font(.caption2).lineLimit(1)
                 NativeFuelWindow(model: model, window: usage?.weekly, showsReset: !compact)
+            }
+            if let account, account.provider == .anthropic {
+                Button { model.openClaudeLimitReset(account: account) } label: {
+                    Image(systemName: "arrow.counterclockwise.circle.fill")
+                }
+                .buttonStyle(.borderless)
+                .help(model.t(.claudeResetHelp))
             }
         }
     }

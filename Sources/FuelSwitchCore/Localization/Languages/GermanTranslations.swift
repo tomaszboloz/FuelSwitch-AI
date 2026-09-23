@@ -1,6 +1,10 @@
 extension Translations {
     static let germanTable: [TranslationKey: String] = [
         .appName: "FuelSwitch AI",
+        .resetCompleted: "Limit für %@ zurückgesetzt.",
+        .resetFailed: "Das Limit konnte nicht zurückgesetzt werden.",
+        .openClaudeReset: "Claude-Reset öffnen",
+        .claudeResetHelp: "Öffne Claude: Einstellungen > Nutzung, um den offiziellen Limit-Reset zu verwenden.",
         .editNickname: "Spitznamen bearbeiten",
         .interfaceTemplate: "Oberflächenvorlage",
         .templateClassic: "Klassisch (Standard)",
