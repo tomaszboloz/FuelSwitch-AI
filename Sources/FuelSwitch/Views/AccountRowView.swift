@@ -12,6 +12,7 @@ struct AccountRowView: View {
     let remove: () -> Void
     var onRedeemReset: (() -> Void)? = nil
     var onClaudeReset: (() -> Void)? = nil
+    var onReauthenticate: (() -> Void)? = nil
     var paceEnabled: Bool = false
     var onRename: ((String?) -> Void)? = nil
 
@@ -92,12 +93,12 @@ struct AccountRowView: View {
                         LowFuelIndicator(size: 10, showText: true, text: loc.text(.lowFuelWarningShort))
                     }
 
-                    if isActive {
+                    if account.needsReauth {
+                        FuelBadge(type: .reauth, title: loc.text(.sessionExpired))
+                    } else if isActive {
                         FuelBadge(type: .active, title: loc.text(.active))
                     } else if exhausted {
                         FuelBadge(type: .exhausted, title: loc.text(.lowFuelWarningShort))
-                    } else if account.needsReauth {
-                        FuelBadge(type: .reauth, title: loc.text(.sessionExpired))
                     }
 
                     // 1-Click CLI Switcher Action Button
@@ -151,6 +152,30 @@ struct AccountRowView: View {
                 if confirmingRemoval {
                     inlineRemovalPrompt
                 } else {
+                    if account.needsReauth, let onReauthenticate {
+                        HStack(spacing: 6) {
+                            Image(systemName: "person.crop.circle.badge.exclamationmark")
+                                .font(.system(size: 9, weight: .bold))
+                                .foregroundStyle(FuelSwitchTheme.amber)
+                            Text(loc.text(.sessionExpired))
+                                .font(.system(size: 9, weight: .semibold))
+                                .foregroundStyle(FuelSwitchTheme.amber)
+                            Spacer()
+                            Button(action: onReauthenticate) {
+                                Text(loc.text(.reauthenticate))
+                                    .font(.system(size: 9, weight: .bold))
+                                    .padding(.horizontal, 6)
+                                    .padding(.vertical, 2.5)
+                                    .background(RoundedRectangle(cornerRadius: 4).fill(FuelSwitchTheme.amber.opacity(0.16)))
+                                    .foregroundStyle(FuelSwitchTheme.amber)
+                            }
+                            .buttonStyle(.plain)
+                            .help(loc.text(.reauthenticate))
+                            .disabled(confirmingRemoval)
+                        }
+                        .padding(.vertical, 1)
+                    }
+
                     // OpenAI Codex reset credits and Claude's supported reset action.
                     if account.provider == .openai,
                        (usage?.resetCreditsAvailable ?? 0) > 0 {

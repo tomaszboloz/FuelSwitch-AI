@@ -88,6 +88,7 @@ extension Translations {
         .reconnected: "%@ aktualisiert.",
         .switched: "Aktiver %@ CLI-Tank auf %@ umgestellt.",
         .sessionExpired: "Sitzung abgelaufen. Neu anmelden.",
+        .reauthenticate: "Erneut anmelden",
         .awaitingCheck: "Warte auf erste Prüfung.",
         .removeThisAccount: "Dieses Konto entfernen?",
         .tanksCount: "%d Tanks",

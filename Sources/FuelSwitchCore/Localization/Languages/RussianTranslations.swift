@@ -88,6 +88,7 @@ extension Translations {
         .reconnected: "%@ обновлён.",
         .switched: "Активный танк %@ CLI переключён на %@.",
         .sessionExpired: "Сессия истекла. Выполните повторную аутентификацию.",
+        .reauthenticate: "Войти снова",
         .awaitingCheck: "Ожидание первой проверки квоты.",
         .removeThisAccount: "Удалить этот аккаунт?",
         .tanksCount: "%d резервуаров",

@@ -112,6 +112,64 @@ import Foundation
         #expect(oauth["stale"] as? String == "preserved")
     }
 
+    @Test func adoptsNewerClaudeCodeCredentialsFromKeychain() throws {
+        let oldExpiry = Date(timeIntervalSince1970: 1_700_000_000)
+        let account = Account(
+            provider: .anthropic,
+            email: "claude@example.com",
+            accessToken: "old-access",
+            refreshToken: "old-refresh",
+            expiresAt: oldExpiry
+        )
+        let payload: [String: Any] = [
+            "claudeAiOauth": [
+                "emailAddress": account.email,
+                "accessToken": "rotated-access",
+                "refreshToken": "rotated-refresh",
+                "expiresAt": 1_700_003_600_000
+            ]
+        ]
+        let data = try JSONSerialization.data(withJSONObject: payload)
+
+        let candidate = try CLISwitcher.newerClaudeCredentials(for: account, keychainReader: { data })
+        let updated = try #require(candidate)
+        #expect(updated.accessToken == "rotated-access")
+        #expect(updated.refreshToken == "rotated-refresh")
+        #expect(updated.expiresAt == Date(timeIntervalSince1970: 1_700_003_600))
+        #expect(updated.needsReauth == false)
+    }
+
+    @Test func ignoresClaudeCredentialsForAnotherAccountOrOlderSession() throws {
+        let account = Account(
+            provider: .anthropic,
+            email: "claude@example.com",
+            accessToken: "access",
+            refreshToken: "refresh",
+            expiresAt: Date(timeIntervalSince1970: 1_700_003_600)
+        )
+        let other: [String: Any] = [
+            "claudeAiOauth": [
+                "emailAddress": "other@example.com",
+                "accessToken": "other-access",
+                "refreshToken": "other-refresh",
+                "expiresAt": 1_900_000_000_000
+            ]
+        ]
+        let older: [String: Any] = [
+            "claudeAiOauth": [
+                "emailAddress": account.email,
+                "accessToken": account.accessToken,
+                "refreshToken": account.refreshToken,
+                "expiresAt": 1_700_003_600_000
+            ]
+        ]
+
+        let otherData = try JSONSerialization.data(withJSONObject: other)
+        let olderData = try JSONSerialization.data(withJSONObject: older)
+        #expect(try CLISwitcher.newerClaudeCredentials(for: account, keychainReader: { otherData }) == nil)
+        #expect(try CLISwitcher.newerClaudeCredentials(for: account, keychainReader: { olderData }) == nil)
+    }
+
     @Test func switchesClaudeAccountWhenItsConfigDoesNotExist() throws {
         let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: tempDir) }

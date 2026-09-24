@@ -88,6 +88,7 @@ extension Translations {
         .reconnected: "%@ 已刷新。",
         .switched: "已切换 %@ 活跃 CLI 至 %@。",
         .sessionExpired: "会话已过期，请重新验证。",
+        .reauthenticate: "重新登录",
         .awaitingCheck: "等待首次用量检查。",
         .removeThisAccount: "移除此账户？",
         .tanksCount: "%d 个账户",

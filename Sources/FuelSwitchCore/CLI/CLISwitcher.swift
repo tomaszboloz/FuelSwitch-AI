@@ -242,6 +242,92 @@ public enum CLISwitcher {
         try switchClaude(to: account, url: url, keychainUpdater: updateClaudeKeychainCredentials)
     }
 
+    /// Adopts credentials that Claude Code rotated in the shared Keychain.
+    ///
+    /// Claude invalidates the previous refresh token when it refreshes a
+    /// session. If Claude Code is running alongside FuelSwitch, the CLI can
+    /// therefore rotate the token between two polling cycles. Reading the
+    /// provider's own credential record before deciding to refresh prevents
+    /// FuelSwitch from sending that already-invalidated token and needlessly
+    /// asking the user to sign in again.
+    static func newerClaudeCredentials(
+        for account: Account,
+        keychainReader: () throws -> Data? = readClaudeKeychainCredentials
+    ) throws -> Account? {
+        guard account.provider == .anthropic,
+              let data = try keychainReader(),
+              let root = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let oauth = root["claudeAiOauth"] as? [String: Any],
+              let email = oauth["emailAddress"] as? String,
+              email.caseInsensitiveCompare(account.email) == .orderedSame,
+              let accessToken = oauth["accessToken"] as? String,
+              let refreshToken = oauth["refreshToken"] as? String
+        else { return nil }
+
+        let expiryMilliseconds: Double?
+        if let number = oauth["expiresAt"] as? NSNumber {
+            expiryMilliseconds = number.doubleValue
+        } else if let value = oauth["expiresAt"] as? Double {
+            expiryMilliseconds = value
+        } else {
+            expiryMilliseconds = nil
+        }
+        guard let expiryMilliseconds else { return nil }
+
+        let expiresAt = Date(timeIntervalSince1970: expiryMilliseconds / 1000)
+        guard expiresAt > account.expiresAt
+                || accessToken != account.accessToken
+                || refreshToken != account.refreshToken else {
+            return nil
+        }
+
+        var updated = account
+        updated.accessToken = accessToken
+        updated.refreshToken = refreshToken
+        updated.expiresAt = expiresAt
+        updated.needsReauth = false
+        return updated
+    }
+
+    /// Copies a refresh performed by FuelSwitch back to Claude Code, but only
+    /// while the Keychain still contains the exact credentials we refreshed.
+    /// If Claude Code switched accounts or rotated tokens during the request,
+    /// its newer Keychain value wins and is left untouched.
+    static func syncClaudeRefresh(from old: Account, to updated: Account) throws {
+        guard old.provider == .anthropic, updated.provider == .anthropic,
+              let data = try readClaudeKeychainCredentials(),
+              let existing = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let merged = claudeCredentialsAfterRefresh(existing: existing, from: old, to: updated)
+        else { return }
+
+        let updatedData = try JSONSerialization.data(withJSONObject: merged)
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: "Claude Code-credentials"
+        ]
+        let status = SecItemUpdate(query as CFDictionary, [kSecValueData as String: updatedData] as CFDictionary)
+        guard status == errSecSuccess else { throw Error.keychain(status) }
+    }
+
+    static func claudeCredentialsAfterRefresh(
+        existing: [String: Any],
+        from old: Account,
+        to updated: Account
+    ) -> [String: Any]? {
+        guard old.provider == .anthropic, updated.provider == .anthropic,
+              old.id == updated.id,
+              let existingOAuth = existing["claudeAiOauth"] as? [String: Any],
+              let email = existingOAuth["emailAddress"] as? String,
+              email.caseInsensitiveCompare(old.email) == .orderedSame,
+              existingOAuth["accessToken"] as? String == old.accessToken,
+              existingOAuth["refreshToken"] as? String == old.refreshToken
+        else { return nil }
+
+        var result = existing
+        result["claudeAiOauth"] = claudeOAuthPayload(existing: existingOAuth, account: updated)
+        return result
+    }
+
     static func switchClaude(
         to account: Account,
         url: URL,
@@ -354,6 +440,21 @@ public enum CLISwitcher {
     }
 
     // MARK: - Keychain Helper
+
+    private static func readClaudeKeychainCredentials() throws -> Data? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: "Claude Code-credentials",
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+        var item: CFTypeRef?
+        let status = SecItemCopyMatching(query as CFDictionary, &item)
+        guard status == errSecSuccess || status == errSecItemNotFound else {
+            throw Error.keychain(status)
+        }
+        return item as? Data
+    }
 
     private static func updateClaudeKeychainCredentials(account: Account) throws {
         let service = "Claude Code-credentials"

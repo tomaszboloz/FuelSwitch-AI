@@ -561,6 +561,7 @@ struct MenuContentView: View {
                         remove: { model.remove(id: account.id) },
                         onRedeemReset: { model.redeemCodexReset(account: account) },
                         onClaudeReset: { model.openClaudeLimitReset(account: account) },
+                        onReauthenticate: { model.startLogin(provider: account.provider) },
                         paceEnabled: model.paceEstimationEnabled,
                         onRename: { nickname in model.rename(id: account.id, nickname: nickname) }
                     )

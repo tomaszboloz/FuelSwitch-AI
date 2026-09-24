@@ -34,7 +34,10 @@ public actor Poller {
 
     /// Switching and polling share one token refresh per account. Always load
     /// the latest stored tokens so a UI snapshot cannot restore a rotated token.
-    public func accountForSwitch(_ account: Account) async throws -> Account {
+    public func accountForSwitch(
+        _ account: Account,
+        forceTokenRefresh: Bool = false
+    ) async throws -> Account {
         if let task = credentialRefreshes[account.id] { return try await task.value }
         let store = self.store
         let provider = oauth[account.provider]
@@ -51,8 +54,31 @@ public actor Poller {
                 current = newer
                 try store.upsert(current)
             }
+            if current.provider == .anthropic {
+                // Claude Code and FuelSwitch share the Keychain record. Claude
+                // can rotate the refresh token from another process, so adopt
+                // a newer same-email record before using our cached token.
+                let newer: Account?
+                do {
+                    newer = try CLISwitcher.newerClaudeCredentials(for: current)
+                } catch {
+                    // Keychain access is best-effort here. The app can still
+                    // use its own persisted credentials and report a real
+                    // refresh error if those credentials no longer work.
+                    newer = nil
+                }
+                if let newer {
+                    current = newer
+                    // A Keychain read failure is recoverable; a store failure
+                    // is not. Keep this outside the best-effort catch so the
+                    // caller can surface the real persistence error.
+                    try store.upsert(current)
+                }
+            }
             guard !current.needsReauth else { throw OAuthError.invalidGrant }
-            if Self.needsTokenRefresh(account: current, now: now) || (current.provider == .openai && current.idToken == nil) {
+            if forceTokenRefresh
+                || Self.needsTokenRefresh(account: current, now: now)
+                || (current.provider == .openai && current.idToken == nil) {
                 guard let provider else { throw OAuthError.invalidGrant }
                 let previous = current
                 let tokens = try await provider.refresh(refreshToken: current.refreshToken)
@@ -68,6 +94,12 @@ public actor Poller {
                 do { try store.upsert(current) } catch { throw CredentialError.saveFailed }
                 if current.provider == .openai, let codexAuthURL {
                     try CLISwitcher.syncCodexRefresh(from: previous, to: current, url: codexAuthURL)
+                } else if current.provider == .anthropic {
+                    // Keep Claude Code alive with the token FuelSwitch just
+                    // rotated. This is intentionally best-effort: Keychain
+                    // access can be denied, and the app's own store is still
+                    // the source of truth for monitoring.
+                    try? CLISwitcher.syncClaudeRefresh(from: previous, to: current)
                 }
             }
             return current
@@ -129,7 +161,11 @@ public actor Poller {
     /// `AppModel.intervalSeconds`); it is clamped to `minimumInterval` here
     /// anyway — the 60-second floor holds whether or not the caller (for
     /// instance `AppModel`) remembered to clamp it.
-    public func refresh(account: Account, interval: TimeInterval = Poller.baseInterval) async -> AccountUsage {
+    public func refresh(
+        account: Account,
+        interval: TimeInterval = Poller.baseInterval,
+        retryUnauthorized: Bool = true
+    ) async -> AccountUsage {
         var current = account
 
         if oauth[account.provider] != nil {
@@ -192,10 +228,29 @@ public actor Poller {
                 : "\(named) has no Claude subscription to report — it is an API organisation."
             return await lastValueOr(account: account, description: description)
         } catch UsageError.unauthorized {
-            // 401 and 403 from the usage endpoint mean the same thing: this
-            // token will never start working. Patient retrying achieves
-            // nothing — the account has to be signed in again, and the row has
-            // to say so.
+            // An access token can expire early or be rotated by the provider
+            // while the stored expiry still looks healthy. Give the refresh
+            // token one chance to recover the session before treating the
+            // account as dead. The recursive call disables this branch, so a
+            // bad token can never create an unbounded retry loop.
+            if retryUnauthorized, oauth[account.provider] != nil {
+                do {
+                    let renewed = try await accountForSwitch(account, forceTokenRefresh: true)
+                    return await refresh(
+                        account: renewed,
+                        interval: interval,
+                        retryUnauthorized: false
+                    )
+                } catch OAuthError.invalidGrant {
+                    // Fall through to the explicit re-auth state below.
+                } catch {
+                    await increaseBackoff(account.id)
+                    return await lastValueOr(account: account, description: "Could not renew the token.")
+                }
+            }
+
+            // A second 401 (or an invalid refresh grant) means the account
+            // really needs a fresh browser sign-in.
             var flagged = current
             flagged.needsReauth = true
             try? store.upsert(flagged)

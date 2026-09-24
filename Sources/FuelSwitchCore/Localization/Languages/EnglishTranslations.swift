@@ -107,6 +107,7 @@ extension Translations {
         .addGemini: "Add Gemini",
         .connectMonitor: "Connect Claude Code, Codex, or Gemini to monitor your quota.",
         .sessionExpired: "Session expired. Re-authenticate to renew quota.",
+        .reauthenticate: "Sign in again",
         .awaitingCheck: "Awaiting initial quota check.",
         .cachedTelemetry: "Cached telemetry (%@ ago).",
         .removeThisAccount: "Remove this account?",

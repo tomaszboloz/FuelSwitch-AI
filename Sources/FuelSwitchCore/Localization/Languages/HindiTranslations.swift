@@ -88,6 +88,7 @@ extension Translations {
         .reconnected: "%@ रिफ्रेश हुआ।",
         .switched: "सक्रिय %@ CLI टैंक %@ पर स्विच किया।",
         .sessionExpired: "सत्र समाप्त। पुनः प्रमाणित करें।",
+        .reauthenticate: "फिर से साइन इन करें",
         .awaitingCheck: "प्रारंभिक जांच की प्रतीक्षा।",
         .removeThisAccount: "यह खाता हटाएं?",
         .tanksCount: "%d टैंक",

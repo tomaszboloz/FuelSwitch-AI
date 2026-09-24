@@ -88,6 +88,7 @@ extension Translations {
         .reconnected: "%@ 새로고침됨.",
         .switched: "활성 %@ CLI 탱크를 %@로 전환했습니다.",
         .sessionExpired: "세션이 만료되었습니다. 재인증하세요.",
+        .reauthenticate: "다시 로그인",
         .awaitingCheck: "초기 할당량 확인 대기 중.",
         .removeThisAccount: "이 계정을 삭제하시겠습니까?",
         .tanksCount: "%d개 탱크",

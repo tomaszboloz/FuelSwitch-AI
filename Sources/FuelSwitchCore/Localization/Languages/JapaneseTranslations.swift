@@ -88,6 +88,7 @@ extension Translations {
         .reconnected: "%@ 更新済み。",
         .switched: "アクティブ %@ CLIタンクを %@ に切り替えました。",
         .sessionExpired: "セッションが期限切れです。再認証してください。",
+        .reauthenticate: "再ログイン",
         .awaitingCheck: "初回確認を待機中。",
         .removeThisAccount: "このアカウントを削除しますか？",
         .tanksCount: "%d タンク",

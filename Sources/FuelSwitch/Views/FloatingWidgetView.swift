@@ -113,8 +113,12 @@ struct FloatingWidgetView: View {
     private func compactProviderPill(provider: Provider) -> some View {
         let accounts = model.accounts.filter { $0.provider == provider }
         let activeEmail = activeEmail(for: provider)
-        let activeAccount = accounts.first { $0.email.lowercased() == activeEmail?.lowercased() }
-        let usage = activeAccount.flatMap { model.usage[$0.id] }
+        // When the CLI has logged out there is no active email. Keep showing
+        // the saved account so its expired-session action remains reachable.
+        let activeAccount = accounts.first { $0.email.lowercased() == activeEmail?.lowercased() } ?? accounts.first
+        let usage = activeAccount.flatMap { account in
+            account.needsReauth ? nil : model.usage[account.id]
+        }
         let isActive = activeAccount.map { model.isAccountActive($0) } ?? false
 
         return HStack(spacing: 6) {
@@ -155,6 +159,18 @@ struct FloatingWidgetView: View {
             }
             .menuStyle(.borderlessButton)
             .fixedSize()
+
+            if let activeAccount, activeAccount.needsReauth {
+                Button {
+                    model.startLogin(provider: activeAccount.provider)
+                } label: {
+                    Image(systemName: "person.crop.circle.badge.exclamationmark")
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundStyle(FuelSwitchTheme.amber)
+                }
+                .buttonStyle(.plain)
+                .help(model.t(.reauthenticate))
+            }
 
             if let usage {
                 TimelineView(.periodic(from: .now, by: 60)) { context in
@@ -397,7 +413,7 @@ struct FloatingWidgetView: View {
     }
 
     private func accountCardView(account: Account, accountsForProvider: [Account]) -> some View {
-        let usage = model.usage[account.id]
+        let usage = account.needsReauth ? nil : model.usage[account.id]
         let isActiveInCLI = model.isAccountActive(account)
 
         return VStack(alignment: .leading, spacing: 7) {
@@ -429,7 +445,28 @@ struct FloatingWidgetView: View {
                     LowFuelIndicator(size: 9, showText: true, text: LocalizationManager.shared.text(.lowFuelWarningShort))
                 }
 
-                if isActiveInCLI {
+                if account.needsReauth {
+                    Button {
+                        model.startLogin(provider: account.provider)
+                    } label: {
+                        HStack(spacing: 3) {
+                            Image(systemName: "person.crop.circle.badge.exclamationmark")
+                                .font(.system(size: 7.5, weight: .bold))
+                            Text(model.t(.reauthenticate))
+                                .font(.system(size: 8, weight: .bold))
+                        }
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(FuelSwitchTheme.amber.opacity(0.16))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 3)
+                                .strokeBorder(FuelSwitchTheme.amber.opacity(0.4), lineWidth: 0.8)
+                        )
+                        .foregroundStyle(FuelSwitchTheme.amber)
+                    }
+                    .buttonStyle(.plain)
+                    .help(model.t(.reauthenticate))
+                } else if isActiveInCLI {
                     HStack(spacing: 3) {
                         Circle()
                             .fill(FuelSwitchTheme.emerald)

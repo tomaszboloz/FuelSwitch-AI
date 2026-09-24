@@ -107,6 +107,7 @@ extension Translations {
         .addGemini: "Dodaj Gemini",
         .connectMonitor: "Połącz Claude Code, Codex lub Gemini, aby monitorować limity.",
         .sessionExpired: "Sesja wygasła. Zaloguj się ponownie, aby odnowić limit.",
+        .reauthenticate: "Zaloguj ponownie",
         .awaitingCheck: "Oczekiwanie na pierwsze sprawdzenie limitu.",
         .cachedTelemetry: "Dane z pamięci podręcznej (sprzed %@).",
         .removeThisAccount: "Usunąć to konto?",

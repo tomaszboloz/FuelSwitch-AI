@@ -69,6 +69,16 @@ private actor CountingProvider: UsageProvider {
     }
 }
 
+private actor UnauthorizedThenSuccessProvider: UsageProvider {
+    private(set) var calls = 0
+
+    func fetch(account: Account) async throws -> AccountUsage {
+        calls += 1
+        if calls == 1 { throw UsageError.unauthorized }
+        return usage(88)
+    }
+}
+
 /// A hand-driven clock for the tests — lets time move past a backoff window
 /// without a real `Task.sleep`, which keeps the tests fast and deterministic.
 private actor TestClock {
@@ -199,6 +209,34 @@ private func account(email: String = "a@b.pl", expiresAt: Date = .distantFuture)
     #expect(saved.count == 1)
     #expect(saved[0].refreshToken == "new-refresh")
     #expect(saved[0].accessToken == "new-access")
+}
+
+@Test func anUnauthorizedUsageResponseRefreshesOnceBeforeReauth() async throws {
+    let store = AccountStore(directory: try temporaryDirectory())
+    let subject = account(expiresAt: .distantFuture)
+    try store.upsert(subject)
+
+    let provider = UnauthorizedThenSuccessProvider()
+    let refreshed = Tokens(
+        accessToken: "recovered-access",
+        refreshToken: "recovered-refresh",
+        expiresAt: Date().addingTimeInterval(3600)
+    )
+    let poller = Poller(
+        store: store,
+        providers: [.anthropic: provider],
+        oauth: [.anthropic: StubOAuth(result: .success(refreshed))]
+    )
+
+    let result = await poller.refresh(account: subject)
+
+    #expect(result.session.percent == 88)
+    #expect(result.staleness == .fresh)
+    #expect(await provider.calls == 2)
+    let saved = try store.load()
+    #expect(saved.first?.accessToken == "recovered-access")
+    #expect(saved.first?.refreshToken == "recovered-refresh")
+    #expect(saved.first?.needsReauth == false)
 }
 
 @Test func theRotatedTokenIsStoredBeforeTheUsageRequestCanFail() async throws {

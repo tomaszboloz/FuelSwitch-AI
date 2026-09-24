@@ -118,6 +118,7 @@ public enum TranslationKey: String, Sendable, CaseIterable {
     case addGemini = "add_gemini"
     case connectMonitor = "connect_monitor"
     case sessionExpired = "session_expired"
+    case reauthenticate = "reauthenticate"
     case awaitingCheck = "awaiting_check"
     case cachedTelemetry = "cached_telemetry"
     case removeThisAccount = "remove_this_account"

@@ -88,6 +88,7 @@ extension Translations {
         .reconnected: "تم تحديث %@.",
         .switched: "تم التبديل إلى خزان %@ النشط %@.",
         .sessionExpired: "انتهت الجلسة. أعد المصادقة.",
+        .reauthenticate: "تسجيل الدخول مرة أخرى",
         .awaitingCheck: "في انتظار الفحص الأولي.",
         .removeThisAccount: "إزالة هذا الحساب؟",
         .tanksCount: "%d خزانات",

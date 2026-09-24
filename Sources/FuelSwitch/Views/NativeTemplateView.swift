@@ -175,7 +175,7 @@ struct NativeAccountDetails: View {
             }
             if account.needsReauth {
                 Text(model.t(.sessionExpired)).foregroundStyle(.orange)
-                Button(model.t(.addAccount)) { model.startLogin(provider: account.provider) }
+                Button(model.t(.reauthenticate)) { model.startLogin(provider: account.provider) }
             }
             NativeUsageStatus(model: model, usage: model.usage[account.id])
             if let usage = model.displayUsage(for: account) {
@@ -322,7 +322,10 @@ struct NativeWidgetView: View {
     }
 
     private func providerRow(_ provider: Provider) -> some View {
+        // Keep a saved account visible after CLI logout so the re-auth action
+        // is available even though there is no active CLI identity.
         let account = model.accounts.first { $0.provider == provider && model.isAccountActive($0) }
+            ?? model.accounts.first { $0.provider == provider }
         let usage = account.flatMap { model.displayUsage(for: $0) }
         return HStack(spacing: 10) {
             Menu {
@@ -352,7 +355,13 @@ struct NativeWidgetView: View {
                 Text(model.t(.weeklyQuota)).font(.caption2).lineLimit(1)
                 NativeFuelWindow(model: model, window: usage?.weekly, showsReset: !compact)
             }
-            if let account, account.provider == .anthropic {
+            if let account, account.needsReauth {
+                Button { model.startLogin(provider: account.provider) } label: {
+                    Image(systemName: "person.crop.circle.badge.exclamationmark")
+                }
+                .buttonStyle(.borderless)
+                .help(model.t(.reauthenticate))
+            } else if let account, account.provider == .anthropic {
                 Button { model.openClaudeLimitReset(account: account) } label: {
                     Image(systemName: "arrow.counterclockwise.circle.fill")
                 }

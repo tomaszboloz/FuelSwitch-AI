@@ -88,6 +88,7 @@ extension Translations {
         .reconnected: "%@ atualizado.",
         .switched: "Tanque %@ ativo alternado para %@.",
         .sessionExpired: "Sessão expirada. Faça login novamente.",
+        .reauthenticate: "Entrar novamente",
         .awaitingCheck: "Aguardando verificação inicial.",
         .removeThisAccount: "Remover esta conta?",
         .tanksCount: "%d tanques",
