@@ -24,5 +24,9 @@ let package = Package(
             dependencies: ["FuelSwitchCore"],
             resources: [.copy("Fixtures")]
         ),
+        .testTarget(
+            name: "FuelSwitchTests",
+            dependencies: ["FuelSwitch"]
+        ),
     ]
 )

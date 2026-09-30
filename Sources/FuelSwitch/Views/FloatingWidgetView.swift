@@ -40,6 +40,8 @@ struct FloatingWidgetView: View {
                 .background(RoundedRectangle(cornerRadius: 10).fill(Material.ultraThinMaterial))
                 .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(FuelSwitchTheme.borderRegular, lineWidth: 1))
 
+            dragLayer
+
             HStack(spacing: 6) {
                 // Drag Handle / Logo
                 BrandIcon(size: 22)
@@ -218,6 +220,8 @@ struct FloatingWidgetView: View {
                 .background(RoundedRectangle(cornerRadius: 14).fill(Material.ultraThinMaterial))
                 .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(FuelSwitchTheme.borderRegular, lineWidth: 1))
 
+            dragLayer
+
             VStack(spacing: 0) {
                 header
                 Divider().background(FuelSwitchTheme.borderSubtle)
@@ -238,6 +242,14 @@ struct FloatingWidgetView: View {
             }
             .padding(12)
         }
+    }
+
+    /// Fills the panel above its decorative background but below all controls.
+    /// This makes the whole passive surface movable without stealing button/menu clicks.
+    private var dragLayer: some View {
+        WidgetDragHandle()
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .accessibilityHidden(true)
     }
 
     // MARK: - Header

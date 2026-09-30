@@ -282,42 +282,43 @@ struct NativeWidgetView: View {
     var compact: Bool { compactOverride ?? (model.widgetStyle == "compact") }
 
     var body: some View {
-        Group {
-            if compact {
-                HStack(spacing: 12) {
-                    if allowsWindowDragging {
+        ZStack {
+            if allowsWindowDragging {
+                WidgetDragHandle()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .accessibilityHidden(true)
+            }
+
+            Group {
+                if compact {
+                    HStack(spacing: 12) {
                         BrandIcon(size: 24)
-                            .overlay(WidgetDragHandle().accessibilityHidden(true))
-                    } else {
-                        BrandIcon(size: 24)
-                    }
-                    ForEach(visibleProviders) { providerRow($0) }
-                    controls
-                }.padding(.horizontal, 12)
-            } else {
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        if allowsWindowDragging {
-                            BrandIcon()
-                                .overlay(WidgetDragHandle().accessibilityHidden(true))
-                        } else {
-                            BrandIcon()
-                        }
-                        Text(model.t(.appName)).font(.headline)
-                        Spacer()
+                            .overlay(allowsWindowDragging ? WidgetDragHandle().accessibilityHidden(true) : nil)
+                        ForEach(visibleProviders) { providerRow($0) }
                         controls
-                    }
-                    MenuContentView(model: model).bannerArea
-                    ScrollView {
-                        VStack(spacing: 16) {
-                            ForEach(visibleProviders) { providerRow($0) }
-                            if visibleProviders.isEmpty {
-                                Text(model.t(.noAccountsRegistered)).foregroundStyle(.secondary)
+                    }.padding(.horizontal, 12)
+                } else {
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            BrandIcon()
+                                .overlay(allowsWindowDragging ? WidgetDragHandle().accessibilityHidden(true) : nil)
+                            Text(model.t(.appName)).font(.headline)
+                            Spacer()
+                            controls
+                        }
+                        MenuContentView(model: model).bannerArea
+                        ScrollView {
+                            VStack(spacing: 16) {
+                                ForEach(visibleProviders) { providerRow($0) }
+                                if visibleProviders.isEmpty {
+                                    Text(model.t(.noAccountsRegistered)).foregroundStyle(.secondary)
+                                }
                             }
                         }
+                        Button(model.t(.openMainWindow)) { NativeWindowController.shared.show(model: model) }
                     }
-                    Button(model.t(.openMainWindow)) { NativeWindowController.shared.show(model: model) }
-                }.padding(16)
+                    .padding(16)
+                }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

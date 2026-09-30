@@ -1,3 +1,19 @@
+# ⛽ FuelSwitch AI 1.2.4 — Move widgets from their passive surface
+
+Build 15 · macOS 13+ · Apple Silicon and Intel
+
+## Fixes
+
+- Floating widgets can now be dragged from passive background areas in Classic and Native templates, in compact and expanded layouts—not only from the fuel icon. The AppKit drag layer sits between the decorative background and interactive controls, so buttons and menus retain their normal actions.
+- The native drag target accepts the first click in a non-activating panel, avoiding a dropped initial click when the widget is not focused.
+
+## Verification and limits
+
+- 253 Swift tests and 13 Python release-feed/brand tests passed. The universal arm64/x86_64 app built and passed strict signature verification.
+- Automated tests do not replace a manual pointer-drag check on macOS 27. The app installed on this machine remains 1.2.3 until the new build is installed or the signed update is applied.
+
+---
+
 # ⛽ FuelSwitch AI 1.2.3 — Restore widget dragging on macOS 27
 
 Build 14 · macOS 13+ · Apple Silicon and Intel
