@@ -278,20 +278,31 @@ struct NativeWidgetView: View {
     let onClose: () -> Void
     var compactOverride: Bool? = nil
     var showsClose = true
+    var allowsWindowDragging = true
     var compact: Bool { compactOverride ?? (model.widgetStyle == "compact") }
 
     var body: some View {
         Group {
             if compact {
                 HStack(spacing: 12) {
-                    BrandIcon(size: 24)
+                    if allowsWindowDragging {
+                        BrandIcon(size: 24)
+                            .overlay(WidgetDragHandle().accessibilityHidden(true))
+                    } else {
+                        BrandIcon(size: 24)
+                    }
                     ForEach(visibleProviders) { providerRow($0) }
                     controls
                 }.padding(.horizontal, 12)
             } else {
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
-                        BrandIcon()
+                        if allowsWindowDragging {
+                            BrandIcon()
+                                .overlay(WidgetDragHandle().accessibilityHidden(true))
+                        } else {
+                            BrandIcon()
+                        }
                         Text(model.t(.appName)).font(.headline)
                         Spacer()
                         controls

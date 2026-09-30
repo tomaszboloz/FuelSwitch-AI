@@ -45,6 +45,7 @@ struct FloatingWidgetView: View {
                 BrandIcon(size: 22)
                     .font(.system(size: 11, weight: .bold))
                     .foregroundStyle(FuelSwitchTheme.amber)
+                    .overlay(WidgetDragHandle().accessibilityHidden(true))
 
                 // Do not spend the compact layout on providers that have no
                 // account. Each visible provider shows both normalized limits.
@@ -249,6 +250,7 @@ struct FloatingWidgetView: View {
                 BrandIcon(size: 28)
                     .font(.system(size: 11, weight: .bold))
                     .foregroundStyle(FuelSwitchTheme.amber)
+                    .overlay(WidgetDragHandle().accessibilityHidden(true))
             }
 
             Text(model.t(.hudTitle))

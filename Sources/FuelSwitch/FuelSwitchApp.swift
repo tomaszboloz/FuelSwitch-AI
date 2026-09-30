@@ -27,7 +27,13 @@ struct FuelSwitchApp: App {
                     VStack(spacing: 12) {
                         Button(model.t(.openMainWindow)) { NativeWindowController.shared.show(model: model) }
                             .keyboardShortcut("o")
-                        NativeWidgetView(model: model, onClose: {}, compactOverride: false, showsClose: false)
+                        NativeWidgetView(
+                            model: model,
+                            onClose: {},
+                            compactOverride: false,
+                            showsClose: false,
+                            allowsWindowDragging: false
+                        )
                             .frame(width: 440, height: 350)
                         Button(model.t(.quit)) { NSApplication.shared.terminate(nil) }
                     }.padding(12)
