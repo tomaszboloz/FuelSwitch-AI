@@ -69,6 +69,40 @@ private let account = Account(
 
 extension NetworkTests {
     @Suite struct UsageClientTests {
+        @Test func claudeUserAgentUsesInstalledVersionAndCurrentFallback() {
+            let cli = URL(fileURLWithPath: "/fake/claude")
+            let detected = ClaudeCLIUserAgent.detectVersion(
+                candidates: [cli],
+                isExecutable: { _ in true },
+                readOutput: { _ in "2.1.285 (Claude Code)" }
+            )
+            #expect(detected == "2.1.285")
+            #expect(ClaudeCLIUserAgent.make(version: detected) == "claude-cli/2.1.285 (external, cli)")
+            #expect(ClaudeCLIUserAgent.make(version: "not-a-version") == "claude-cli/2.1.285 (external, cli)")
+        }
+
+        @Test func claudeUserAgentSkipsInvalidInstalledVersions() {
+            let candidates = [URL(fileURLWithPath: "/fake/old-claude"), URL(fileURLWithPath: "/fake/claude")]
+            let detected = ClaudeCLIUserAgent.detectVersion(
+                candidates: candidates,
+                isExecutable: { _ in true },
+                readOutput: { url in
+                    url.lastPathComponent == "old-claude" ? "development build" : "2.1.285 (Claude Code)"
+                }
+            )
+            #expect(detected == "2.1.285")
+        }
+
+        @Test func claudeExecutableSearchIncludesTheOfficialInstallerPath() {
+            let home = URL(fileURLWithPath: "/Users/example", isDirectory: true)
+            let candidates = ClaudeCLIUserAgent.executableCandidates(
+                environment: ["PATH": "/usr/bin:/custom/bin"],
+                homeDirectory: home
+            )
+            #expect(candidates.contains(home.appendingPathComponent(".local/bin/claude")))
+            #expect(candidates.first == URL(fileURLWithPath: "/usr/bin/claude"))
+        }
+
         @Test func anthropicSendsTheRequiredHeaders() async throws {
             MockProtocol.response = (200, Data(#"{"five_hour":{"utilization":7}}"#.utf8))
             _ = try await AnthropicUsageClient(session: mockSession()).fetch(account: account)

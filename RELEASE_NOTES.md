@@ -1,3 +1,18 @@
+# ⛽ FuelSwitch AI 1.2.5 — Keep Claude usage requests current
+
+Build 16 · macOS 13+ · Apple Silicon and Intel
+
+## Fixes
+
+- Claude usage requests now identify the locally installed Claude Code version instead of sending a version frozen in FuelSwitch. This avoids using an outdated CLI identity after Claude Code updates; systems without the CLI use the current verified fallback.
+
+## Verification and limits
+
+- Automated tests cover CLI version discovery, fallback behavior, and the Anthropic request headers. They do not verify live quota values for a signed-in account.
+- Release artifacts are built and signed by the release workflow after tag `v1.2.5` is pushed.
+
+---
+
 # ⛽ FuelSwitch AI 1.2.4 — Move widgets from their passive surface
 
 Build 15 · macOS 13+ · Apple Silicon and Intel
