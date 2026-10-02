@@ -886,8 +886,13 @@ final class AppModel: ObservableObject {
     /// data — a cached or error result carries the same percent as the last
     /// poll, which `ThresholdWatcher` would not re-fire on anyway, but there
     /// is no reason to even ask.
+    ///
+    /// Only the account the CLI currently uses is watched. An idle account
+    /// that sits at its weekly cap needs no action from the user, yet it
+    /// kept repeating the same weekly alert on every refresh.
     private func checkThresholds(account: Account, usage: AccountUsage) async {
-        guard notificationsEnabled, usage.staleness == .fresh else { return }
+        guard notificationsEnabled, usage.staleness == .fresh,
+              isActiveCLIAccount(account) else { return }
         let thresholds = notificationThresholds
         for window in [usage.session, usage.weekly] {
             guard let crossing = await thresholdWatcher.evaluate(
@@ -906,6 +911,16 @@ final class AppModel: ObservableObject {
                 soundEnabled: notificationSoundEnabled
             )
         }
+    }
+
+    private func isActiveCLIAccount(_ account: Account) -> Bool {
+        let activeEmail: String?
+        switch account.provider {
+        case .anthropic: activeEmail = activeClaudeEmail
+        case .openai: activeEmail = activeCodexEmail
+        case .gemini: activeEmail = activeGeminiEmail
+        }
+        return activeEmail?.caseInsensitiveCompare(account.email) == .orderedSame
     }
 
     /// Switches the active CLI account away from one that just ran fully

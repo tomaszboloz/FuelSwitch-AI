@@ -1,3 +1,19 @@
+# ⛽ FuelSwitch AI 1.2.6 — Stop repeated Keychain and quota prompts
+
+Build 17 · macOS 13+ · Apple Silicon and Intel
+
+## Fixes
+
+- FuelSwitch now reads and writes the `Claude Code-credentials` Keychain item through `/usr/bin/security`, the same tool Claude Code uses. macOS no longer asks every few hours for permission to use that item after Claude Code refreshes its token.
+- Usage threshold notifications are sent only for the account the CLI currently uses. An inactive account at its weekly cap no longer repeats the weekly quota alert on every refresh.
+
+## Verification and limits
+
+- The full automated test suite passes. The Keychain change was not checked against a live macOS prompt in CI.
+- Release artifacts are built and signed by the release workflow after tag `v1.2.6` is pushed.
+
+---
+
 # ⛽ FuelSwitch AI 1.2.5 — Keep Claude usage requests current
 
 Build 16 · macOS 13+ · Apple Silicon and Intel
