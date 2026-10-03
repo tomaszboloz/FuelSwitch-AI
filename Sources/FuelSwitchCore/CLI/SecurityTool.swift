@@ -26,13 +26,32 @@ enum SecurityTool {
         return Data(text.utf8)
     }
 
+    enum WriteError: Error { case commandTooLong, verificationFailed }
+
+    static func writeCommand(service: String, account: String, data: Data) throws -> Data {
+        let value: String
+        if let text = String(data: data, encoding: .utf8),
+           text.unicodeScalars.allSatisfy({ (32...126).contains(Int($0.value)) }) {
+            // Match go-keyring: its ASCII base64 envelope must not be doubled
+            // into hex, which exceeds security's 4096-byte interactive buffer.
+            value = "-w \(quoted(text))"
+        } else {
+            value = "-X " + data.map { String(format: "%02x", $0) }.joined()
+        }
+        let command = Data("add-generic-password -U -a \(quoted(account)) -s \(quoted(service)) \(value)\n".utf8)
+        // Reject before executing; security can partially write an oversized line.
+        guard command.count < 4096 else { throw WriteError.commandTooLong }
+        return command
+    }
+
     static func writeGenericPassword(service: String, account: String, data: Data) throws {
-        let hex = data.map { String(format: "%02x", $0) }.joined()
-        // The secret goes through stdin (interactive mode), not argv, so it
-        // never shows up in the process list.
-        let command = "add-generic-password -U -a \(quoted(account)) -s \(quoted(service)) -X \(hex)\n"
-        let result = try run(["-i"], input: Data(command.utf8))
+        // The secret stays on stdin, never in the process arguments.
+        let command = try writeCommand(service: service, account: account, data: data)
+        let result = try run(["-i"], input: command)
         guard result.status == 0 else { throw CLISwitcher.Error.keychain(OSStatus(result.status)) }
+        guard try readGenericPassword(service: service, account: account) == data else {
+            throw WriteError.verificationFailed
+        }
     }
 
     static func deleteGenericPassword(service: String, account: String) throws {

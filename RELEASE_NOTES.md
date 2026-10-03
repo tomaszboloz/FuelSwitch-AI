@@ -1,3 +1,20 @@
+# ⛽ FuelSwitch AI 1.2.11 — Keep Antigravity signed in when switching
+
+Build 22 · macOS 13+ · Apple Silicon and Intel
+
+## Fixes
+
+- Saved Antigravity sessions are written as the ASCII password expected by go-keyring. The previous hex write doubled the command size and exceeded the 4096-byte interactive input limit for full sessions, leaving truncated credentials and forcing another sign-in.
+- Keychain writes are checked by reading back the exact stored value. Commands that exceed the input limit are rejected before they can damage the existing login. Credentials are still passed through stdin, without appearing in process arguments.
+
+## Verification and limits
+
+- The truncation was reproduced with a full-size synthetic session in a temporary Keychain item. The corrected write round-tripped the full value through the same security command used by go-keyring.
+- Regression tests cover full session size, argument quoting and rejection before oversized writes. Live switching between two real accounts was not exercised.
+- Distribution remains ad-hoc code-signed; Sparkle update archives are separately signed by the release workflow.
+
+---
+
 # ⛽ FuelSwitch AI 1.2.10 — Switch the actual Antigravity account
 
 Build 21 · macOS 13+ · Apple Silicon and Intel
