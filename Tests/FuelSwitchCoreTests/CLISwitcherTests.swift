@@ -170,6 +170,62 @@ import Foundation
         #expect(try CLISwitcher.newerClaudeCredentials(for: account, keychainReader: { olderData }) == nil)
     }
 
+    @Test func adoptsClaudeRotationWithoutEmailInKeychain() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let config = directory.appendingPathComponent(".claude.json")
+        let account = Account(provider: .anthropic, email: "claude@example.com",
+                              accessToken: "old-access", refreshToken: "old-refresh",
+                              expiresAt: Date(timeIntervalSince1970: 1_700_000_000), needsReauth: true)
+        let data = try JSONSerialization.data(withJSONObject: ["claudeAiOauth": [
+            "accessToken": "rotated-access", "refreshToken": "rotated-refresh",
+            "expiresAt": 1_700_003_600_000
+        ]])
+        // No account identity means the credential cannot be adopted.
+        #expect(try CLISwitcher.newerClaudeCredentials(for: account, keychainReader: { data }, configURL: config) == nil)
+        try JSONSerialization.data(withJSONObject: ["oauthAccount": ["emailAddress": account.email]]).write(to: config)
+        let candidate = try CLISwitcher.newerClaudeCredentials(for: account, keychainReader: { data }, configURL: config)
+        let updated = try #require(candidate)
+        #expect(updated.accessToken == "rotated-access")
+        #expect(updated.refreshToken == "rotated-refresh")
+        #expect(!updated.needsReauth)
+        // The active CLI account must match the monitored account.
+        try JSONSerialization.data(withJSONObject: ["oauthAccount": ["emailAddress": "other@example.com"]]).write(to: config)
+        #expect(try CLISwitcher.newerClaudeCredentials(for: account, keychainReader: { data }, configURL: config) == nil)
+    }
+
+    @Test func doesNotAdoptAnOlderClaudeTokenWithDifferentValues() throws {
+        let account = Account(provider: .anthropic, email: "claude@example.com",
+                              accessToken: "new-access", refreshToken: "new-refresh",
+                              expiresAt: Date(timeIntervalSince1970: 1_700_003_600))
+        let data = try JSONSerialization.data(withJSONObject: ["claudeAiOauth": [
+            "emailAddress": account.email, "accessToken": "old-access",
+            "refreshToken": "old-refresh", "expiresAt": 1_700_000_000_000
+        ]])
+        #expect(try CLISwitcher.newerClaudeCredentials(for: account, keychainReader: { data }) == nil)
+    }
+
+    @Test func syncsClaudeRotationWithoutEmailOnlyWhenTokensMatch() throws {
+        let old = Account(provider: .anthropic, email: "claude@example.com",
+                          accessToken: "old-access", refreshToken: "old-refresh")
+        var updated = old
+        updated.accessToken = "new-access"
+        updated.refreshToken = "new-refresh"
+        let existing: [String: Any] = ["claudeAiOauth": [
+            "accessToken": old.accessToken, "refreshToken": old.refreshToken,
+            "scopes": ["user:profile"]
+        ]]
+        let merged = try #require(CLISwitcher.claudeCredentialsAfterRefresh(existing: existing, from: old, to: updated))
+        let oauth = try #require(merged["claudeAiOauth"] as? [String: Any])
+        #expect(oauth["accessToken"] as? String == updated.accessToken)
+        #expect(oauth["scopes"] as? [String] == ["user:profile"])
+        let switched: [String: Any] = ["claudeAiOauth": [
+            "accessToken": "another-access", "refreshToken": "another-refresh"
+        ]]
+        #expect(CLISwitcher.claudeCredentialsAfterRefresh(existing: switched, from: old, to: updated) == nil)
+    }
+
     @Test func switchesClaudeAccountWhenItsConfigDoesNotExist() throws {
         let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: tempDir) }

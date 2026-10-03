@@ -249,16 +249,18 @@ public enum CLISwitcher {
     /// therefore rotate the token between two polling cycles. Reading the
     /// provider's own credential record before deciding to refresh prevents
     /// FuelSwitch from sending that already-invalidated token and needlessly
-    /// asking the user to sign in again.
+    /// asking the user to sign in again. Claude Code keeps identity in
+    /// `.claude.json`, and drops the extra email field from Keychain on refresh.
     static func newerClaudeCredentials(
         for account: Account,
-        keychainReader: () throws -> Data? = readClaudeKeychainCredentials
+        keychainReader: () throws -> Data? = readClaudeKeychainCredentials,
+        configURL: URL = claudeConfigURL
     ) throws -> Account? {
         guard account.provider == .anthropic,
               let data = try keychainReader(),
               let root = try JSONSerialization.jsonObject(with: data) as? [String: Any],
               let oauth = root["claudeAiOauth"] as? [String: Any],
-              let email = oauth["emailAddress"] as? String,
+              let email = oauth["emailAddress"] as? String ?? activeClaudeEmail(url: configURL),
               email.caseInsensitiveCompare(account.email) == .orderedSame,
               let accessToken = oauth["accessToken"] as? String,
               let refreshToken = oauth["refreshToken"] as? String
@@ -275,7 +277,10 @@ public enum CLISwitcher {
         guard let expiryMilliseconds else { return nil }
 
         let expiresAt = Date(timeIntervalSince1970: expiryMilliseconds / 1000)
-        guard expiresAt > account.expiresAt
+        // Never restore an older session over a token FuelSwitch just renewed.
+        guard !accessToken.isEmpty, !refreshToken.isEmpty,
+              expiresAt >= account.expiresAt,
+              expiresAt > account.expiresAt
                 || accessToken != account.accessToken
                 || refreshToken != account.refreshToken else {
             return nil
@@ -311,8 +316,11 @@ public enum CLISwitcher {
         guard old.provider == .anthropic, updated.provider == .anthropic,
               old.id == updated.id,
               let existingOAuth = existing["claudeAiOauth"] as? [String: Any],
-              let email = existingOAuth["emailAddress"] as? String,
-              email.caseInsensitiveCompare(old.email) == .orderedSame,
+              // Claude Code strips our email metadata when it rotates tokens.
+              // Exact token equality below still identifies the session.
+              (existingOAuth["emailAddress"] as? String).map({
+                  $0.caseInsensitiveCompare(old.email) == .orderedSame
+              }) ?? true,
               existingOAuth["accessToken"] as? String == old.accessToken,
               existingOAuth["refreshToken"] as? String == old.refreshToken
         else { return nil }

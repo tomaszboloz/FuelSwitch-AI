@@ -1,3 +1,20 @@
+# ⛽ FuelSwitch AI 1.2.9 — Follow Claude Code token rotation
+
+Build 20 · macOS 13+ · Apple Silicon and Intel
+
+## Fixes
+
+- Claude limit polling now adopts the tokens renewed by Claude Code even when its Keychain record has no email address. Claude Code stores the account identity in `.claude.json` and removes FuelSwitch's extra email field when renewing tokens. FuelSwitch previously ignored that record and could keep using an invalidated refresh token.
+- FuelSwitch no longer replaces a newer stored session with an older Keychain session. It rejects empty credentials and credentials belonging to another active Claude account.
+- A token renewed by FuelSwitch is copied back to Claude Code when the previous tokens match exactly, including records without email metadata. A session switched or renewed elsewhere is preserved.
+
+## Verification and limits
+
+- Regression tests cover the current Claude Code credential shape, account identity, older sessions and synchronization after token rotation.
+- Live signed-in Claude quota requests were not exercised. Distribution remains ad-hoc code-signed; Sparkle update archives are separately signed by the release workflow.
+
+---
+
 # ⛽ FuelSwitch AI 1.2.8 — Show Gemini usage for every Antigravity account
 
 Build 19 · macOS 13+ · Apple Silicon and Intel
