@@ -134,6 +134,8 @@ public enum TranslationKey: String, Sendable, CaseIterable {
     case antigravitySyncTitle = "antigravity_sync_title"
     case antigravitySyncHelp = "antigravity_sync_help"
     case antigravityRestartFailed = "antigravity_restart_failed"
+    case antigravitySignInRequired = "antigravity_sign_in_required"
+    case antigravityAccountMismatch = "antigravity_account_mismatch"
 
     // Notifications & Auto-Switch
     case notificationsTitle = "notifications_title"

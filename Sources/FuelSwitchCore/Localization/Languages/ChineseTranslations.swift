@@ -19,6 +19,8 @@ extension Translations {
         .antigravitySyncTitle: "与 Antigravity 同步账号",
         .antigravitySyncHelp: "切换 Gemini 账号时，重启 Antigravity 应用并恢复该账号的 Antigravity 登录。首次使用某个账号时，Antigravity 会要求登录一次；FuelSwitch 会记住该登录供以后切换使用。Antigravity IDE 有自己的登录：请在 IDE 内切换账号。正在进行的工作可能会被中断。",
         .antigravityRestartFailed: "无法重启 Antigravity。请检查是否已安装，或是否在等待你确认退出，然后重试。",
+        .antigravitySignInRequired: "请先在 Antigravity 中登录所选账号，然后重试切换。",
+        .antigravityAccountMismatch: "Antigravity 尚未确认所选账号。切换未完成。",
         .tagline: "CLI 账户快速切换器与用量监视器",
         .ready: "就绪",
         .active: "活跃",

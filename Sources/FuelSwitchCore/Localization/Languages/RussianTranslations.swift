@@ -19,6 +19,8 @@ extension Translations {
         .antigravitySyncTitle: "Синхронизировать аккаунт с Antigravity",
         .antigravitySyncHelp: "При смене аккаунта Gemini перезапускать приложение Antigravity и восстанавливать вход Antigravity для этого аккаунта. При первом использовании аккаунта Antigravity один раз попросит войти; FuelSwitch запомнит вход для следующих переключений. У Antigravity IDE свой вход: меняйте аккаунт в самой IDE. Текущая работа может быть прервана.",
         .antigravityRestartFailed: "Не удалось перезапустить Antigravity. Проверьте, установлено ли приложение и не ждёт ли оно подтверждения выхода, затем повторите попытку.",
+        .antigravitySignInRequired: "Войдите один раз в выбранный аккаунт в Antigravity, затем повторите переключение.",
+        .antigravityAccountMismatch: "Antigravity не подтвердил выбранный аккаунт. Переключение не завершено.",
         .tagline: "Переключатель аккаунтов CLI и монитор квот",
         .ready: "Готово",
         .active: "АКТИВЕН",

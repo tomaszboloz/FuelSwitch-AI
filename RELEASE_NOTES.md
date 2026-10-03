@@ -1,3 +1,23 @@
+# ⛽ FuelSwitch AI 1.2.10 — Switch the actual Antigravity account
+
+Build 21 · macOS 13+ · Apple Silicon and Intel
+
+## Fixes
+
+- Gemini switching now restores the standalone Antigravity app's actual Keychain sign-in instead of changing an obsolete token file. Older saved JSON sessions are converted to the format Antigravity expects; snapshots for a different account are rejected.
+- Antigravity's application path is captured before quitting, with an installed-app fallback, so it is reopened after switching or a failed credential update.
+- FuelSwitch reports success and updates the Gemini CLI account only after the restarted Antigravity language server confirms the selected email. If the account has no saved Antigravity session, FuelSwitch asks for a one-time sign-in inside Antigravity.
+- With Antigravity synchronization enabled, the active Gemini account displayed in FuelSwitch comes from the running Antigravity app, rather than an outdated Gemini CLI marker. Antigravity IDE retains its separate sign-in.
+- Application packaging resolves SwiftPM's current output directory, preventing local Xcode builds from copying an older executable.
+
+## Verification and limits
+
+- Regression tests cover Keychain session swapping, legacy session encoding, snapshot identity, relaunch paths and account verification after startup.
+- The running Antigravity identity API and a synthetic Keychain write/read were checked locally. Switching between two real user accounts was not exercised.
+- Distribution remains ad-hoc code-signed; Sparkle update archives are separately signed by the release workflow.
+
+---
+
 # ⛽ FuelSwitch AI 1.2.9 — Follow Claude Code token rotation
 
 Build 20 · macOS 13+ · Apple Silicon and Intel

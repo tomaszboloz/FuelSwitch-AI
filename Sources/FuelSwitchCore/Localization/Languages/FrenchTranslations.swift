@@ -19,6 +19,8 @@ extension Translations {
         .antigravitySyncTitle: "Synchroniser le compte avec Antigravity",
         .antigravitySyncHelp: "Lors d'un changement de compte Gemini, redémarrer l'app Antigravity et restaurer la connexion Antigravity de ce compte. À la première utilisation d'un compte, Antigravity demande une connexion unique ; FuelSwitch la mémorise pour les changements suivants. Antigravity IDE a sa propre connexion : changez de compte dans l'IDE. Le travail en cours peut être interrompu.",
         .antigravityRestartFailed: "Impossible de redémarrer Antigravity. Vérifiez qu'il est installé ou qu'il n'attend pas une confirmation de fermeture, puis réessayez.",
+        .antigravitySignInRequired: "Connectez-vous une fois au compte choisi dans Antigravity, puis réessayez de changer de compte.",
+        .antigravityAccountMismatch: "Antigravity n’a pas confirmé le compte choisi. Le changement n’a pas été effectué.",
         .tagline: "Commutateur de comptes CLI & Suivi de quota",
         .ready: "Prêt",
         .active: "ACTIF",

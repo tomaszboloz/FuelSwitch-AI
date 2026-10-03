@@ -154,18 +154,6 @@ public enum GeminiUsage {
     }
 }
 
-private final class InsecureLocalSessionDelegate: NSObject, URLSessionDelegate, @unchecked Sendable {
-    static let shared = InsecureLocalSessionDelegate()
-    func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
-        if let trust = challenge.protectionSpace.serverTrust,
-           challenge.protectionSpace.host == "127.0.0.1" || challenge.protectionSpace.host == "localhost" {
-            completionHandler(.useCredential, URLCredential(trust: trust))
-        } else {
-            completionHandler(.performDefaultHandling, nil)
-        }
-    }
-}
-
 public struct GeminiUsageClient: UsageProvider {
     private static let loadCodeAssistURL = URL(string: "https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist")!
     private static let retrieveUserQuotaURL = URL(string: "https://cloudcode-pa.googleapis.com/v1internal:retrieveUserQuota")!
@@ -203,75 +191,12 @@ public struct GeminiUsageClient: UsageProvider {
     }
 
     private func fetchFromLocalLanguageServer(email: String) async -> AccountUsage? {
-        let ps = Process()
-        ps.executableURL = URL(fileURLWithPath: "/bin/ps")
-        ps.arguments = ["-eo", "pid,command"]
-        let pipe = Pipe()
-        ps.standardOutput = pipe
-        do {
-            try ps.run()
-        } catch {
-            return nil
-        }
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        ps.waitUntilExit()
-        guard let output = String(data: data, encoding: .utf8) else { return nil }
-
-        for line in output.components(separatedBy: .newlines) {
-            guard line.contains("language_server"), line.contains("--csrf_token") else { continue }
-            let trimmed = line.trimmingCharacters(in: .whitespaces)
-            guard let pidStr = trimmed.components(separatedBy: .whitespaces).first, let pid = Int(pidStr) else { continue }
-
-            let lineParts = line.components(separatedBy: "--csrf_token")
-            guard lineParts.count > 1 else { continue }
-            let csrfToken = lineParts[1].trimmingCharacters(in: .whitespaces).components(separatedBy: .whitespaces).first ?? ""
-            guard !csrfToken.isEmpty else { continue }
-
-            let lsof = Process()
-            lsof.executableURL = URL(fileURLWithPath: "/usr/sbin/lsof")
-            lsof.arguments = ["-Pan", "-p", "\(pid)", "-iTCP", "-sTCP:LISTEN"]
-            let lsofPipe = Pipe()
-            lsof.standardOutput = lsofPipe
-            do {
-                try lsof.run()
-            } catch {
-                continue
-            }
-            let lsofData = lsofPipe.fileHandleForReading.readDataToEndOfFile()
-            lsof.waitUntilExit()
-            guard let lsofOut = String(data: lsofData, encoding: .utf8) else { continue }
-
-            for lline in lsofOut.components(separatedBy: .newlines) {
-                guard lline.contains("LISTEN"), let colonIdx = lline.range(of: ":")?.upperBound else { continue }
-                let portStr = lline[colonIdx...].components(separatedBy: .whitespaces).first ?? ""
-                guard let port = Int(portStr), port > 0 else { continue }
-
-                let localSession = URLSession(
-                    configuration: .ephemeral,
-                    delegate: InsecureLocalSessionDelegate.shared,
-                    delegateQueue: nil
-                )
-                func call(_ method: String) async -> Data? {
-                    guard let url = URL(string: "https://127.0.0.1:\(port)/exa.language_server_pb.LanguageServerService/\(method)") else { return nil }
-                    var req = URLRequest(url: url)
-                    req.httpMethod = "POST"
-                    req.timeoutInterval = 1.0
-                    req.setValue("application/json", forHTTPHeaderField: "Content-Type")
-                    req.setValue("1", forHTTPHeaderField: "Connect-Protocol-Version")
-                    req.setValue(csrfToken, forHTTPHeaderField: "X-Codeium-Csrf-Token")
-                    req.httpBody = Data("{}".utf8)
-                    guard let (data, response) = try? await localSession.data(for: req),
-                          (response as? HTTPURLResponse)?.statusCode == 200 else { return nil }
-                    return data
-                }
-
-                guard let status = await call("GetUserStatus"),
-                      let signedIn = GeminiUsage.languageServerEmail(status),
-                      signedIn.caseInsensitiveCompare(email) == .orderedSame else { continue }
-                if let quota = await call("RetrieveUserQuotaSummary"),
-                   let usage = try? GeminiUsage.parseLocalQuota(quota, fetchedAt: Date()) {
-                    return usage
-                }
+        for server in AntigravityLanguageServer.running() {
+            guard let signedIn = await server.signedInEmail(),
+                  signedIn.caseInsensitiveCompare(email) == .orderedSame else { continue }
+            if let quota = await server.call("RetrieveUserQuotaSummary"),
+               let usage = try? GeminiUsage.parseLocalQuota(quota, fetchedAt: Date()) {
+                return usage
             }
         }
         return nil

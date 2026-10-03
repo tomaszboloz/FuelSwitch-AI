@@ -443,70 +443,18 @@ public enum CLISwitcher {
 
     // MARK: - Keychain Helper
 
-    // Claude Code creates and rewrites its credential item through
-    // /usr/bin/security, so that tool is the item's trusted application.
-    // Reading it with SecItemCopyMatching from FuelSwitch instead triggers a
-    // "wants to use your confidential information" prompt, and every token
-    // refresh by Claude Code resets the item's access list, so the prompt
-    // came back every few hours. Going through the same tool avoids it.
+    // Claude Code writes this item through /usr/bin/security; see SecurityTool.
     private static let claudeKeychainService = "Claude Code-credentials"
-    private static let securityTool = URL(fileURLWithPath: "/usr/bin/security")
-    private static let securityItemNotFound: Int32 = 44
 
     private static func readClaudeKeychainCredentials() throws -> Data? {
-        let result = try runSecurity(["find-generic-password", "-s", claudeKeychainService, "-w"])
-        if result.status == securityItemNotFound { return nil }
-        guard result.status == 0 else { throw Error.keychain(OSStatus(result.status)) }
-        let text = String(decoding: result.output, as: UTF8.self)
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-        // `security -w` prints the value as hex when it is not plain ASCII,
-        // e.g. an organisation name with diacritics.
-        if !text.hasPrefix("{"), let decoded = Data(hexString: text) { return decoded }
-        return Data(text.utf8)
+        try SecurityTool.readGenericPassword(service: claudeKeychainService)
     }
 
     private static func writeClaudeKeychainCredentials(_ data: Data) throws {
-        let account = try claudeKeychainAccount() ?? NSUserName()
-        let hex = data.map { String(format: "%02x", $0) }.joined()
-        // The secret goes through stdin (interactive mode), not argv, so it
-        // never shows up in the process list.
-        let command = "add-generic-password -U -a \"\(account)\" -s \"\(claudeKeychainService)\" -X \(hex)\n"
-        let result = try runSecurity(["-i"], input: Data(command.utf8))
-        guard result.status == 0 else { throw Error.keychain(OSStatus(result.status)) }
-    }
-
-    /// The existing item's account attribute. Updating with a different
-    /// account would add a second item instead of replacing Claude's one.
-    private static func claudeKeychainAccount() throws -> String? {
-        let result = try runSecurity(["find-generic-password", "-s", claudeKeychainService])
-        if result.status == securityItemNotFound { return nil }
-        guard result.status == 0 else { throw Error.keychain(OSStatus(result.status)) }
-        let text = String(decoding: result.output, as: UTF8.self)
-        for line in text.split(separator: "\n") where line.contains("\"acct\"<blob>=\"") {
-            guard let open = line.range(of: "=\"") else { continue }
-            let value = line[open.upperBound...]
-            return value.hasSuffix("\"") ? String(value.dropLast()) : String(value)
-        }
-        return nil
-    }
-
-    private static func runSecurity(_ arguments: [String], input: Data? = nil) throws -> (status: Int32, output: Data) {
-        let process = Process()
-        process.executableURL = securityTool
-        process.arguments = arguments
-        let output = Pipe()
-        process.standardOutput = output
-        process.standardError = FileHandle.nullDevice
-        let stdin = Pipe()
-        process.standardInput = input == nil ? FileHandle.nullDevice : stdin
-        try process.run()
-        if let input {
-            stdin.fileHandleForWriting.write(input)
-            try? stdin.fileHandleForWriting.close()
-        }
-        let data = output.fileHandleForReading.readDataToEndOfFile()
-        process.waitUntilExit()
-        return (process.terminationStatus, data)
+        // Updating with a different account would add a second item instead
+        // of replacing Claude's one.
+        let account = try SecurityTool.genericPasswordAccount(service: claudeKeychainService) ?? NSUserName()
+        try SecurityTool.writeGenericPassword(service: claudeKeychainService, account: account, data: data)
     }
 
     private static func updateClaudeKeychainCredentials(account: Account) throws {
@@ -581,21 +529,5 @@ public enum CLISwitcher {
             [.posixPermissions: NSNumber(value: permissions)],
             ofItemAtPath: url.path
         )
-    }
-}
-
-private extension Data {
-    init?(hexString: String) {
-        guard hexString.count.isMultiple(of: 2), !hexString.isEmpty else { return nil }
-        var bytes = [UInt8]()
-        bytes.reserveCapacity(hexString.count / 2)
-        var index = hexString.startIndex
-        while index < hexString.endIndex {
-            let next = hexString.index(index, offsetBy: 2)
-            guard let byte = UInt8(hexString[index..<next], radix: 16) else { return nil }
-            bytes.append(byte)
-            index = next
-        }
-        self.init(bytes)
     }
 }

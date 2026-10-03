@@ -19,6 +19,8 @@ extension Translations {
         .antigravitySyncTitle: "Antigravity के साथ खाता सिंक करें",
         .antigravitySyncHelp: "Gemini खाता बदलते समय Antigravity ऐप को फिर से शुरू करें और उस खाते का Antigravity साइन-इन वापस लाएँ। किसी खाते के पहली बार उपयोग पर Antigravity एक बार साइन-इन माँगेगा; FuelSwitch उसे आगे के बदलावों के लिए याद रखेगा। Antigravity IDE का अपना साइन-इन है: खाता IDE के अंदर बदलें। चल रहा काम बाधित हो सकता है।",
         .antigravityRestartFailed: "Antigravity को फिर से शुरू नहीं किया जा सका। जाँचें कि यह इंस्टॉल है या बंद करने की पुष्टि का इंतज़ार कर रहा है, फिर से प्रयास करें।",
+        .antigravitySignInRequired: "Antigravity में चुने गए खाते से एक बार साइन इन करें, फिर दोबारा खाते को बदलें।",
+        .antigravityAccountMismatch: "Antigravity ने चुने गए खाते की पुष्टि नहीं की। खाता बदलना पूरा नहीं हुआ।",
         .tagline: "CLI खाता स्विचर और कोटा मॉनिटर",
         .ready: "तैयार",
         .active: "सक्रिय",

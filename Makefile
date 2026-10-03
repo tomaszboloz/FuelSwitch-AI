@@ -50,7 +50,7 @@ bundle: icon
 	cp Resources/Info.plist $(APP)/Contents/Info.plist
 	cp Resources/AppIcon.icns $(APP)/Contents/Resources/AppIcon.icns
 	cp Resources/favicon.png $(APP)/Contents/Resources/favicon.png
-	cp .build/apple/Products/Release/FuelSwitch $(APP)/Contents/MacOS/FuelSwitch
+	cp "$$(swift build -c release --arch arm64 --arch x86_64 --show-bin-path)/FuelSwitch" $(APP)/Contents/MacOS/FuelSwitch
 	$(MAKE) embed-sparkle
 
 # Sparkle ships as a binary xcframework, so nothing embeds it into a manually

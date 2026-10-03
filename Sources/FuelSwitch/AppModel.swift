@@ -472,11 +472,25 @@ final class AppModel: ObservableObject {
         }
     }
 
+    private var activeAccountReloadRevision = 0
+
     func reloadActiveAccounts() {
         guard !isPreview else { return }
         activeClaudeEmail = CLISwitcher.activeEmail(for: .anthropic, knownAccounts: accounts)
         activeCodexEmail = CLISwitcher.activeEmail(for: .openai, knownAccounts: accounts)
-        activeGeminiEmail = CLISwitcher.activeEmail(for: .gemini, knownAccounts: accounts)
+        activeAccountReloadRevision += 1
+        let revision = activeAccountReloadRevision
+        if antigravitySyncEnabled {
+            // The CLI marker does not prove that Antigravity changed its login.
+            activeGeminiEmail = nil
+            Task {
+                let email = await AntigravitySync.runningSignedInEmail()
+                guard revision == self.activeAccountReloadRevision, self.antigravitySyncEnabled else { return }
+                self.activeGeminiEmail = email
+            }
+        } else {
+            activeGeminiEmail = CLISwitcher.activeEmail(for: .gemini, knownAccounts: accounts)
+        }
     }
 
     func isAccountActive(_ account: Account) -> Bool {
@@ -535,7 +549,13 @@ final class AppModel: ObservableObject {
 
     private func switchErrorDescription(_ error: Error) -> String {
         if error is CodexDesktopSync.SyncError { return t(.codexDesktopRestartFailed) }
-        if error is AntigravitySync.SyncError { return t(.antigravityRestartFailed) }
+        if let error = error as? AntigravitySync.SyncError {
+            switch error {
+            case .signInRequired: return t(.antigravitySignInRequired)
+            case .accountMismatch: return t(.antigravityAccountMismatch)
+            default: return t(.antigravityRestartFailed)
+            }
+        }
         if error is OAuthError { return t(.sessionExpired) }
         return t(.operationFailed)
     }
@@ -551,11 +571,19 @@ final class AppModel: ObservableObject {
         }
         if current.provider == .gemini {
             // Without the restart Antigravity keeps the old login in memory.
-            try await AntigravitySync.performSwitch(enabled: antigravitySyncEnabled) {
-                if antigravitySyncEnabled { try AntigravitySync.swapSignIn(to: current.email) }
-                try CLISwitcher.switch(to: current)
-                finish()
-            }
+            let sync = antigravitySyncEnabled
+            // Ask the running app who is signed in before quitting it.
+            let signedIn = sync ? await AntigravitySync.runningSignedInEmail() : nil
+            var restored = false
+            try await AntigravitySync.performSwitch(enabled: sync, swap: {
+                if sync { restored = try AntigravitySync.swapSignIn(to: current.email, currentEmail: signedIn) }
+            }, verify: {
+                guard restored else { throw AntigravitySync.SyncError.signInRequired }
+                try await AntigravitySync.confirmSignedIn(email: current.email)
+            })
+            // Publish the CLI account and success only after Antigravity confirms it.
+            try CLISwitcher.switch(to: current)
+            finish()
             return
         }
         try await CodexDesktopSync.performSwitch(enabled: syncDesktop) {

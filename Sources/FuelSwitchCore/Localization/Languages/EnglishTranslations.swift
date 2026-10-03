@@ -19,6 +19,8 @@ extension Translations {
         .antigravitySyncTitle: "Sync account with Antigravity",
         .antigravitySyncHelp: "When switching Gemini accounts, restart the Antigravity app and restore that account's Antigravity sign-in. The first time an account is used, Antigravity asks you to sign in once; FuelSwitch remembers that sign-in for later switches. Antigravity IDE keeps its own login: change its account inside the IDE. Running work may be interrupted.",
         .antigravityRestartFailed: "Could not restart Antigravity. Check whether it is installed or waiting for you to confirm quitting, then try again.",
+        .antigravitySignInRequired: "Sign in to the selected account in Antigravity once, then try switching again.",
+        .antigravityAccountMismatch: "Antigravity has not confirmed the selected account. The switch was not completed.",
         .tagline: "CLI Quota & Account Switcher",
         .ready: "Ready",
         .active: "ACTIVE",

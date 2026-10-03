@@ -19,6 +19,8 @@ extension Translations {
         .antigravitySyncTitle: "مزامنة الحساب مع Antigravity",
         .antigravitySyncHelp: "عند تبديل حساب Gemini، أعد تشغيل تطبيق Antigravity واستعد تسجيل دخول Antigravity لهذا الحساب. عند استخدام الحساب لأول مرة، يطلب Antigravity تسجيل الدخول مرة واحدة، ويتذكره FuelSwitch للتبديلات اللاحقة. لدى Antigravity IDE تسجيل دخول خاص به: غيّر الحساب من داخل IDE. قد يتوقف العمل الجاري.",
         .antigravityRestartFailed: "تعذّرت إعادة تشغيل Antigravity. تحقّق من أنه مثبّت أو أنه لا ينتظر تأكيد الإغلاق، ثم حاول مرة أخرى.",
+        .antigravitySignInRequired: "سجّل الدخول مرة واحدة بالحساب المحدد في Antigravity، ثم حاول التبديل مجددًا.",
+        .antigravityAccountMismatch: "لم يؤكد Antigravity الحساب المحدد. لم يكتمل التبديل.",
         .tagline: "مبدل حسابات ومراقب استهلاك CLI",
         .ready: "جاهز",
         .active: "نشط",

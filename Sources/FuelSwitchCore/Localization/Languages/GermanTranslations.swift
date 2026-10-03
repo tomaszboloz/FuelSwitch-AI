@@ -19,6 +19,8 @@ extension Translations {
         .antigravitySyncTitle: "Konto mit Antigravity synchronisieren",
         .antigravitySyncHelp: "Beim Wechsel des Gemini-Kontos die Antigravity-App neu starten und die Antigravity-Anmeldung dieses Kontos wiederherstellen. Bei der ersten Nutzung eines Kontos fragt Antigravity einmal nach der Anmeldung; FuelSwitch merkt sie sich für spätere Wechsel. Antigravity IDE hat eine eigene Anmeldung: Ändere das Konto direkt in der IDE. Laufende Arbeit kann unterbrochen werden.",
         .antigravityRestartFailed: "Antigravity konnte nicht neu gestartet werden. Prüfe, ob es installiert ist oder auf die Bestätigung zum Beenden wartet, und versuche es erneut.",
+        .antigravitySignInRequired: "Melde dich einmal mit dem ausgewählten Konto in Antigravity an und versuche den Wechsel erneut.",
+        .antigravityAccountMismatch: "Antigravity hat das ausgewählte Konto nicht bestätigt. Der Wechsel wurde nicht abgeschlossen.",
         .tagline: "CLI-Konten-Umschalter & Kontingent-Monitor",
         .ready: "Bereit",
         .active: "AKTIV",

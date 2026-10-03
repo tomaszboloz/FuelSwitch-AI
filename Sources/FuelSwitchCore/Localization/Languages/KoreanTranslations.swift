@@ -19,6 +19,8 @@ extension Translations {
         .antigravitySyncTitle: "Antigravity와 계정 동기화",
         .antigravitySyncHelp: "Gemini 계정을 전환할 때 Antigravity 앱을 다시 시작하고 해당 계정의 Antigravity 로그인을 복원합니다. 계정을 처음 사용할 때는 Antigravity에서 한 번 로그인해야 하며, FuelSwitch가 이후 전환을 위해 이를 기억합니다. Antigravity IDE는 자체 로그인을 사용하므로 IDE 안에서 계정을 바꾸세요. 진행 중인 작업이 중단될 수 있습니다.",
         .antigravityRestartFailed: "Antigravity를 다시 시작하지 못했습니다. 설치되어 있는지 또는 종료 확인을 기다리고 있는지 확인한 후 다시 시도하세요.",
+        .antigravitySignInRequired: "Antigravity에서 선택한 계정으로 한 번 로그인한 후 다시 전환하세요.",
+        .antigravityAccountMismatch: "Antigravity가 선택한 계정을 확인하지 못했습니다. 전환이 완료되지 않았습니다.",
         .tagline: "CLI 계정 스위처 및 사용량 모니터",
         .ready: "준비됨",
         .active: "활성",

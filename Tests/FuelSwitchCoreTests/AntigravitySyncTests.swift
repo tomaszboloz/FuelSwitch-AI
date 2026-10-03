@@ -24,38 +24,60 @@ import Testing
         FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
     }
 
-    @Test func readsSignedInEmailFromIdToken() throws {
-        let dir = directory()
-        defer { try? FileManager.default.removeItem(at: dir) }
-        let token = dir.appendingPathComponent("token")
-        #expect(AntigravitySync.signedInEmail(tokenURL: token) == nil)
-        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        try signIn("a@example.com", refresh: "ra").write(to: token)
-        #expect(AntigravitySync.signedInEmail(tokenURL: token) == "a@example.com")
+    private final class FakeKeychain {
+        var value: Data?
+        init(_ value: Data?) { self.value = value }
+        var store: AntigravitySync.LoginStore {
+            AntigravitySync.LoginStore(read: { self.value }, write: { self.value = $0 }, delete: { self.value = nil })
+        }
+    }
+
+    @Test func readsEmailFromGoKeyringValue() throws {
+        let encoded = "go-keyring-base64:" + (try signIn("a@example.com", refresh: "ra")).base64EncodedString()
+        #expect(AntigravitySync.email(fromStoredLogin: Data(encoded.utf8)) == "a@example.com")
+        #expect(AntigravitySync.email(fromStoredLogin: Data("opaque".utf8)) == nil)
+    }
+
+    @Test func wrapsLegacySnapshotForGoKeyringWithoutDoubleEncoding() throws {
+        let raw = try signIn("a@example.com", refresh: "ra")
+        let encoded = AntigravitySync.keyringValue(from: raw)
+        #expect(String(decoding: encoded, as: UTF8.self).hasPrefix("go-keyring-base64:"))
+        #expect(AntigravitySync.email(fromStoredLogin: encoded) == "a@example.com")
+        #expect(AntigravitySync.keyringValue(from: encoded) == encoded)
     }
 
     @Test func swapSavesCurrentSignInAndRestoresTarget() throws {
-        let dir = directory()
-        defer { try? FileManager.default.removeItem(at: dir) }
-        let token = dir.appendingPathComponent("token")
-        let snapshots = dir.appendingPathComponent("snapshots")
-        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        let snapshots = directory()
+        defer { try? FileManager.default.removeItem(at: snapshots) }
         let first = try signIn("a@example.com", refresh: "ra")
-        try first.write(to: token)
+        let keychain = FakeKeychain(first)
 
         // No saved sign-in for B yet: A is kept aside and Antigravity is
         // left signed out, so it asks for B instead of staying on A.
-        #expect(try !AntigravitySync.swapSignIn(to: "b@example.com", tokenURL: token, snapshotDirectory: snapshots))
-        #expect(!FileManager.default.fileExists(atPath: token.path))
+        #expect(try !AntigravitySync.swapSignIn(to: "b@example.com", currentEmail: "a@example.com",
+                                                store: keychain.store, snapshotDirectory: snapshots))
+        #expect(keychain.value == nil)
 
         // The user signs in to B inside Antigravity, then switches back to A.
         let second = try signIn("b@example.com", refresh: "rb")
-        try second.write(to: token)
-        #expect(try AntigravitySync.swapSignIn(to: "A@example.com", tokenURL: token, snapshotDirectory: snapshots))
-        #expect(try Data(contentsOf: token) == first)
+        keychain.value = second
+        #expect(try AntigravitySync.swapSignIn(to: "A@example.com", currentEmail: "b@example.com",
+                                               store: keychain.store, snapshotDirectory: snapshots))
+        #expect(keychain.value == first)
 
-        #expect(try AntigravitySync.swapSignIn(to: "b@example.com", tokenURL: token, snapshotDirectory: snapshots))
-        #expect(try Data(contentsOf: token) == second)
+        #expect(try AntigravitySync.swapSignIn(to: "b@example.com", currentEmail: "a@example.com",
+                                               store: keychain.store, snapshotDirectory: snapshots))
+        #expect(keychain.value == second)
+    }
+
+    @Test func swapToTheSignedInAccountChangesNothing() throws {
+        let snapshots = directory()
+        defer { try? FileManager.default.removeItem(at: snapshots) }
+        let keychain = FakeKeychain(Data("login-a".utf8))
+        #expect(try AntigravitySync.swapSignIn(to: "a@example.com", currentEmail: "A@example.com",
+                                               store: keychain.store, snapshotDirectory: snapshots))
+        #expect(keychain.value == Data("login-a".utf8))
+        #expect(!FileManager.default.fileExists(atPath: snapshots.path))
     }
 
     @Test @MainActor func restartsOnlyRunningAppsAroundTheSwap() async throws {
@@ -83,6 +105,50 @@ import Testing
                 open: { _ in events.append("open") })
         }
         #expect(events == ["stop", "swap", "open"])
+    }
+
+    @Test @MainActor func missingBundleURLUsesInstalledApplicationBeforeQuit() throws {
+        let installed = URL(fileURLWithPath: "/Applications/Antigravity.app")
+        #expect(try AntigravitySync.relaunchURLs(runningURLs: [nil], fallback: { installed }) == [installed])
+        #expect(try AntigravitySync.relaunchURLs(runningURLs: [installed, installed], fallback: { throw AntigravitySync.SyncError.applicationNotFound }) == [installed])
+    }
+
+    @Test @MainActor func verificationRunsAfterReopeningAndRejectsWrongAccount() async throws {
+        var events: [String] = []
+        await #expect(throws: AntigravitySync.SyncError.self) {
+            try await AntigravitySync.performSwitch(enabled: true,
+                swap: { events.append("swap") }, stop: { events.append("stop"); return [URL(fileURLWithPath: "/Applications/Antigravity.app")] },
+                open: { _ in events.append("open") }, verify: {
+                    events.append("verify")
+                    try await AntigravitySync.confirmSignedIn(email: "b@example.com", attempts: 2,
+                        read: { "a@example.com" }, pause: {})
+                })
+            events.append("success")
+        }
+        #expect(events == ["stop", "swap", "open", "verify"])
+    }
+
+    @Test @MainActor func waitsForTheTargetAccountToFinishStarting() async throws {
+        var calls = 0
+        try await AntigravitySync.confirmSignedIn(email: "b@example.com", attempts: 3, read: {
+            calls += 1
+            return calls == 3 ? "B@example.com" : nil
+        }, pause: {})
+        #expect(calls == 3)
+    }
+
+    @Test func rejectsSnapshotForAnotherAccountWithoutChangingCredentials() throws {
+        let snapshots = directory()
+        defer { try? FileManager.default.removeItem(at: snapshots) }
+        let first = try signIn("a@example.com", refresh: "ra")
+        let keychain = FakeKeychain(first)
+        try AtomicFileWriter.write(data: first,
+            to: AntigravitySync.snapshotURL(for: "b@example.com", in: snapshots), permissions: 0o600)
+        #expect(throws: AntigravitySync.SyncError.self) {
+            try AntigravitySync.swapSignIn(to: "b@example.com", currentEmail: "a@example.com",
+                store: keychain.store, snapshotDirectory: snapshots)
+        }
+        #expect(keychain.value == first)
     }
 
     @Test func syncIsOnByDefaultAndPersists() throws {
