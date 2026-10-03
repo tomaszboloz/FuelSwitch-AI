@@ -1,3 +1,20 @@
+# ⛽ FuelSwitch AI 1.2.8 — Show Gemini usage for every Antigravity account
+
+Build 19 · macOS 13+ · Apple Silicon and Intel
+
+## Fixes
+
+- Gemini usage is read from the Antigravity language server that is signed in with that account. Each Antigravity window and the standalone app run their own server, so FuelSwitch now asks each one which account it uses before reading its quota. Before, 1.2.7 picked the account from a stale token file, and the IDE's account showed no usage.
+- A Gemini account no longer drops back to "sign in again" after a successful sign-in. Google's quota endpoint answers 403 to Gemini CLI tokens even when they are valid. FuelSwitch now shows that usage is available only while Antigravity is open with that account, and clears the stale re-auth flag.
+- The Gemini switch now restarts only the standalone Antigravity app. Antigravity IDE keeps its own login, so restarting it did not change its account. Change the IDE account inside the IDE.
+
+## Verification and limits
+
+- The language server lookup was checked against running Antigravity and Antigravity IDE servers on a real machine. Automated tests cover the response parsing and the re-auth handling.
+- Release artifacts are built and signed by the release workflow after tag `v1.2.8` is pushed.
+
+---
+
 # ⛽ FuelSwitch AI 1.2.7 — Switch Antigravity together with Gemini
 
 Build 18 · macOS 13+ · Apple Silicon and Intel

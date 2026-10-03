@@ -1,7 +1,10 @@
 import AppKit
 
-/// Antigravity (the agent manager and the IDE) keeps its Google sign-in in
+/// The standalone Antigravity app keeps its Google sign-in in
 /// `~/.gemini/jetski-standalone-oauth-token`, read by its language server.
+/// Antigravity IDE does not use that file: its language servers get the
+/// login from the IDE itself, so restarting the IDE would not change its
+/// account and is left alone.
 /// That token is issued for Antigravity's own OAuth client, while FuelSwitch
 /// signs Gemini accounts in with the Gemini CLI client, so writing our tokens
 /// there would break as soon as Antigravity tried to refresh them.
@@ -13,7 +16,7 @@ import AppKit
 public enum AntigravitySync {
     public enum SyncError: Error { case quitRefused, quitTimedOut, applicationNotFound }
 
-    public static let bundleIdentifiers = ["com.google.antigravity", "com.google.antigravity-ide"]
+    public static let bundleIdentifiers = ["com.google.antigravity"]
 
     public static var tokenURL: URL {
         FileManager.default.homeDirectoryForCurrentUser

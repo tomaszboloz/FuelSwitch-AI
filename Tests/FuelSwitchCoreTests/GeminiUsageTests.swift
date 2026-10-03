@@ -27,3 +27,22 @@ import Foundation
     #expect(usage.session.percent == 0)
     #expect(usage.weekly.percent == 0)
 }
+
+@Test func readsTheAccountALocalLanguageServerIsSignedInWith() {
+    let status = Data(#"{"userStatus": {"name": "A", "email": "a@example.com", "planStatus": {}}}"#.utf8)
+    #expect(GeminiUsage.languageServerEmail(status) == "a@example.com")
+    #expect(GeminiUsage.languageServerEmail(Data(#"{"userStatus": {}}"#.utf8)) == nil)
+    #expect(GeminiUsage.languageServerEmail(Data("not json".utf8)) == nil)
+}
+
+@Test func parsesLocalAntigravityQuotaSummary() throws {
+    let json = """
+    {"response": {"groups": [{"displayName": "Gemini Models", "buckets": [
+        {"bucketId": "gemini-weekly", "displayName": "Weekly", "window": "WEEKLY", "remainingFraction": 0.66, "resetTime": "2026-10-09T12:00:00Z"},
+        {"bucketId": "gemini-5h", "displayName": "Five Hour", "window": "FIVE_HOUR", "remainingFraction": 0.99, "resetTime": "2026-10-03T23:00:00Z"}
+    ]}]}}
+    """
+    let usage = try GeminiUsage.parseLocalQuota(Data(json.utf8))
+    #expect(abs(usage.weekly.percent - 34) < 0.000_001)
+    #expect(abs(usage.session.percent - 1) < 0.000_001)
+}

@@ -17,7 +17,7 @@ extension Translations {
         .codexDesktopSyncHelp: "Beim Kontowechsel (auch automatisch) wird Codex regulär neu gestartet, um die neue Anmeldung zu laden. Laufende Arbeit kann unterbrochen werden. Erfordert dasselbe CODEX_HOME und lokale OAuth-Anmeldung wie Codex CLI. Standardmäßig aus.",
         .codexDesktopRestartFailed: "Codex konnte nicht neu gestartet werden. Prüfe, ob die App installiert ist oder auf eine Bestätigung zum Beenden wartet, und versuche es erneut.",
         .antigravitySyncTitle: "Konto mit Antigravity synchronisieren",
-        .antigravitySyncHelp: "Beim Wechsel des Gemini-Kontos Antigravity neu starten und die Antigravity-Anmeldung dieses Kontos wiederherstellen. Bei der ersten Nutzung eines Kontos fragt Antigravity einmal nach der Anmeldung; FuelSwitch merkt sie sich für spätere Wechsel. Laufende Arbeit kann unterbrochen werden.",
+        .antigravitySyncHelp: "Beim Wechsel des Gemini-Kontos die Antigravity-App neu starten und die Antigravity-Anmeldung dieses Kontos wiederherstellen. Bei der ersten Nutzung eines Kontos fragt Antigravity einmal nach der Anmeldung; FuelSwitch merkt sie sich für spätere Wechsel. Antigravity IDE hat eine eigene Anmeldung: Ändere das Konto direkt in der IDE. Laufende Arbeit kann unterbrochen werden.",
         .antigravityRestartFailed: "Antigravity konnte nicht neu gestartet werden. Prüfe, ob es installiert ist oder auf die Bestätigung zum Beenden wartet, und versuche es erneut.",
         .tagline: "CLI-Konten-Umschalter & Kontingent-Monitor",
         .ready: "Bereit",

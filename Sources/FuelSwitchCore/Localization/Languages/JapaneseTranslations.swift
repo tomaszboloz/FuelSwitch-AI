@@ -17,7 +17,7 @@ extension Translations {
         .codexDesktopSyncHelp: "Codex のアカウント切り替え時（自動切り替えを含む）に、通常の手順でアプリを再起動し、新しいログイン情報を読み込みます。実行中の作業が中断される場合があります。Codex CLI と同じ CODEX_HOME とローカル OAuth ログインが必要です。初期設定はオフです。",
         .codexDesktopRestartFailed: "Codex を再起動できませんでした。アプリがインストールされているか、終了の確認待ちになっていないか確認して、再試行してください。",
         .antigravitySyncTitle: "Antigravity とアカウントを同期",
-        .antigravitySyncHelp: "Gemini アカウントを切り替えるときに Antigravity を再起動し、そのアカウントの Antigravity ログインを復元します。アカウントを初めて使うときは Antigravity で一度ログインが必要です。FuelSwitch はそのログインを次回以降の切り替えのために保存します。実行中の作業が中断される場合があります。",
+        .antigravitySyncHelp: "Gemini アカウントを切り替えるときに Antigravity アプリを再起動し、そのアカウントの Antigravity ログインを復元します。アカウントを初めて使うときは Antigravity で一度ログインが必要です。FuelSwitch はそのログインを次回以降の切り替えのために保存します。Antigravity IDE は独自のログインを使うため、IDE 内でアカウントを切り替えてください。実行中の作業が中断される場合があります。",
         .antigravityRestartFailed: "Antigravity を再起動できませんでした。インストールされているか、終了の確認待ちになっていないかを確認して、もう一度お試しください。",
         .tagline: "CLIアカウント切替＆使用量モニター",
         .ready: "準備完了",

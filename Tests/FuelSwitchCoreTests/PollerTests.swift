@@ -692,3 +692,27 @@ private func temporaryDirectory() throws -> URL {
     _ = await poller.refreshOne(account: account())
     #expect(await provider.calls == 2)
 }
+
+/// Google reports Gemini quota only through a running Antigravity signed in
+/// with the account; a refused quota call is not a dead token, so it must
+/// clear the re-auth flag instead of asking for another sign-in.
+@Test func unavailableGeminiQuotaClearsTheDeadTokenFlag() async throws {
+    let store = AccountStore(directory: try temporaryDirectory())
+    var gemini = Account(provider: .gemini, email: "g@b.pl", accessToken: "tok", refreshToken: "ref", expiresAt: .distantFuture)
+    gemini.needsReauth = true
+    try store.upsert(gemini)
+
+    let poller = Poller(
+        store: store,
+        providers: [.gemini: StubUsage(result: .failure(UsageError.unavailableQuota))]
+    )
+    let result = await poller.refresh(account: gemini)
+
+    guard case .error(let description) = result.staleness else {
+        Issue.record("expected an error state")
+        return
+    }
+    #expect(description.contains("Antigravity"))
+    let saved = try #require(try store.load().first)
+    #expect(saved.needsReauth == false)
+}

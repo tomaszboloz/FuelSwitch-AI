@@ -227,6 +227,21 @@ public actor Poller {
                 ? "\(named) bills per token and reports no subscription limits. This login does have a subscription — the sign-in page put the token on the wrong organisation, and only that page can choose."
                 : "\(named) has no Claude subscription to report — it is an API organisation."
             return await lastValueOr(account: account, description: description)
+        } catch UsageError.unavailableQuota where account.provider == .gemini {
+            // The token is valid; Google only reports Gemini quota through a
+            // running Antigravity signed in with this account. Like the
+            // organisation case above, clear a stale re-auth flag so the row
+            // says what to do instead of asking for another sign-in.
+            if current.needsReauth {
+                var cleared = current
+                cleared.needsReauth = false
+                try? store.upsert(cleared)
+            }
+            await increaseBackoff(account.id)
+            return await lastValueOr(
+                account: account,
+                description: "Gemini usage is shown only while Antigravity is open and signed in with this account."
+            )
         } catch UsageError.unauthorized {
             // An access token can expire early or be rotated by the provider
             // while the stored expiry still looks healthy. Give the refresh

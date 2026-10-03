@@ -17,7 +17,7 @@ extension Translations {
         .codexDesktopSyncHelp: "Lors d’un changement de compte Codex (même automatique), redémarre normalement l’application pour charger la nouvelle connexion. Le travail en cours peut être interrompu. Nécessite le même CODEX_HOME et la même connexion OAuth locale que Codex CLI. Désactivé par défaut.",
         .codexDesktopRestartFailed: "Impossible de redémarrer Codex. Vérifiez que l’application est installée ou attend une confirmation de fermeture, puis réessayez.",
         .antigravitySyncTitle: "Synchroniser le compte avec Antigravity",
-        .antigravitySyncHelp: "Lors d'un changement de compte Gemini, redémarrer Antigravity et restaurer la connexion Antigravity de ce compte. À la première utilisation d'un compte, Antigravity demande une connexion unique ; FuelSwitch la mémorise pour les changements suivants. Le travail en cours peut être interrompu.",
+        .antigravitySyncHelp: "Lors d'un changement de compte Gemini, redémarrer l'app Antigravity et restaurer la connexion Antigravity de ce compte. À la première utilisation d'un compte, Antigravity demande une connexion unique ; FuelSwitch la mémorise pour les changements suivants. Antigravity IDE a sa propre connexion : changez de compte dans l'IDE. Le travail en cours peut être interrompu.",
         .antigravityRestartFailed: "Impossible de redémarrer Antigravity. Vérifiez qu'il est installé ou qu'il n'attend pas une confirmation de fermeture, puis réessayez.",
         .tagline: "Commutateur de comptes CLI & Suivi de quota",
         .ready: "Prêt",

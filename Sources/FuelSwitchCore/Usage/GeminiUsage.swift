@@ -87,6 +87,16 @@ public enum GeminiUsage {
         let response: ResponseObj?
     }
 
+    /// The account a local Antigravity language server is signed in with,
+    /// from its `GetUserStatus` answer.
+    public static func languageServerEmail(_ data: Data) -> String? {
+        guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let status = json["userStatus"] as? [String: Any],
+              let email = status["email"] as? String, !email.isEmpty
+        else { return nil }
+        return email
+    }
+
     public static func parseLocalQuota(_ data: Data, fetchedAt: Date = Date()) throws -> AccountUsage {
         let decoded = try JSONDecoder().decode(LocalQuotaResponse.self, from: data)
         guard let groups = decoded.response?.groups else {
@@ -166,12 +176,10 @@ public struct GeminiUsageClient: UsageProvider {
     }
 
     public func fetch(account: Account) async throws -> AccountUsage {
-        // The local Antigravity language server reports quota only for the
-        // account Antigravity is signed in with. Using it for every account
-        // made all Gemini accounts show that one account's state.
-        if let signedIn = AntigravitySync.signedInEmail(),
-           signedIn.caseInsensitiveCompare(account.email) == .orderedSame,
-           let localUsage = await fetchFromLocalLanguageServer() {
+        // Every Antigravity window runs its own language server, signed in
+        // with its own account. Only a server signed in with this account
+        // may answer for it; anything else shows another account's quota.
+        if let localUsage = await fetchFromLocalLanguageServer(email: account.email) {
             return localUsage
         }
 
@@ -185,11 +193,16 @@ public struct GeminiUsageClient: UsageProvider {
         request.httpBody = try JSONSerialization.data(withJSONObject: ["project": project])
 
         let (data, response) = try await session.data(for: request)
+        // The quota endpoint refuses tokens from the Gemini CLI OAuth client
+        // with 403 PERMISSION_DENIED even though they are valid (the
+        // loadCodeAssist call above just accepted the same token). That is
+        // not an expired session, so it must not ask the user to sign in.
+        if (response as? HTTPURLResponse)?.statusCode == 403 { throw UsageError.unavailableQuota }
         try checkStatus(response, body: data)
         return try GeminiUsage.parse(data, fetchedAt: Date())
     }
 
-    private func fetchFromLocalLanguageServer() async -> AccountUsage? {
+    private func fetchFromLocalLanguageServer(email: String) async -> AccountUsage? {
         let ps = Process()
         ps.executableURL = URL(fileURLWithPath: "/bin/ps")
         ps.arguments = ["-eo", "pid,command"]
@@ -238,24 +251,26 @@ public struct GeminiUsageClient: UsageProvider {
                     delegate: InsecureLocalSessionDelegate.shared,
                     delegateQueue: nil
                 )
-                guard let url = URL(string: "https://127.0.0.1:\(port)/exa.language_server_pb.LanguageServerService/RetrieveUserQuotaSummary") else { continue }
-                var req = URLRequest(url: url)
-                req.httpMethod = "POST"
-                req.timeoutInterval = 1.0
-                req.setValue("application/json", forHTTPHeaderField: "Content-Type")
-                req.setValue("1", forHTTPHeaderField: "Connect-Protocol-Version")
-                req.setValue(csrfToken, forHTTPHeaderField: "X-Codeium-Csrf-Token")
-                req.httpBody = Data("{}".utf8)
+                func call(_ method: String) async -> Data? {
+                    guard let url = URL(string: "https://127.0.0.1:\(port)/exa.language_server_pb.LanguageServerService/\(method)") else { return nil }
+                    var req = URLRequest(url: url)
+                    req.httpMethod = "POST"
+                    req.timeoutInterval = 1.0
+                    req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+                    req.setValue("1", forHTTPHeaderField: "Connect-Protocol-Version")
+                    req.setValue(csrfToken, forHTTPHeaderField: "X-Codeium-Csrf-Token")
+                    req.httpBody = Data("{}".utf8)
+                    guard let (data, response) = try? await localSession.data(for: req),
+                          (response as? HTTPURLResponse)?.statusCode == 200 else { return nil }
+                    return data
+                }
 
-                do {
-                    let (responseData, response) = try await localSession.data(for: req)
-                    if let http = response as? HTTPURLResponse, http.statusCode == 200 {
-                        if let usage = try? GeminiUsage.parseLocalQuota(responseData, fetchedAt: Date()) {
-                            return usage
-                        }
-                    }
-                } catch {
-                    continue
+                guard let status = await call("GetUserStatus"),
+                      let signedIn = GeminiUsage.languageServerEmail(status),
+                      signedIn.caseInsensitiveCompare(email) == .orderedSame else { continue }
+                if let quota = await call("RetrieveUserQuotaSummary"),
+                   let usage = try? GeminiUsage.parseLocalQuota(quota, fetchedAt: Date()) {
+                    return usage
                 }
             }
         }

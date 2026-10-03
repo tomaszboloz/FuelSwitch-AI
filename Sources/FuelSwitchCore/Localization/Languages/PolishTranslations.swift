@@ -17,7 +17,7 @@ extension Translations {
         .codexDesktopSyncHelp: "Przy zmianie konta Codex (także automatycznej) uruchom aplikację Codex ponownie, aby wczytała nowe logowanie. Może to przerwać trwającą pracę. Wymaga tego samego CODEX_HOME i lokalnego logowania OAuth co Codex CLI. Domyślnie wyłączone.",
         .codexDesktopRestartFailed: "Nie udało się ponownie uruchomić Codex. Sprawdź, czy aplikacja jest zainstalowana lub czeka na potwierdzenie zamknięcia, i spróbuj ponownie.",
         .antigravitySyncTitle: "Synchronizuj konto z Antigravity",
-        .antigravitySyncHelp: "Przy zmianie konta Gemini uruchom Antigravity ponownie i przywróć logowanie Antigravity dla tego konta. Przy pierwszym użyciu konta Antigravity poprosi o jednorazowe zalogowanie; FuelSwitch zapamięta je na kolejne przełączenia. Może to przerwać trwającą pracę.",
+        .antigravitySyncHelp: "Przy zmianie konta Gemini uruchom aplikację Antigravity ponownie i przywróć logowanie Antigravity dla tego konta. Przy pierwszym użyciu konta Antigravity poprosi o jednorazowe zalogowanie; FuelSwitch zapamięta je na kolejne przełączenia. Antigravity IDE ma własne logowanie: konto zmień w samym IDE. Może to przerwać trwającą pracę.",
         .antigravityRestartFailed: "Nie udało się ponownie uruchomić Antigravity. Sprawdź, czy aplikacja jest zainstalowana lub czeka na potwierdzenie zamknięcia, i spróbuj ponownie.",
         .tagline: "Przełącznik kont i monitor limitów CLI",
         .ready: "Gotowy",

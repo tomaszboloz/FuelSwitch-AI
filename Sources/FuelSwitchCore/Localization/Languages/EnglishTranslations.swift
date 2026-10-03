@@ -17,7 +17,7 @@ extension Translations {
         .codexDesktopSyncHelp: "When switching Codex accounts (including automatic switches), gracefully restart the Codex app to load the new login. Running work may be interrupted. Uses the same CODEX_HOME and local OAuth login as Codex CLI. Off by default.",
         .codexDesktopRestartFailed: "Could not restart Codex. Check whether Codex is installed or waiting for you to confirm quitting, then try again.",
         .antigravitySyncTitle: "Sync account with Antigravity",
-        .antigravitySyncHelp: "When switching Gemini accounts, restart Antigravity and restore that account's Antigravity sign-in. The first time an account is used, Antigravity asks you to sign in once; FuelSwitch remembers that sign-in for later switches. Running work may be interrupted.",
+        .antigravitySyncHelp: "When switching Gemini accounts, restart the Antigravity app and restore that account's Antigravity sign-in. The first time an account is used, Antigravity asks you to sign in once; FuelSwitch remembers that sign-in for later switches. Antigravity IDE keeps its own login: change its account inside the IDE. Running work may be interrupted.",
         .antigravityRestartFailed: "Could not restart Antigravity. Check whether it is installed or waiting for you to confirm quitting, then try again.",
         .tagline: "CLI Quota & Account Switcher",
         .ready: "Ready",
