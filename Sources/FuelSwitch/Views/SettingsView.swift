@@ -299,6 +299,19 @@ struct SettingsView: View {
                         }
                     }
 
+                    settingsCard(title: model.t(.antigravitySyncTitle), icon: "arrow.triangle.2.circlepath") {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Toggle(model.t(.antigravitySyncTitle), isOn: $model.antigravitySyncEnabled)
+                                .disabled(model.switchingProviders.contains(.gemini))
+                                .toggleStyle(.switch)
+                                .font(.system(size: 11))
+                            Text(model.t(.antigravitySyncHelp))
+                                .font(.system(size: 10))
+                                .foregroundStyle(FuelSwitchTheme.textSecondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+
                     // SECTION 3C: Auto-Switch
                     settingsCard(title: model.t(.autoSwitchTitle), icon: "arrow.triangle.swap") {
                         VStack(alignment: .leading, spacing: 10) {

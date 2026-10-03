@@ -1,3 +1,21 @@
+# ⛽ FuelSwitch AI 1.2.7 — Switch Antigravity together with Gemini
+
+Build 18 · macOS 13+ · Apple Silicon and Intel
+
+## Fixes
+
+- Switching a Gemini account now quits Antigravity, swaps its sign-in and reopens it, the same way the Codex app is restarted. Antigravity keeps its login in memory, so before this fix it stayed on the previous account after a switch.
+- Each account's Antigravity sign-in is saved under its email in FuelSwitch's Application Support folder and restored on later switches. Antigravity issues its tokens for its own OAuth client, so FuelSwitch does not write its Gemini CLI tokens into Antigravity. When an account has no saved sign-in yet, Antigravity asks you to sign in once.
+- Gemini accounts no longer all show the same usage. Quota from the local Antigravity language server is now used only for the account Antigravity is signed in with; other accounts are read from the Gemini API.
+- A new setting, "Sync account with Antigravity", controls the restart. It is on by default.
+
+## Verification and limits
+
+- Automated tests cover the sign-in swap, the restart order and the setting. They do not drive a real Antigravity install.
+- Release artifacts are built and signed by the release workflow after tag `v1.2.7` is pushed.
+
+---
+
 # ⛽ FuelSwitch AI 1.2.6 — Stop repeated Keychain and quota prompts
 
 Build 17 · macOS 13+ · Apple Silicon and Intel

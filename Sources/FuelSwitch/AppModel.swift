@@ -40,6 +40,9 @@ final class AppModel: ObservableObject {
     @Published var codexDesktopSyncEnabled = Preferences().codexDesktopSyncEnabled {
         didSet { preferences.codexDesktopSyncEnabled = codexDesktopSyncEnabled }
     }
+    @Published var antigravitySyncEnabled = Preferences().antigravitySyncEnabled {
+        didSet { preferences.antigravitySyncEnabled = antigravitySyncEnabled }
+    }
 
     /// Theme preference: "system", "dark", or "light"
     @Published var appTheme: String = Preferences().appTheme {
@@ -532,6 +535,7 @@ final class AppModel: ObservableObject {
 
     private func switchErrorDescription(_ error: Error) -> String {
         if error is CodexDesktopSync.SyncError { return t(.codexDesktopRestartFailed) }
+        if error is AntigravitySync.SyncError { return t(.antigravityRestartFailed) }
         if error is OAuthError { return t(.sessionExpired) }
         return t(.operationFailed)
     }
@@ -541,10 +545,22 @@ final class AppModel: ObservableObject {
         // Validate credentials before asking a running desktop app to quit.
         let current = try await poller.accountForSwitch(account)
         if current.provider == .openai { try CLISwitcher.validateCodexSwitch(to: current) }
+        let finish = {
+            self.loadAccounts()
+            if let value = self.usage[current.id] { self.updateStatuslineCache(account: current, usage: value) }
+        }
+        if current.provider == .gemini {
+            // Without the restart Antigravity keeps the old login in memory.
+            try await AntigravitySync.performSwitch(enabled: antigravitySyncEnabled) {
+                if antigravitySyncEnabled { try AntigravitySync.swapSignIn(to: current.email) }
+                try CLISwitcher.switch(to: current)
+                finish()
+            }
+            return
+        }
         try await CodexDesktopSync.performSwitch(enabled: syncDesktop) {
             try CLISwitcher.switch(to: current)
-            loadAccounts()
-            if let value = usage[current.id] { updateStatuslineCache(account: current, usage: value) }
+            finish()
         }
     }
 

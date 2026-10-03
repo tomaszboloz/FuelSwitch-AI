@@ -166,7 +166,12 @@ public struct GeminiUsageClient: UsageProvider {
     }
 
     public func fetch(account: Account) async throws -> AccountUsage {
-        if let localUsage = await fetchFromLocalLanguageServer() {
+        // The local Antigravity language server reports quota only for the
+        // account Antigravity is signed in with. Using it for every account
+        // made all Gemini accounts show that one account's state.
+        if let signedIn = AntigravitySync.signedInEmail(),
+           signedIn.caseInsensitiveCompare(account.email) == .orderedSame,
+           let localUsage = await fetchFromLocalLanguageServer() {
             return localUsage
         }
 

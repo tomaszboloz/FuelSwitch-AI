@@ -131,6 +131,9 @@ public enum TranslationKey: String, Sendable, CaseIterable {
     case codexDesktopSyncTitle = "codex_desktop_sync_title"
     case codexDesktopSyncHelp = "codex_desktop_sync_help"
     case codexDesktopRestartFailed = "codex_desktop_restart_failed"
+    case antigravitySyncTitle = "antigravity_sync_title"
+    case antigravitySyncHelp = "antigravity_sync_help"
+    case antigravityRestartFailed = "antigravity_restart_failed"
 
     // Notifications & Auto-Switch
     case notificationsTitle = "notifications_title"

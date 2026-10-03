@@ -51,6 +51,13 @@ public struct Preferences {
         nonmutating set { defaults.set(newValue, forKey: "codexDesktopSyncEnabled") }
     }
 
+    /// On by default: switching Gemini also swaps the Antigravity sign-in and
+    /// restarts Antigravity, otherwise the IDE stays on the previous account.
+    public var antigravitySyncEnabled: Bool {
+        get { defaults.object(forKey: "antigravitySyncEnabled") as? Bool ?? true }
+        nonmutating set { defaults.set(newValue, forKey: "antigravitySyncEnabled") }
+    }
+
     /// Theme preference: "system", "dark", or "light"
     public var appTheme: String {
         get { defaults.string(forKey: Self.appThemeKey) ?? "system" }
