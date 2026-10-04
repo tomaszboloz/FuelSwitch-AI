@@ -408,10 +408,17 @@ struct MenuContentView: View {
             }
         case .failed(_, let message):
             bannerRow(text: message, tint: FuelSwitchTheme.amber) {
-                Button(model.t(.dismiss)) { model.dismissLoginState() }
-                    .buttonStyle(.plain)
-                    .font(.system(size: 10))
-                    .foregroundStyle(FuelSwitchTheme.textTertiary)
+                HStack {
+                    if let account = model.antigravityLoginAccount {
+                        Button(model.t(.reauthenticate) + " — Antigravity") { model.openAntigravityLogin() }
+                            .help(account.email)
+                        Button(model.t(.switchCliAccount)) { model.switchTo(account: account) }
+                    }
+                    Button(model.t(.dismiss)) { model.dismissLoginState() }
+                }
+                .buttonStyle(.plain)
+                .font(.system(size: 10))
+                .foregroundStyle(FuelSwitchTheme.amber)
             }
         case .added(let email):
             bannerRow(text: String(format: model.t(.connected), email), tint: FuelSwitchTheme.emerald) {

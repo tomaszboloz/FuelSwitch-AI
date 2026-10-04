@@ -1,3 +1,22 @@
+# ⛽ FuelSwitch AI 1.2.12 — Restore widget position and expose sign-in recovery
+
+Build 23 · macOS 13+ · Apple Silicon and Intel
+
+## Fixes
+
+- The floating widget restores its saved window frame after installing its content. Old compact sizes are clamped while preserving the saved top-left position, including Native layouts.
+- Expired accounts in widget menus now offer sign-in instead of trying to switch an expired session.
+- Gemini accounts without a usable Antigravity session show a dedicated Antigravity sign-in action. A failed Antigravity switch offers a button to open Antigravity and a retry action, also in the Classic widget.
+- Invalid historical Antigravity snapshots no longer block the sign-in recovery flow. Selecting an already signed-in account saves its session for later switches. Snapshots belonging to a different account remain rejected.
+
+## Verification and limits
+
+- Tests cover saved widget frames, session backup, damaged snapshot recovery and account identity checks.
+- The running Antigravity app currently reports the previous account; the app's live identity remains the source of truth. Switching to a specific target and restarting both apps has not yet been exercised in this release.
+- Distribution remains ad-hoc code-signed; Sparkle update archives are separately signed by the release workflow.
+
+---
+
 # ⛽ FuelSwitch AI 1.2.11 — Keep Antigravity signed in when switching
 
 Build 22 · macOS 13+ · Apple Silicon and Intel

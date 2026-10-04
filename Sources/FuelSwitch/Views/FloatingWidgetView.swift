@@ -57,6 +57,11 @@ struct FloatingWidgetView: View {
                     compactProviderPill(provider: provider)
                 }
 
+                if model.antigravityLoginAccount != nil {
+                    Button { model.openAntigravityLogin() } label: {
+                        Image(systemName: "person.crop.circle.badge.exclamationmark")
+                    }.help(model.t(.reauthenticate) + " — Antigravity")
+                }
                 Spacer(minLength: 4)
 
                 // Switch to Expanded Mode
@@ -130,10 +135,14 @@ struct FloatingWidgetView: View {
                 Text(provider.displayName + ":")
                 ForEach(accounts) { acc in
                     Button {
-                        model.switchTo(account: acc)
+                        if acc.needsReauth {
+                                    model.startLogin(provider: acc.provider)
+                                } else {
+                                    model.switchTo(account: acc)
+                                }
                     } label: {
                         HStack {
-                            Text(acc.email)
+                            Text(acc.email + (acc.needsReauth ? " — " + model.t(.reauthenticate) : ""))
                             if model.isAccountActive(acc) {
                                 Text("✓ " + model.t(.active))
                             }
@@ -224,6 +233,7 @@ struct FloatingWidgetView: View {
 
             VStack(spacing: 0) {
                 header
+            MenuContentView(model: model).bannerArea
                 Divider().background(FuelSwitchTheme.borderSubtle)
 
                 if model.accounts.isEmpty {
@@ -459,7 +469,14 @@ struct FloatingWidgetView: View {
                     LowFuelIndicator(size: 9, showText: true, text: LocalizationManager.shared.text(.lowFuelWarningShort))
                 }
 
-                if account.needsReauth {
+                if model.requiresAntigravityLogin(account) {
+                    Button(model.t(.reauthenticate) + " — Antigravity") {
+                        model.switchTo(account: account)
+                    }
+                    .buttonStyle(.plain)
+                    .font(.system(size: 8, weight: .bold))
+                    .foregroundStyle(FuelSwitchTheme.amber)
+                } else if account.needsReauth {
                     Button {
                         model.startLogin(provider: account.provider)
                     } label: {
@@ -515,10 +532,14 @@ struct FloatingWidgetView: View {
                         Text(model.t(.switchTank) + ":")
                         ForEach(accountsForProvider) { candidate in
                             Button {
-                                model.switchTo(account: candidate)
+                                if candidate.needsReauth {
+                                    model.startLogin(provider: candidate.provider)
+                                } else {
+                                    model.switchTo(account: candidate)
+                                }
                             } label: {
                                 HStack {
-                                    Text(candidate.email)
+                                    Text(candidate.email + (candidate.needsReauth ? " — " + model.t(.reauthenticate) : ""))
                                     if model.isAccountActive(candidate) {
                                         Text("✓ " + model.t(.active))
                                     }

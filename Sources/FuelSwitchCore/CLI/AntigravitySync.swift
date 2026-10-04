@@ -60,6 +60,12 @@ public enum AntigravitySync {
         return idToken.flatMap { JWT.claims($0)["email"] as? String }
     }
 
+    public static func hasSavedSignIn(for email: String, snapshotDirectory: URL = snapshotDirectory) -> Bool {
+        guard let data = try? Data(contentsOf: snapshotURL(for: email, in: snapshotDirectory)),
+              let identity = Self.email(fromStoredLogin: data) else { return false }
+        return identity.caseInsensitiveCompare(email) == .orderedSame
+    }
+
     /// Older snapshots are raw JSON; go-keyring requires its base64 envelope.
     static func keyringValue(from data: Data) -> Data {
         let prefix = "go-keyring-base64:"
@@ -81,7 +87,11 @@ public enum AntigravitySync {
     ) throws -> Bool {
         let stored = try store.read()
         let current = stored.flatMap(email(fromStoredLogin:)) ?? currentEmail
-        if let current, current.caseInsensitiveCompare(email) == .orderedSame { return true }
+        if let current, current.caseInsensitiveCompare(email) == .orderedSame, let stored,
+           Self.email(fromStoredLogin: stored) != nil {
+            try AtomicFileWriter.write(data: stored, to: snapshotURL(for: current, in: snapshotDirectory), permissions: 0o600)
+            return true
+        }
 
         if let stored {
             // An unidentified login is still kept, so it is never lost.
@@ -92,12 +102,13 @@ public enum AntigravitySync {
         let saved = snapshotURL(for: email, in: snapshotDirectory)
         if FileManager.default.fileExists(atPath: saved.path) {
             let data = try Data(contentsOf: saved)
-            guard let identity = Self.email(fromStoredLogin: data),
-                  identity.caseInsensitiveCompare(email) == .orderedSame else {
-                throw SyncError.accountMismatch
+            if let identity = Self.email(fromStoredLogin: data) {
+                guard identity.caseInsensitiveCompare(email) == .orderedSame else { throw SyncError.accountMismatch }
+                try store.write(data)
+                return true
             }
-            try store.write(data)
-            return true
+            // A damaged historical snapshot cannot restore a login. Preserve
+            // the snapshot, but open Antigravity signed out for recovery.
         }
         if stored != nil { try store.delete() }
         return false

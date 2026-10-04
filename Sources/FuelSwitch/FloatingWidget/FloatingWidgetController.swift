@@ -86,7 +86,7 @@ final class FloatingWidgetController: NSObject, NSWindowDelegate {
         let isCompact = model.widgetStyle == "compact"
         let saveKey = currentFrameKey
         let savedFrame = UserDefaults.standard.string(forKey: saveKey).map(NSRectFromString)
-        let initialRect = FloatingWidgetLayout.initialFrame(isCompact: isCompact, savedFrame: savedFrame)
+        let initialRect = FloatingWidgetLayout.initialFrame(isCompact: isCompact, savedFrame: savedFrame, template: model.interfaceTemplate)
 
         let newPanel = NSPanel(
             contentRect: clamped(initialRect, bounds: FloatingWidgetLayout.bounds(forCompact: isCompact, template: model.interfaceTemplate)),
@@ -110,7 +110,6 @@ final class FloatingWidgetController: NSObject, NSWindowDelegate {
         newPanel.isOpaque = false
         newPanel.hasShadow = true
         newPanel.alphaValue = CGFloat(model.widgetOpacity)
-        newPanel.delegate = self
         let newPanelBounds = FloatingWidgetLayout.bounds(forCompact: isCompact, template: model.interfaceTemplate)
         newPanel.minSize = newPanelBounds.minSize
         newPanel.maxSize = newPanelBounds.maxSize
@@ -121,8 +120,12 @@ final class FloatingWidgetController: NSObject, NSWindowDelegate {
         })
 
         newPanel.contentView = NSHostingView(rootView: contentView)
-        newPanel.orderFront(nil)
+        // Persisted coordinates describe the window frame, not its content rect.
+        // Apply after hosting-view installation, which can resize the panel.
+        newPanel.setFrame(clamped(initialRect, bounds: newPanelBounds), display: true)
         self.panel = newPanel
+        newPanel.delegate = self
+        newPanel.orderFront(nil)
     }
 
     private func hideWidget() {

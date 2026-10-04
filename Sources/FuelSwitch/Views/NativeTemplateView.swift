@@ -173,6 +173,9 @@ struct NativeAccountDetails: View {
                         .help(model.t(.claudeResetHelp))
                 }
             }
+            if model.requiresAntigravityLogin(account) {
+                Button(model.t(.reauthenticate) + " — Antigravity") { model.switchTo(account: account) }
+            }
             if account.needsReauth {
                 Text(model.t(.sessionExpired)).foregroundStyle(.orange)
                 Button(model.t(.reauthenticate)) { model.startLogin(provider: account.provider) }
@@ -342,8 +345,13 @@ struct NativeWidgetView: View {
         return HStack(spacing: 10) {
             Menu {
                 ForEach(model.accounts.filter { $0.provider == provider }) { item in
-                    Button((model.isAccountActive(item) ? "✓ " : "") + (item.nickname ?? item.email)) {
-                        model.switchTo(account: item)
+                    Button((model.isAccountActive(item) ? "✓ " : "") + (item.nickname ?? item.email)
+                           + (item.needsReauth ? " — " + model.t(.reauthenticate) : "")) {
+                        if item.needsReauth {
+                            model.startLogin(provider: item.provider)
+                        } else {
+                            model.switchTo(account: item)
+                        }
                     }.disabled(model.switchingProviders.contains(provider))
                 }
                 Divider()

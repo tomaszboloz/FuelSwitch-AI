@@ -52,9 +52,16 @@ public enum FloatingWidgetLayout {
     }
 
     /// Frame for a brand-new panel (first show, or after being fully hidden).
-    public static func initialFrame(isCompact: Bool, savedFrame: CGRect?) -> CGRect {
-        if let savedFrame, isValidSavedFrame(savedFrame, isCompact: isCompact) {
-            return savedFrame
+    public static func initialFrame(isCompact: Bool, savedFrame: CGRect?, template: InterfaceTemplate = .classic) -> CGRect {
+        if let savedFrame, savedFrame.minX.isFinite, savedFrame.minY.isFinite,
+           savedFrame.width.isFinite, savedFrame.height.isFinite,
+           savedFrame.width > 0, savedFrame.height > 0 {
+            // Old frame sizes may include a title bar or predate layout limits.
+            // Resize to current limits while keeping the saved top-left position.
+            let limits = bounds(forCompact: isCompact, template: template)
+            let height = min(limits.maxSize.height, max(limits.minSize.height, savedFrame.height))
+            let width = min(limits.maxSize.width, max(limits.minSize.width, savedFrame.width))
+            return CGRect(x: savedFrame.minX, y: savedFrame.maxY - height, width: width, height: height)
         }
         return isCompact
             ? CGRect(x: 120, y: 150, width: 660, height: 46)

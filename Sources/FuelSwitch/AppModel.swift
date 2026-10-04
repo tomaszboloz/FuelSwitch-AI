@@ -527,6 +527,7 @@ final class AppModel: ObservableObject {
         // A manual switch always wins over auto-switch for a grace window —
         // otherwise the very next poll could immediately reverse the choice
         // the user just made by hand.
+        antigravityLoginAccount = nil
         lastManualSwitch[account.provider] = Date()
         switchingProviders.insert(account.provider)
         Task {
@@ -542,6 +543,11 @@ final class AppModel: ObservableObject {
                 }
             }
           } catch {
+            if let syncError = error as? AntigravitySync.SyncError,
+               syncError == .signInRequired || syncError == .accountMismatch {
+                antigravityLoginAccount = account
+            }
+            loadAccounts()
             loginState = .failed(account.provider, switchErrorDescription(error))
           }
         }
@@ -745,6 +751,20 @@ final class AppModel: ObservableObject {
     }
 
     @Published private(set) var loginState: LoginState = .idle
+    @Published private(set) var antigravityLoginAccount: Account?
+
+    func requiresAntigravityLogin(_ account: Account) -> Bool {
+        account.provider == .gemini && antigravitySyncEnabled
+            && !isAccountActive(account) && !AntigravitySync.hasSavedSignIn(for: account.email)
+    }
+
+    func openAntigravityLogin() {
+        Task {
+            guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: AntigravitySync.bundleIdentifiers[0]) else { return }
+            try? await CodexDesktopSync.open(url)
+        }
+    }
+
 
     /// Starts a sign-in in the background and reports through `loginState`.
     /// There is no name to ask for — the provider tells us the email — so this
@@ -811,6 +831,7 @@ final class AppModel: ObservableObject {
 
     /// Clears whatever the last sign-in left on screen.
     func dismissLoginState() {
+        antigravityLoginAccount = nil
         loginState = .idle
     }
 

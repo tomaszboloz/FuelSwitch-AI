@@ -73,11 +73,12 @@ import Testing
     @Test func swapToTheSignedInAccountChangesNothing() throws {
         let snapshots = directory()
         defer { try? FileManager.default.removeItem(at: snapshots) }
-        let keychain = FakeKeychain(Data("login-a".utf8))
+        let login = try signIn("a@example.com", refresh: "ra")
+        let keychain = FakeKeychain(login)
         #expect(try AntigravitySync.swapSignIn(to: "a@example.com", currentEmail: "A@example.com",
                                                store: keychain.store, snapshotDirectory: snapshots))
-        #expect(keychain.value == Data("login-a".utf8))
-        #expect(!FileManager.default.fileExists(atPath: snapshots.path))
+        #expect(keychain.value == login)
+        #expect(FileManager.default.fileExists(atPath: snapshots.path))
     }
 
     @Test @MainActor func restartsOnlyRunningAppsAroundTheSwap() async throws {
@@ -149,6 +150,21 @@ import Testing
                 store: keychain.store, snapshotDirectory: snapshots)
         }
         #expect(keychain.value == first)
+        #expect(!AntigravitySync.hasSavedSignIn(for: "b@example.com", snapshotDirectory: snapshots))
+    }
+
+    @Test func damagedSnapshotOpensSignInAndKeepsCurrentSessionBackedUp() throws {
+        let snapshots = directory()
+        defer { try? FileManager.default.removeItem(at: snapshots) }
+        let login = try signIn("a@example.com", refresh: "ra")
+        let keychain = FakeKeychain(login)
+        try AtomicFileWriter.write(data: Data("invalid".utf8),
+            to: AntigravitySync.snapshotURL(for: "b@example.com", in: snapshots), permissions: 0o600)
+        #expect(try !AntigravitySync.swapSignIn(to: "b@example.com", currentEmail: "a@example.com",
+            store: keychain.store, snapshotDirectory: snapshots))
+        #expect(keychain.value == nil)
+        #expect(AntigravitySync.hasSavedSignIn(for: "a@example.com", snapshotDirectory: snapshots))
+        #expect(!AntigravitySync.hasSavedSignIn(for: "b@example.com", snapshotDirectory: snapshots))
     }
 
     @Test func syncIsOnByDefaultAndPersists() throws {

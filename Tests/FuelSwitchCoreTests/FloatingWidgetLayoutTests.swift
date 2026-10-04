@@ -87,4 +87,20 @@ struct FloatingWidgetLayoutTests {
         let frame = FloatingWidgetLayout.initialFrame(isCompact: true, savedFrame: saved)
         #expect(frame == saved)
     }
+    @Test func relaunchKeepsPositionWhenCompactSaveIncludesTitleBar() {
+        let saved = CGRect(x: -1200, y: 400, width: 700, height: 92)
+        let restored = FloatingWidgetLayout.initialFrame(isCompact: true, savedFrame: saved)
+        #expect(restored.minX == saved.minX)
+        #expect(restored.maxY == saved.maxY)
+        #expect(restored.height == FloatingWidgetLayout.compactBounds.maxSize.height)
+    }
+
+    @Test func nativeCompactSaveUsesNativeBoundsAndKeepsPosition() {
+        let saved = CGRect(x: 1300, y: 500, width: 900, height: 92)
+        let restored = FloatingWidgetLayout.initialFrame(isCompact: true, savedFrame: saved, template: .native)
+        #expect(restored.minX == saved.minX)
+        #expect(restored.maxY == saved.maxY)
+        #expect(restored.height == 70)
+    }
+
 }
