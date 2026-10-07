@@ -156,7 +156,6 @@ public enum GeminiUsage {
 
 public struct GeminiUsageClient: UsageProvider {
     private static let loadCodeAssistURL = URL(string: "https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist")!
-    private static let retrieveUserQuotaURL = URL(string: "https://cloudcode-pa.googleapis.com/v1internal:retrieveUserQuota")!
     private let session: URLSession
 
     public init(session: URLSession = .shared) {
@@ -164,6 +163,12 @@ public struct GeminiUsageClient: UsageProvider {
     }
 
     public func fetch(account: Account) async throws -> AccountUsage {
+        // Saved Antigravity credentials let inactive accounts refresh without
+        // switching the app. Gemini CLI tokens cannot read these quota windows.
+        if let access = try? await AntigravityQuotaSession.shared.accessToken(email: account.email, session: session),
+           let usage = try? await fetchAntigravityQuota(accessToken: access, email: account.email) {
+            return usage
+        }
         // Every Antigravity window runs its own language server, signed in
         // with its own account. Only a server signed in with this account
         // may answer for it; anything else shows another account's quota.
@@ -171,35 +176,50 @@ public struct GeminiUsageClient: UsageProvider {
             return localUsage
         }
 
-        let project = try await companionProject(accessToken: account.accessToken)
-
-        var request = URLRequest(url: Self.retrieveUserQuotaURL)
-        request.httpMethod = "POST"
-        request.setValue("Bearer \(account.accessToken)", forHTTPHeaderField: "Authorization")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("antigravity/2.12.2", forHTTPHeaderField: "User-Agent")
-        request.httpBody = try JSONSerialization.data(withJSONObject: ["project": project])
-
-        let (data, response) = try await session.data(for: request)
-        // The quota endpoint refuses tokens from the Gemini CLI OAuth client
-        // with 403 PERMISSION_DENIED even though they are valid (the
-        // loadCodeAssist call above just accepted the same token). That is
-        // not an expired session, so it must not ask the user to sign in.
-        if (response as? HTTPURLResponse)?.statusCode == 403 { throw UsageError.unavailableQuota }
-        try checkStatus(response, body: data)
-        return try GeminiUsage.parse(data, fetchedAt: Date())
+        // Gemini CLI's per-model daily quota is a different allowance. It
+        // cannot fill missing Antigravity 5-hour and weekly windows.
+        throw UsageError.unavailableQuota
     }
 
     private func fetchFromLocalLanguageServer(email: String) async -> AccountUsage? {
-        for server in AntigravityLanguageServer.running() {
+        for server in AntigravityLanguageServer.running() where server.isStandaloneApp {
             guard let signedIn = await server.signedInEmail(),
                   signedIn.caseInsensitiveCompare(email) == .orderedSame else { continue }
             if let quota = await server.call("RetrieveUserQuotaSummary"),
-               let usage = try? GeminiUsage.parseLocalQuota(quota, fetchedAt: Date()) {
+               let usage = try? GeminiUsage.parseLocalQuota(quota, fetchedAt: Date()),
+               let after = await server.signedInEmail(),
+               after.caseInsensitiveCompare(email) == .orderedSame {
                 return usage
             }
         }
         return nil
+    }
+
+    private func fetchAntigravityQuota(accessToken: String, email: String) async throws -> AccountUsage {
+        var identityRequest = URLRequest(url: FuelSwitchConstants.geminiUserInfoURL)
+        identityRequest.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        identityRequest.timeoutInterval = 15
+        let (identity, identityResponse) = try await session.data(for: identityRequest)
+        try checkStatus(identityResponse, body: identity)
+        guard let profile = try JSONSerialization.jsonObject(with: identity) as? [String: Any],
+              (profile["email"] as? String)?.caseInsensitiveCompare(email) == .orderedSame
+        else { throw UsageError.unavailableQuota }
+
+        let project = try await companionProject(accessToken: accessToken)
+        let url = URL(string: "https://cloudcode-pa.googleapis.com/v1internal:retrieveUserQuotaSummary")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.timeoutInterval = 15
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("antigravity/2.19.1", forHTTPHeaderField: "User-Agent")
+        request.httpBody = try JSONSerialization.data(withJSONObject: ["project": project])
+        let (quota, response) = try await session.data(for: request)
+        try checkStatus(response, body: quota)
+        // The remote endpoint returns the summary directly; Connect wraps it.
+        let summary = try JSONSerialization.jsonObject(with: quota)
+        let wrapped = try JSONSerialization.data(withJSONObject: ["response": summary])
+        return try GeminiUsage.parseLocalQuota(wrapped, fetchedAt: Date())
     }
 
     private func companionProject(accessToken: String) async throws -> String {

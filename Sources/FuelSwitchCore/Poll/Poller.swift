@@ -168,7 +168,9 @@ public actor Poller {
     ) async -> AccountUsage {
         var current = account
 
-        if oauth[account.provider] != nil {
+        let hasAntigravitySession = account.provider == .gemini
+            && AntigravitySync.hasSavedSignIn(for: account.email)
+        if oauth[account.provider] != nil && !hasAntigravitySession {
             do {
                 current = try await accountForSwitch(account)
             } catch CredentialError.saveFailed {
@@ -200,6 +202,10 @@ public actor Poller {
 
         do {
             let result = try await provider.fetch(account: current)
+            if hasAntigravitySession && current.needsReauth {
+                current.needsReauth = false
+                try? store.upsert(current)
+            }
             cache[account.id] = result
             failureCount[account.id] = 0
             nextDueAt[account.id] = now.addingTimeInterval(max(interval, Self.minimumInterval))
@@ -228,8 +234,7 @@ public actor Poller {
                 : "\(named) has no Claude subscription to report — it is an API organisation."
             return await lastValueOr(account: account, description: description)
         } catch UsageError.unavailableQuota where account.provider == .gemini {
-            // The token is valid; Google only reports Gemini quota through a
-            // running Antigravity signed in with this account. Like the
+            // Google needs an Antigravity session for this account. Like the
             // organisation case above, clear a stale re-auth flag so the row
             // says what to do instead of asking for another sign-in.
             if current.needsReauth {
@@ -240,7 +245,7 @@ public actor Poller {
             await increaseBackoff(account.id)
             return await lastValueOr(
                 account: account,
-                description: "Gemini usage is shown only while Antigravity is open and signed in with this account."
+                description: "Sign in with this account in Antigravity once and switch accounts in FuelSwitch to save its session for background quota updates."
             )
         } catch UsageError.unauthorized {
             // An access token can expire early or be rotated by the provider

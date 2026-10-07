@@ -1,3 +1,23 @@
+# ⛽ FuelSwitch AI 1.2.13 — Refresh inactive Antigravity accounts
+
+Build 24 · macOS 13+ · Apple Silicon and Intel
+
+## Fixes
+
+- Every Gemini account reads Antigravity quota with its own saved sign-in. Inactive accounts renew their saved session and update in the background without changing the active account or its Keychain entry.
+- The Google profile must match the requested email before any quota is accepted. Local fallback reads only the standalone app and checks its identity before and after the quota request; stale IDE servers are excluded.
+- Gemini CLI daily model quotas no longer substitute for Antigravity's 5-hour and weekly windows.
+- An expired Gemini CLI token does not block quota polling when a saved Antigravity session exists.
+
+## Verification and limits
+
+- Live Google requests confirmed different quota values for the active account and an inactive saved account, including renewal of the inactive session.
+- Background session renewal needs the installed Antigravity app's native OAuth configuration. A missing, revoked or unidentified session cannot produce fresh quota; existing readings remain marked as cached.
+- Claude's OAuth usage response was inspected and exposes no reset-credit count. The existing Claude action opens Settings → Usage, the official web/Desktop reset flow. Direct reset redemption with the FuelSwitch OAuth session is not confirmed.
+- Distribution remains ad-hoc code-signed; Sparkle update archives are separately signed by the release workflow.
+
+---
+
 # ⛽ FuelSwitch AI 1.2.12 — Restore widget position and expose sign-in recovery
 
 Build 23 · macOS 13+ · Apple Silicon and Intel
