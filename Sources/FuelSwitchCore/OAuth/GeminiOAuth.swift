@@ -21,7 +21,7 @@ public struct GeminiOAuth: OAuthProvider {
             URLQueryItem(name: "code_challenge", value: pkce.challenge),
             URLQueryItem(name: "code_challenge_method", value: "S256"),
             URLQueryItem(name: "access_type", value: "offline"),
-            URLQueryItem(name: "prompt", value: "consent")
+            URLQueryItem(name: "prompt", value: "select_account consent")
         ]
         return components.url!
     }

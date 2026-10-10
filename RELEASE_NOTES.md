@@ -1,3 +1,17 @@
+# ⛽ FuelSwitch AI 1.2.14 — Add a Gemini account without signing out
+
+Build 25 · macOS 13+ · Apple Silicon and Intel
+
+## Fixes
+
+- Gemini sign-in now shows Google's account chooser (`prompt=select_account consent`). You can pick or add another Google account without signing out of the one already active in the browser.
+
+## Maintenance
+
+- Source split into smaller files (views, settings, poller, CLI switchers, preferences) with additional tests. No behaviour change.
+
+---
+
 # ⛽ FuelSwitch AI 1.2.13 — Refresh inactive Antigravity accounts
 
 Build 24 · macOS 13+ · Apple Silicon and Intel

@@ -58,4 +58,9 @@ import Testing
         let estimate = PaceEstimator.estimate(window: window(percent: 50, elapsedFraction: 0.4), windowDuration: 0, now: now)
         #expect(estimate == nil)
     }
+
+    @Test func nilWhenResetsAtIsBeyondWindowDuration() {
+        let future = LimitWindow(percent: 50, resetsAt: now.addingTimeInterval(duration + 100), label: "5h")
+        #expect(PaceEstimator.estimate(window: future, windowDuration: duration, now: now) == nil)
+    }
 }

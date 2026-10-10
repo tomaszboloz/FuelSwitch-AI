@@ -12,6 +12,7 @@ enum NotificationManager {
     /// only prompts the first time, and silently no-ops afterward whether
     /// the user granted or denied it.
     static func requestAuthorizationIfNeeded() {
+        guard Bundle.main.bundleIdentifier != nil else { return }
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { _, _ in }
     }
 
@@ -25,6 +26,7 @@ enum NotificationManager {
         body: String,
         soundEnabled: Bool
     ) {
+        guard Bundle.main.bundleIdentifier != nil else { return }
         let content = UNMutableNotificationContent()
         content.title = title
         content.body = body
@@ -36,6 +38,7 @@ enum NotificationManager {
 
     /// Posts a one-off notification for an automatic account switch.
     static func postAutoSwitchNotification(title: String, body: String, identifier: String) {
+        guard Bundle.main.bundleIdentifier != nil else { return }
         let content = UNMutableNotificationContent()
         content.title = title
         content.body = body

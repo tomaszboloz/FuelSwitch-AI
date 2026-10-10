@@ -134,4 +134,5 @@ private let threeUsages: [String: AccountUsage] = [
     )
     #expect(readings.count == 1)
     #expect(readings[0].provider == .anthropic)
+    #expect(readings[0].id == "anthropic")
 }

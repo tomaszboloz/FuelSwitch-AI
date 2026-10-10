@@ -5,6 +5,8 @@ import Testing
     @Test func everyCaseRoundTripsThroughItsRawValue() {
         for style in MenuBarIconStyle.allCases {
             #expect(MenuBarIconStyle(rawValue: style.rawValue) == style)
+            #expect(style.id == style.rawValue)
+            #expect(!style.title.isEmpty)
         }
     }
 

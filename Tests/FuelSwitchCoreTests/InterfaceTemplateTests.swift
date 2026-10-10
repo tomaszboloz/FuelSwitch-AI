@@ -36,3 +36,11 @@ import Testing
     #expect(bounds.minSize.height == bounds.maxSize.height)
     #expect(FloatingWidgetLayout.bounds(forCompact: true, template: .classic) == FloatingWidgetLayout.compactBounds)
 }
+
+@Test func templatePropertiesValidation() {
+    for template in InterfaceTemplate.allCases {
+        #expect(template.id == template.rawValue)
+        #expect(template.titleKey == (template == .classic ? .templateClassic : .templateNative))
+    }
+}
+
