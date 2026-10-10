@@ -6,12 +6,12 @@
         <description>FuelSwitch AI updates</description>
         <language>en</language>
         <item>
-            <title>Version 1.2.13</title>
-            <pubDate>Wed, 07 Oct 2026 10:40:20 GMT</pubDate>
-            <sparkle:version>24</sparkle:version>
-            <sparkle:shortVersionString>1.2.13</sparkle:shortVersionString>
+            <title>Version 1.2.14</title>
+            <pubDate>Sat, 10 Oct 2026 19:21:49 GMT</pubDate>
+            <sparkle:version>25</sparkle:version>
+            <sparkle:shortVersionString>1.2.14</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/tomaszboloz/FuelSwitch-AI/releases/download/v1.2.13/FuelSwitch-AI.zip" length="6220376" type="application/octet-stream" sparkle:edSignature="GjupCjPCMpYXl/LHCaNHt+ENieb0vJhXBjrUHWOFMOCjHr73VHmNht1N5exPFgQtlMDvHYudTfiMQy1MPWstDw==" />
+            <enclosure url="https://github.com/tomaszboloz/FuelSwitch-AI/releases/download/v1.2.14/FuelSwitch-AI.zip" length="6078320" type="application/octet-stream" sparkle:edSignature="3gmng2Aij8Swr0uupGd+2zNQII5WEZgpchFR641wWRhXS89ZbpgBrgedpZ+B03My0xv2gzf7oYH7XF1mJzIbAw==" />
         </item>
     </channel>
 </rss>
