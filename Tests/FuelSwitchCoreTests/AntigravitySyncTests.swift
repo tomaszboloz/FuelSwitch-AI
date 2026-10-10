@@ -179,6 +179,13 @@ import Testing
         #expect(AntigravitySync.hasSavedSignIn(for: "b@example.com", snapshotDirectory: snapshots))
     }
 
+    @Test func rawValueUnwrapsKeyringEnvelopeForFileFallback() throws {
+        let raw = try signIn("a@example.com", refresh: "ra")
+        let wrapped = AntigravitySync.keyringValue(from: raw)
+        #expect(AntigravitySync.rawValue(from: wrapped) == raw)
+        #expect(AntigravitySync.rawValue(from: raw) == raw)
+    }
+
     @Test func syncIsOnByDefaultAndPersists() throws {
         let suite = "antigravity-\(UUID().uuidString)"
         let defaults = try #require(UserDefaults(suiteName: suite))

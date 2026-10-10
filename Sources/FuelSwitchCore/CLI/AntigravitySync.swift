@@ -11,10 +11,28 @@ public enum AntigravitySync {
         var write: (Data) throws -> Void
         var delete: () throws -> Void
 
-        public static var keychain: LoginStore { LoginStore(
+        /// The standalone app falls back to this plain-JSON copy when the
+        /// Keychain entry is missing, so a sign-out that leaves it behind
+        /// signs the previous account straight back in.
+        public static var fileFallbackURL: URL {
+            FileManager.default.homeDirectoryForCurrentUser
+                .appendingPathComponent(".gemini/jetski-standalone-oauth-token")
+        }
+
+        public static var keychain: LoginStore { keychain(fallback: fileFallbackURL) }
+
+        static func keychain(fallback: URL) -> LoginStore { LoginStore(
             read: { try SecurityTool.readGenericPassword(service: "gemini", account: "antigravity") },
-            write: { try SecurityTool.writeGenericPassword(service: "gemini", account: "antigravity", data: AntigravitySync.keyringValue(from: $0)) },
-            delete: { try SecurityTool.deleteGenericPassword(service: "gemini", account: "antigravity") }
+            write: {
+                try SecurityTool.writeGenericPassword(service: "gemini", account: "antigravity", data: AntigravitySync.keyringValue(from: $0))
+                if FileManager.default.fileExists(atPath: fallback.path) {
+                    try AtomicFileWriter.write(data: AntigravitySync.rawValue(from: $0), to: fallback, permissions: 0o600)
+                }
+            },
+            delete: {
+                try SecurityTool.deleteGenericPassword(service: "gemini", account: "antigravity")
+                try? FileManager.default.removeItem(at: fallback)
+            }
         ) }
     }
 
@@ -45,6 +63,13 @@ public enum AntigravitySync {
         guard let data = try? Data(contentsOf: snapshotURL(for: email, in: snapshotDirectory)),
               let identity = Self.email(fromStoredLogin: data) else { return false }
         return identity.caseInsensitiveCompare(email) == .orderedSame
+    }
+
+    static func rawValue(from data: Data) -> Data {
+        let prefix = "go-keyring-base64:"
+        let text = String(decoding: data, as: UTF8.self)
+        guard text.hasPrefix(prefix), let decoded = Data(base64Encoded: String(text.dropFirst(prefix.count))) else { return data }
+        return decoded
     }
 
     static func keyringValue(from data: Data) -> Data {

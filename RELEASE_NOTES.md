@@ -1,3 +1,13 @@
+# ⛽ FuelSwitch AI 1.2.16 — Switching to an account without a saved Antigravity sign-in
+
+Build 27 · macOS 13+ · Apple Silicon and Intel
+
+## Fixes
+
+- Antigravity keeps a plain copy of its sign-in in `~/.gemini/jetski-standalone-oauth-token` and uses it when the Keychain entry is gone. FuelSwitch signed the previous account out of the Keychain only, so Antigravity restarted on the old account instead of asking for the new one. The copy is now removed and kept in sync together with the Keychain entry.
+
+---
+
 # ⛽ FuelSwitch AI 1.2.15 — Keep saved Antigravity sign-ins intact
 
 Build 26 · macOS 13+ · Apple Silicon and Intel
