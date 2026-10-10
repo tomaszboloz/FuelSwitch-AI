@@ -1,3 +1,18 @@
+# ⛽ FuelSwitch AI 1.2.15 — Keep saved Antigravity sign-ins intact
+
+Build 26 · macOS 13+ · Apple Silicon and Intel
+
+## Fixes
+
+- Switching Gemini accounts no longer overwrites an account's saved Antigravity sign-in with a signed-out placeholder. After signing out of an account in Antigravity, its saved sign-in used to be replaced by an empty one, so the next switch to it could not restore the account.
+- A stored sign-in is saved only under the email it actually belongs to.
+
+## Note
+
+- An account whose saved sign-in was already replaced needs one fresh sign-in inside Antigravity; FuelSwitch saves it from then on.
+
+---
+
 # ⛽ FuelSwitch AI 1.2.14 — Add a Gemini account without signing out
 
 Build 25 · macOS 13+ · Apple Silicon and Intel

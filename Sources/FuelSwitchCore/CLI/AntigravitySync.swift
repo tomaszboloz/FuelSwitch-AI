@@ -68,9 +68,11 @@ public enum AntigravitySync {
             return true
         }
 
-        if let stored {
-            let name = current ?? "unidentified"
-            try AtomicFileWriter.write(data: stored, to: snapshotURL(for: name, in: snapshotDirectory), permissions: 0o600)
+        // Only a sign-in that names its account is worth keeping. A signed-out
+        // stub has no identity and must never overwrite the saved sign-in of
+        // the account that was active before it.
+        if let stored, let identity = Self.email(fromStoredLogin: stored) {
+            try AtomicFileWriter.write(data: stored, to: snapshotURL(for: identity, in: snapshotDirectory), permissions: 0o600)
         }
 
         let saved = snapshotURL(for: email, in: snapshotDirectory)

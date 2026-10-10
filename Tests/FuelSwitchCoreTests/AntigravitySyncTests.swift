@@ -167,6 +167,18 @@ import Testing
         #expect(!AntigravitySync.hasSavedSignIn(for: "b@example.com", snapshotDirectory: snapshots))
     }
 
+    @Test func signedOutStubNeverOverwritesSavedSignIn() throws {
+        let snapshots = directory()
+        defer { try? FileManager.default.removeItem(at: snapshots) }
+        let saved = try signIn("b@example.com", refresh: "rb")
+        try AtomicFileWriter.write(data: saved,
+            to: AntigravitySync.snapshotURL(for: "b@example.com", in: snapshots), permissions: 0o600)
+        let keychain = FakeKeychain(Data(#"{"token":{}}"#.utf8))
+        _ = try AntigravitySync.swapSignIn(to: "a@example.com", currentEmail: "b@example.com",
+            store: keychain.store, snapshotDirectory: snapshots)
+        #expect(AntigravitySync.hasSavedSignIn(for: "b@example.com", snapshotDirectory: snapshots))
+    }
+
     @Test func syncIsOnByDefaultAndPersists() throws {
         let suite = "antigravity-\(UUID().uuidString)"
         let defaults = try #require(UserDefaults(suiteName: suite))
