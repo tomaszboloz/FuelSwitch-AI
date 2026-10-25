@@ -1,3 +1,21 @@
+# ⛽ FuelSwitch AI 1.2.17 — Reopen app windows after switching accounts
+
+Build 28 · macOS 13+ · Apple Silicon and Intel
+
+## Fixes
+
+- Antigravity and Codex synchronization now waits for the restarted application to finish launching, then sends a normal reopen request and activates its windows. A process starting in the background no longer completes the restart without the reopen request that previously required another click on the app icon.
+- Restarting uses a fresh process after shutdown, while opening an already running app reuses that instance.
+- A process that exits during startup or never finishes launching reports a restart failure.
+
+## Verification
+
+- Regression coverage checks startup ordering, reopening an already started background app, timeouts, early process exit and reopen failures.
+- A local AppKit fixture passed through the actual macOS Launch Services path and confirmed startup, receipt of the reopen event and creation of a visible window. Live account switching in Antigravity and Codex was not exercised.
+- Distribution remains ad-hoc code-signed; Sparkle update archives are separately signed by the release workflow.
+
+---
+
 # ⛽ FuelSwitch AI 1.2.16 — Switching to an account without a saved Antigravity sign-in
 
 Build 27 · macOS 13+ · Apple Silicon and Intel

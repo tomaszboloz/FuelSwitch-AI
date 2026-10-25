@@ -4,7 +4,7 @@ import AppKit
 /// reloads the persisted login; never kill processes or revoke OAuth tokens.
 @MainActor
 public enum CodexDesktopSync {
-    public enum SyncError: Error { case applicationNotFound, quitRefused, quitTimedOut }
+    public enum SyncError: Error { case applicationNotFound, quitRefused, quitTimedOut, launchTimedOut }
     public static let bundleIdentifier = "com.openai.codex"
 
     public static func performSwitch(
@@ -57,6 +57,45 @@ public enum CodexDesktopSync {
     public static func open(_ url: URL) async throws {
         let configuration = NSWorkspace.OpenConfiguration()
         configuration.activates = true
-        _ = try await NSWorkspace.shared.openApplication(at: url, configuration: configuration)
+        // Launch Services can still know about the instance we just quit.
+        // Start a fresh process so it reloads the credentials written above.
+        configuration.createsNewApplicationInstance = !NSWorkspace.shared.runningApplications.contains {
+            !$0.isTerminated && $0.bundleURL?.standardizedFileURL == url.standardizedFileURL
+        }
+        let application = try await NSWorkspace.shared.openApplication(at: url, configuration: configuration)
+        try await finishLaunching(
+            isReady: { application.isFinishedLaunching },
+            isTerminated: { application.isTerminated },
+            reopen: {
+                // Electron apps can finish starting with no window after a
+                // programmatic quit. A normal open request to the now-ready
+                // instance supplies the same reopen event as clicking its icon.
+                let reopen = NSWorkspace.OpenConfiguration()
+                reopen.activates = true
+                _ = try await NSWorkspace.shared.openApplication(at: url, configuration: reopen)
+            },
+            activate: { application.activate(options: [.activateAllWindows]) }
+        )
+    }
+
+    static func finishLaunching(
+        isReady: () -> Bool,
+        isTerminated: () -> Bool,
+        reopen: () async throws -> Void,
+        activate: () -> Bool,
+        attempts: Int = 100,
+        pause: () async throws -> Void = { try await Task.sleep(for: .milliseconds(200)) }
+    ) async throws {
+        for attempt in 0..<attempts {
+            guard !isTerminated() else { throw SyncError.applicationNotFound }
+            if isReady() {
+                try await reopen()
+                guard !isTerminated() else { throw SyncError.applicationNotFound }
+                _ = activate()
+                return
+            }
+            if attempt + 1 < attempts { try await pause() }
+        }
+        throw SyncError.launchTimedOut
     }
 }
