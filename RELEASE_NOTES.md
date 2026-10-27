@@ -1,3 +1,21 @@
+# ⛽ FuelSwitch AI 1.2.18 — Add Claude accounts in a private browser window
+
+Build 29 · macOS 13+ · Apple Silicon and Intel
+
+## Fixes
+
+- Adding a Claude account now opens its authorization address in an isolated private browser window. An existing Claude session in a normal browser window can no longer be silently selected instead of the account being added.
+- Google Chrome, Microsoft Edge, Brave, Chromium, Vivaldi and Firefox are supported. When the default browser cannot reliably open a private window, FuelSwitch uses an installed supported browser instead.
+- Safari and a normal browser session are deliberately never used as a fallback. If no supported private browser is available, or it cannot be launched, sign-in stops immediately and no account is saved.
+
+## Verification
+
+- Regression coverage checks Chrome and Firefox private-window arguments, private-browser launch errors, absence of normal-browser fallback, preservation of the full OAuth URL, and unchanged Codex and Gemini browser paths.
+- Automated tests do not complete a live Claude login; the final account selection still takes place in the private browser window.
+- Distribution remains ad-hoc code-signed; Sparkle update archives are separately signed by the release workflow.
+
+---
+
 # ⛽ FuelSwitch AI 1.2.17 — Reopen app windows after switching accounts
 
 Build 28 · macOS 13+ · Apple Silicon and Intel

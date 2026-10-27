@@ -8,13 +8,24 @@ public enum LoginFlowError: Error, Equatable {
 /// exchanges code for tokens, and stores account.
 public final class LoginFlow: @unchecked Sendable {
     private let store: AccountStore
-    private let openURL: (URL) -> Void
+    private let openAuthorizationURL: (Provider, URL) throws -> Void
 
     static let loginTimeout: TimeInterval = 300
 
     public init(store: AccountStore, openURL: @escaping (URL) -> Void) {
         self.store = store
-        self.openURL = openURL
+        self.openAuthorizationURL = { _, url in openURL(url) }
+    }
+
+    /// Use this initializer when the browser policy differs between providers.
+    /// In particular, Claude account additions must begin in a private browser
+    /// session so an existing Claude session cannot silently select itself.
+    public init(
+        store: AccountStore,
+        openAuthorizationURL: @escaping (Provider, URL) throws -> Void
+    ) {
+        self.store = store
+        self.openAuthorizationURL = openAuthorizationURL
     }
 
     public static func defaultProvider(_ provider: Provider) -> any OAuthProvider {
@@ -62,7 +73,7 @@ public final class LoginFlow: @unchecked Sendable {
 
         let oauth = providerFactory(port)
         let redirect = redirectURI(for: provider, port: port)
-        openURL(oauth.authorizationURL(pkce: pkce, redirectURI: redirect))
+        try openAuthorizationURL(provider, oauth.authorizationURL(pkce: pkce, redirectURI: redirect))
 
         let code = try await awaitCodeWithTimeout(listener)
         let tokens = try await oauth.exchange(code: code, pkce: pkce, redirectURI: redirect)

@@ -36,9 +36,9 @@ extension AppModel {
         loginState = .running(provider)
         let knownIDs = Set(accounts.map(\.id))
         loginTask = Task { [store] in
-            let flow = LoginFlow(store: store) { url in
-                NSWorkspace.shared.open(url)
-            }
+            let flow = LoginFlow(store: store, openAuthorizationURL: { provider, url in
+                try OAuthBrowserLauncher().open(provider: provider, authorizationURL: url)
+            })
             do {
                 let added = try await flow.logIn(provider: provider)
                 guard !Task.isCancelled else { return }
@@ -90,6 +90,12 @@ extension AppModel {
         }
         if error is AnthropicProfileError {
             return "Could not read the Claude account identity. Try again."
+        }
+        if let error = error as? PrivateBrowserLauncher.LaunchError {
+            return error.localizedDescription
+        }
+        if let error = error as? OAuthBrowserLauncher.LaunchError {
+            return error.localizedDescription
         }
         return "Sign-in failed: \(error)"
     }

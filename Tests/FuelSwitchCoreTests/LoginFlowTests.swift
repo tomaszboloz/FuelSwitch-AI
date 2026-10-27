@@ -186,6 +186,7 @@ private actor PortSignal {
 }
 
 private struct TestTimedOut: Error {}
+private struct TestBrowserLaunchError: Error {}
 
 private func withTestTimeout<T: Sendable>(
     _ seconds: Double = 5,
@@ -267,6 +268,26 @@ private func withTestTimeout<T: Sendable>(
     #expect(identity.email == "complete@account.pl")
     #expect(identity.accountId == "acc-9")
     #expect(identity.plan == "pro")
+}
+
+@Test func claudeSignInDelegatesTheAuthorizationAddressToThePrivateBrowserPolicy() async throws {
+    let store = AccountStore(directory: try temporaryLoginDirectory())
+    var openedProvider: Provider?
+    var openedURL: URL?
+    let flow = LoginFlow(store: store, openAuthorizationURL: { provider, url in
+        openedProvider = provider
+        openedURL = url
+        throw TestBrowserLaunchError()
+    })
+
+    await #expect(throws: TestBrowserLaunchError.self) {
+        _ = try await flow.logIn(provider: .anthropic)
+    }
+
+    #expect(openedProvider == .anthropic)
+    #expect(openedURL?.host == FuelSwitchConstants.anthropicAuthorizeURL.host)
+    #expect(URLComponents(url: openedURL!, resolvingAgainstBaseURL: false)?.queryItems?.contains(where: { $0.name == "code_challenge" && !$0.value!.isEmpty }) == true)
+    #expect(try store.load().isEmpty)
 }
 
 
