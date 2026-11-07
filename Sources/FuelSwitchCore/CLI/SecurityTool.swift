@@ -28,26 +28,44 @@ enum SecurityTool {
 
     enum WriteError: Error { case commandTooLong, verificationFailed }
 
-    static func writeCommand(service: String, account: String, data: Data) throws -> Data {
-        let value: String
+    /// `security -i` reads one command line into a 4096-byte buffer.
+    static let interactiveLineLimit = 4096
+
+    private static func passwordValue(_ data: Data) -> (flag: String, value: String) {
         if let text = String(data: data, encoding: .utf8),
            text.unicodeScalars.allSatisfy({ (32...126).contains(Int($0.value)) }) {
             // Match go-keyring: its ASCII base64 envelope must not be doubled
             // into hex, which exceeds security's 4096-byte interactive buffer.
-            value = "-w \(quoted(text))"
-        } else {
-            value = "-X " + data.map { String(format: "%02x", $0) }.joined()
+            return ("-w", text)
         }
+        return ("-X", data.map { String(format: "%02x", $0) }.joined())
+    }
+
+    static func writeCommand(service: String, account: String, data: Data) throws -> Data {
+        let password = passwordValue(data)
+        let value = password.flag == "-w" ? "-w \(quoted(password.value))" : "-X \(password.value)"
         let command = Data("add-generic-password -U -a \(quoted(account)) -s \(quoted(service)) \(value)\n".utf8)
         // Reject before executing; security can partially write an oversized line.
-        guard command.count < 4096 else { throw WriteError.commandTooLong }
+        guard command.count < interactiveLineLimit else { throw WriteError.commandTooLong }
         return command
     }
 
+    /// How a write is handed to `security`. Values that fit the interactive
+    /// buffer go through stdin. Larger ones, such as Claude Code credentials
+    /// that carry MCP server tokens, are passed as an argument, the same way
+    /// Claude Code itself writes them; only processes of the same user can
+    /// read another process's arguments, and they can already read the item.
+    static func writeInvocation(service: String, account: String, data: Data) -> (arguments: [String], input: Data?) {
+        if let command = try? writeCommand(service: service, account: account, data: data) {
+            return (["-i"], command)
+        }
+        let password = passwordValue(data)
+        return (["add-generic-password", "-U", "-a", account, "-s", service, password.flag, password.value], nil)
+    }
+
     static func writeGenericPassword(service: String, account: String, data: Data) throws {
-        // The secret stays on stdin, never in the process arguments.
-        let command = try writeCommand(service: service, account: account, data: data)
-        let result = try run(["-i"], input: command)
+        let invocation = writeInvocation(service: service, account: account, data: data)
+        let result = try run(invocation.arguments, input: invocation.input)
         guard result.status == 0 else { throw CLISwitcher.Error.keychain(OSStatus(result.status)) }
         guard try readGenericPassword(service: service, account: account) == data else {
             throw WriteError.verificationFailed

@@ -1,3 +1,21 @@
+# ⛽ FuelSwitch AI 1.2.19 — Switch Claude accounts with MCP sign-ins
+
+Build 30 · macOS 13+ · Apple Silicon and Intel
+
+## Fixes
+
+- Switching Claude accounts no longer fails with "The operation could not be completed" when Claude Code also keeps MCP server sign-ins. Those tokens are stored in the same Keychain item and pushed it past the 4096-byte line limit of `security -i`, so every write was rejected before it started.
+- Claude Code no longer loses its login every day. When FuelSwitch renewed the active Claude account's token, Anthropic retired the previous refresh token, but the renewed one could not be written back to Claude Code's Keychain item for the same size reason. Claude Code was left with a revoked token and asked to sign in again.
+- Keychain values that fit the interactive buffer are still written through stdin. Larger ones are passed as a `security` argument, the same way Claude Code writes them. Every write is still verified by reading back the exact stored value.
+
+## Verification
+
+- The failure was reproduced against a 4.5 KB Claude Code credentials item. A full-size value round-tripped through the argument path in a temporary Keychain item; the prompt-based path was rejected because it truncates input to 128 characters.
+- Regression tests cover stdin writes for small values, whole writes of oversized Claude credentials and hex fallback for non-ASCII data.
+- Distribution remains ad-hoc code-signed; Sparkle update archives are separately signed by the release workflow.
+
+---
+
 # ⛽ FuelSwitch AI 1.2.18 — Add Claude accounts in a private browser window
 
 Build 29 · macOS 13+ · Apple Silicon and Intel
