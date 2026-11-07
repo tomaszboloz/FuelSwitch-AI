@@ -125,7 +125,7 @@ private func account(email: String = "a@b.pl", expiresAt: Date = .distantFuture)
     let result = await failing.refresh(account: account())
 
     #expect(result.session.percent == 42)
-    if case .cached = result.staleness {} else { Issue.record("expected a cached value") }
+    if case .rateLimited = result.staleness {} else { Issue.record("expected a rate-limited value") }
 }
 
 @Test func noCacheAndAnErrorGivesAnErrorState() async throws {
@@ -715,4 +715,73 @@ private func temporaryDirectory() throws -> URL {
     #expect(description.contains("Antigravity"))
     let saved = try #require(try store.load().first)
     #expect(saved.needsReauth == false)
+}
+
+private actor CallCounter: UsageProvider {
+    private(set) var calls = 0
+    let result: AccountUsage
+    init(_ result: AccountUsage) { self.result = result }
+    func fetch(account: Account) async throws -> AccountUsage { calls += 1; return result }
+}
+
+private func exhausted(resetsIn seconds: TimeInterval, weekly: Bool = false) -> AccountUsage {
+    let full = LimitWindow(percent: 100, resetsAt: Date().addingTimeInterval(seconds), label: "x")
+    let low = LimitWindow(percent: 10, resetsAt: Date().addingTimeInterval(9999), label: "y")
+    return AccountUsage(session: weekly ? low : full, weekly: weekly ? full : low,
+                        scoped: [], fetchedAt: Date(), staleness: .fresh)
+}
+
+@Test func anExhaustedAccountIsNotQueriedUntilItsWindowResets() async throws {
+    let store = AccountStore(directory: try temporaryDirectory())
+    try store.upsert(account())
+    for weekly in [false, true] {
+        let provider = CallCounter(usage(1))
+        let poller = Poller(store: store, providers: [.anthropic: provider])
+        await poller.loadCache([account().id: exhausted(resetsIn: 3600, weekly: weekly)])
+        _ = await poller.refreshAll(forced: true)
+        _ = await poller.refreshOne(account: account())
+        #expect(await provider.calls == 0)
+    }
+}
+
+@Test func anExhaustedAccountIsQueriedAgainOnceTheWindowHasReset() async throws {
+    let store = AccountStore(directory: try temporaryDirectory())
+    try store.upsert(account())
+    let provider = CallCounter(usage(1))
+    let poller = Poller(store: store, providers: [.anthropic: provider])
+    await poller.loadCache([account().id: exhausted(resetsIn: -5)])
+    _ = await poller.refreshAll(forced: true)
+    #expect(await provider.calls == 1)
+}
+
+@Test func rateLimitedActiveAccountPrefersNewerCLIFigures() async throws {
+    let dir = try temporaryDirectory()
+    let config = dir.appendingPathComponent("claude.json")
+    let nowMs = Date().timeIntervalSince1970 * 1000 + 60_000
+    let json: [String: Any] = [
+        "oauthAccount": ["emailAddress": account().email],
+        "cachedUsageUtilization": ["fetchedAtMs": nowMs,
+            "utilization": ["five_hour": ["utilization": 55.0], "seven_day": ["utilization": 7.0]]]
+    ]
+    try JSONSerialization.data(withJSONObject: json).write(to: config)
+    let store = AccountStore(directory: dir)
+    try store.upsert(account())
+    let poller = Poller(store: store, providers: [.anthropic: StubUsage(result: .failure(UsageError.rateLimited))], claudeConfigURL: config)
+    await poller.loadCache([account().id: usage(80)])
+    let result = await poller.refresh(account: account())
+    #expect(result.session.percent == 55)
+    if case .rateLimited = result.staleness {} else { Issue.record("expected rateLimited") }
+}
+
+@Test func inactiveClaudeAccountsArePolledLessOften() async throws {
+    let dir = try temporaryDirectory()
+    let config = dir.appendingPathComponent("claude.json")
+    try JSONSerialization.data(withJSONObject: ["oauthAccount": ["emailAddress": "someone@else.com"]]).write(to: config)
+    let store = AccountStore(directory: dir)
+    try store.upsert(account())
+    let provider = CallCounter(usage(1))
+    let poller = Poller(store: store, providers: [.anthropic: provider], claudeConfigURL: config)
+    _ = await poller.refreshAll(interval: 120)
+    _ = await poller.refreshAll(interval: 120)
+    #expect(await provider.calls == 1)
 }

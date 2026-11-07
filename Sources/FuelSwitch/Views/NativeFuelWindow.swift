@@ -47,6 +47,9 @@ struct NativeUsageStatus: View {
                 case .cached(let since):
                     Text(String(format: model.t(.cachedTelemetry), ResetFormatter.stringSince(since)))
                         .foregroundStyle(.secondary)
+                case .rateLimited(let since):
+                    Label(String(format: model.t(.rateLimitedTelemetry), ResetFormatter.stringSince(since)), systemImage: "hourglass")
+                        .foregroundStyle(.orange)
                 case .error(let message):
                     Label(message, systemImage: "exclamationmark.triangle").foregroundStyle(.orange)
                 }

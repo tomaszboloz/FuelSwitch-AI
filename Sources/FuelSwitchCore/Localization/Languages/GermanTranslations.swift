@@ -66,7 +66,7 @@ extension Translations {
         .geminiClientIdLabel: "Client-ID", .geminiClientSecretLabel: "Client-Secret",
         .saveAndConnect: "Speichern und verbinden",
         .connectMonitor: "Claude Code, Codex oder Gemini verbinden, um das Kontingent zu überwachen.",
-        .cachedTelemetry: "Zwischengespeicherte Telemetrie (vor %@).", .removeCredit: "Zurücksetzungen: %d",
+        .cachedTelemetry: "Zwischengespeicherte Telemetrie (vor %@).", .rateLimitedTelemetry: "Anfragelimit des Anbieters. Daten von vor %@.", .removeCredit: "Zurücksetzungen: %d",
         .toggleHudHelp: "Schwebendes HUD einblenden und zwischen kompakter und erweiterter Ansicht wechseln",
         .addProviderAccount: "%@-Konto hinzufügen", .operationFailed: "Diese Aktion konnte nicht abgeschlossen werden.",
         .notificationsTitle: "Benachrichtigungen", .notificationsToggle: "Bei Verbrauchsschwellen benachrichtigen",

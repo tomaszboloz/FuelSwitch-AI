@@ -99,6 +99,7 @@ extension AppModel {
         let finish = {
             self.loadAccounts()
             if let value = self.usage[current.id] { self.updateStatuslineCache(account: current, usage: value) }
+            self.refreshAccount(id: current.id)
         }
         if current.provider == .gemini {
             try await performGeminiSwitch(current: current, finish: finish)

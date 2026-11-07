@@ -63,7 +63,7 @@ extension Translations {
         .addClaude: "Dodaj Claude", .addCodex: "Dodaj Codex",
         .addGemini: "Dodaj Gemini", .connectMonitor: "Połącz Claude Code, Codex lub Gemini, aby monitorować limity.",
         .sessionExpired: "Sesja wygasła. Zaloguj się ponownie, aby odnowić limit.", .reauthenticate: "Zaloguj ponownie",
-        .awaitingCheck: "Oczekiwanie na pierwsze sprawdzenie limitu.", .cachedTelemetry: "Dane z pamięci podręcznej (sprzed %@).",
+        .awaitingCheck: "Oczekiwanie na pierwsze sprawdzenie limitu.", .cachedTelemetry: "Dane z pamięci podręcznej (sprzed %@).", .rateLimitedTelemetry: "Limit zapytań dostawcy. Dane sprzed %@.",
         .removeThisAccount: "Usunąć to konto?", .tanksCount: "%d zbiorników",
         .removeCredit: "Resety: %d", .telemetryInProgress: "Pobieranie danych…",
         .toggleHudHelp: "Przełącz HUD i wybierz styl: Kompaktowy lub Rozszerzony", .addProviderAccount: "Dodaj konto %@",

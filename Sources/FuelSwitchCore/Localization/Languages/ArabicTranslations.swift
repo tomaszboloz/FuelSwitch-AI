@@ -63,7 +63,7 @@ extension Translations {
         .geminiSetupHelp: "يحتاج Gemini إلى عميل OAuth خاص بك من Google Cloud — لا تسمح Google بتضمين عميل داخل التطبيق. الصق معرّف العميل (Client ID) والسر (Client Secret) أدناه؛ يتم حفظهما محلياً فقط ولا يغادران هذا الـ Mac أبداً.",
         .geminiClientIdLabel: "Client ID", .geminiClientSecretLabel: "Client Secret",
         .saveAndConnect: "حفظ واتصال", .connectMonitor: "صِل Claude Code أو Codex أو Gemini لمراقبة حصتك.",
-        .cachedTelemetry: "بيانات مخزنة مؤقتاً (منذ %@).", .removeCredit: "عمليات إعادة التعيين: %d",
+        .cachedTelemetry: "بيانات مخزنة مؤقتاً (منذ %@).", .rateLimitedTelemetry: "تم بلوغ حد الطلبات لدى المزوّد. تُعرض بيانات من قبل %@.", .removeCredit: "عمليات إعادة التعيين: %d",
         .toggleHudHelp: "إظهار HUD العائم والتبديل بين النمطين المضغوط والموسع", .addProviderAccount: "إضافة حساب %@",
         .operationFailed: "تعذر إكمال هذا الإجراء.", .notificationsTitle: "الإشعارات",
         .notificationsToggle: "أعلمني عند بلوغ حدود الاستخدام", .notificationsSoundToggle: "تشغيل صوت",

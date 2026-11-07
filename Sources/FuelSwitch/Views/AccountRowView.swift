@@ -121,6 +121,9 @@ struct AccountRowView: View {
         if account.needsReauth { return loc.text(.sessionExpired) }
         guard let usage else { return loc.text(.awaitingCheck) }
         if case .error(let description) = usage.staleness { return description }
+        if case .rateLimited(let since) = usage.staleness {
+            return String(format: loc.text(.rateLimitedTelemetry), ResetFormatter.stringSince(since))
+        }
         if case .cached(let since) = usage.staleness {
             return String(format: loc.text(.cachedTelemetry), ResetFormatter.stringSince(since))
         }

@@ -61,7 +61,7 @@ extension Translations {
         .geminiSetupHelp: "Gemini 需要您自己的 Google Cloud OAuth 客户端 — Google 不允许在应用中内置客户端。请在下方粘贴您的 Client ID 和 Client Secret；它们仅保存在本地，绝不会离开这台 Mac。",
         .geminiClientIdLabel: "Client ID", .geminiClientSecretLabel: "Client Secret",
         .saveAndConnect: "保存并连接", .connectMonitor: "连接 Claude Code、Codex 或 Gemini 以监控配额。",
-        .cachedTelemetry: "缓存遥测数据（%@ 前）。", .removeCredit: "重置：%d",
+        .cachedTelemetry: "缓存遥测数据（%@ 前）。", .rateLimitedTelemetry: "提供商限流中。显示 %@ 前的数据。", .removeCredit: "重置：%d",
         .toggleHudHelp: "显示浮动 HUD 并在紧凑与扩展样式之间切换", .addProviderAccount: "添加 %@ 账户",
         .operationFailed: "无法完成此操作。", .notificationsTitle: "通知",
         .notificationsToggle: "达到用量阈值时通知我", .notificationsSoundToggle: "播放提示音",

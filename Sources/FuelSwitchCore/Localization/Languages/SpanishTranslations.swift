@@ -65,7 +65,7 @@ extension Translations {
         .geminiSetupHelp: "Gemini necesita tu propio cliente OAuth de Google Cloud — Google no permite incluir uno en la aplicación. Pega tu Client ID y Client Secret abajo; se guardan localmente y nunca salen de este Mac.",
         .geminiClientIdLabel: "Client ID", .geminiClientSecretLabel: "Client Secret",
         .saveAndConnect: "Guardar y conectar", .connectMonitor: "Conecta Claude Code, Codex o Gemini para supervisar tu cuota.",
-        .cachedTelemetry: "Telemetría en caché (hace %@).", .removeCredit: "Restablecimientos: %d",
+        .cachedTelemetry: "Telemetría en caché (hace %@).", .rateLimitedTelemetry: "Límite de solicitudes del proveedor. Datos de hace %@.", .removeCredit: "Restablecimientos: %d",
         .toggleHudHelp: "Mostrar el HUD flotante y cambiar entre estilos compacto y ampliado", .addProviderAccount: "Añadir cuenta de %@",
         .operationFailed: "No se pudo completar esta acción.", .notificationsTitle: "Notificaciones",
         .notificationsToggle: "Avisarme en los umbrales de uso", .notificationsSoundToggle: "Reproducir sonido",

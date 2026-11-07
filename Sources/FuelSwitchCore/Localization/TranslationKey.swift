@@ -59,6 +59,7 @@ public enum TranslationKey: String, Sendable, CaseIterable {
     case saveAndConnect = "save_and_connect", addClaude = "add_claude", addCodex = "add_codex", addGemini = "add_gemini"
     case connectMonitor = "connect_monitor", sessionExpired = "session_expired", reauthenticate = "reauthenticate"
     case awaitingCheck = "awaiting_check", cachedTelemetry = "cached_telemetry"
+    case rateLimitedTelemetry = "rate_limited_telemetry"
     case removeThisAccount = "remove_this_account", tanksCount = "tanks_count", removeCredit = "remove_credit"
     case telemetryInProgress = "telemetry_in_progress", toggleHudHelp = "toggle_hud_help"
     case addProviderAccount = "add_provider_account", operationFailed = "operation_failed"

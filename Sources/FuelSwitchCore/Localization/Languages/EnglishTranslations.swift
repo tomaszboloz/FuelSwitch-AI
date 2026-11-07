@@ -63,7 +63,7 @@ extension Translations {
         .addClaude: "Add Claude", .addCodex: "Add Codex",
         .addGemini: "Add Gemini", .connectMonitor: "Connect Claude Code, Codex, or Gemini to monitor your quota.",
         .sessionExpired: "Session expired. Re-authenticate to renew quota.", .reauthenticate: "Sign in again",
-        .awaitingCheck: "Awaiting initial quota check.", .cachedTelemetry: "Cached telemetry (%@ ago).",
+        .awaitingCheck: "Awaiting initial quota check.", .cachedTelemetry: "Cached telemetry (%@ ago).", .rateLimitedTelemetry: "Rate limited by provider. Showing data from %@ ago.",
         .removeThisAccount: "Remove this account?", .tanksCount: "%d tanks",
         .removeCredit: "Resets: %d", .telemetryInProgress: "Telemetry in progress…",
         .toggleHudHelp: "Toggle floating desktop HUD and switch between Compact and Expanded styles",

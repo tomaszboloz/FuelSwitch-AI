@@ -27,6 +27,8 @@ public struct LimitWindow: Equatable, Sendable, Codable {
 public enum Staleness: Equatable, Sendable {
     case fresh
     case cached(since: Date)
+    /// Provider answered 429; values are the last known ones.
+    case rateLimited(since: Date)
     case error(String)
 }
 

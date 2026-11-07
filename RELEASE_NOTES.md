@@ -1,3 +1,21 @@
+# ⛽ FuelSwitch AI 1.2.20 — Honest limits when Claude rate-limits usage checks
+
+Build 31 · macOS 13+ · Apple Silicon and Intel
+
+## Fixes
+
+- A Claude account no longer shows a stale 100% when Anthropic answers the usage check with a rate limit. The account now says it is rate limited and shows how old the figures are. For the account Claude Code is using, FuelSwitch takes Claude Code's own newer figures from `~/.claude.json` when they are fresher.
+- Usage refreshes right after switching accounts, and the statusline is updated with the result instead of waiting for the next cycle.
+- Accounts whose 5-hour or weekly window is used up are not queried until that window resets, so the reset countdown keeps running without spending requests.
+- Claude accounts Claude Code is not using are checked at a third of the normal pace, which keeps the shared usage endpoint under its rate limit.
+
+## Verification
+
+- Regression tests cover the reset-gated polling, the Claude Code fallback, slower polling for inactive accounts and the new rate-limited state. All 378 tests pass.
+- The new message is translated in all 12 interface languages.
+
+---
+
 # ⛽ FuelSwitch AI 1.2.19 — Switch Claude accounts with MCP sign-ins
 
 Build 30 · macOS 13+ · Apple Silicon and Intel

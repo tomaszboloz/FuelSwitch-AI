@@ -9,7 +9,9 @@ extension AppModel {
     func refreshAccount(id: String) {
         guard let account = accounts.first(where: { $0.id == id }) else { return }
         Task {
-            usage[id] = await poller.refreshOne(account: account, interval: intervalSeconds)
+            let result = await poller.refreshOne(account: account, interval: intervalSeconds)
+            usage[id] = result
+            updateStatuslineCache(account: account, usage: result)
             loadAccounts()
         }
     }

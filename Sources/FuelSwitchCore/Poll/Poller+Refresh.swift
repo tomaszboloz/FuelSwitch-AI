@@ -49,7 +49,7 @@ extension Poller {
             return result
         } catch UsageError.rateLimited {
             await increaseBackoff(account.id)
-            return await lastValueOr(account: account, description: "Rate limited. Trying again later.")
+            return await rateLimitedValue(account: account)
         } catch UsageError.organizationNotAllowed {
             return await handleOrganizationNotAllowed(account: account, current: current)
         } catch UsageError.unavailableQuota where account.provider == .gemini {

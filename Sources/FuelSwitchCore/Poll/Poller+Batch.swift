@@ -7,6 +7,7 @@ extension Poller {
         interval: TimeInterval = Poller.baseInterval
     ) async -> AccountUsage {
         let now = await clock()
+        if let held = exhaustedValue(account: account, now: now) { return held }
         if let last = lastAttempt[account.id], now.timeIntervalSince(last) < Self.minimumInterval {
             return await lastValueOr(
                 account: account,
@@ -29,6 +30,11 @@ extension Poller {
         var previousWasQueried = false
 
         for account in accounts {
+            if let held = exhaustedValue(account: account, now: now) {
+                results[account.id] = held
+                await onResult?(account.id, held)
+                continue
+            }
             if forced {
                 if let last = lastAttempt[account.id], now.timeIntervalSince(last) < Self.minimumInterval {
                     let result = await lastValueOr(account: account, description: "Checked moments ago. Waiting before the next one.")
@@ -41,6 +47,11 @@ extension Poller {
                 let result = await lastValueOr(account: account, description: "Waiting out the backoff after an error.")
                 results[account.id] = result
                 await onResult?(account.id, result)
+                continue
+            } else if shouldDeferInactiveClaude(account, now: now, interval: interval),
+                      let cached = cache[account.id] {
+                results[account.id] = cached
+                await onResult?(account.id, cached)
                 continue
             }
             if previousWasQueried {

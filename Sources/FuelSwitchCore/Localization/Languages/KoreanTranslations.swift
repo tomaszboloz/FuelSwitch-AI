@@ -62,7 +62,7 @@ extension Translations {
         .geminiSetupHelp: "Gemini는 자체 Google Cloud OAuth 클라이언트가 필요합니다 — Google은 앱에 클라이언트를 포함하는 것을 허용하지 않습니다. 아래에 Client ID와 Client Secret을 붙여넣으세요. 로컬에만 저장되며 이 Mac을 벗어나지 않습니다.",
         .geminiClientIdLabel: "Client ID", .geminiClientSecretLabel: "Client Secret",
         .saveAndConnect: "저장 후 연결", .connectMonitor: "Claude Code, Codex 또는 Gemini를 연결해 할당량을 모니터링하세요.",
-        .cachedTelemetry: "캐시된 텔레메트리(%@ 전).", .removeCredit: "재설정: %d",
+        .cachedTelemetry: "캐시된 텔레메트리(%@ 전).", .rateLimitedTelemetry: "제공업체 요청 한도 초과. %@ 전 데이터를 표시합니다.", .removeCredit: "재설정: %d",
         .toggleHudHelp: "플로팅 HUD를 표시하고 컴팩트 및 확장 스타일을 전환합니다", .addProviderAccount: "%@ 계정 추가",
         .operationFailed: "이 작업을 완료할 수 없습니다.", .notificationsTitle: "알림",
         .notificationsToggle: "사용량 기준값에서 알림 받기", .notificationsSoundToggle: "소리 재생",
