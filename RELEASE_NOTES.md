@@ -1,3 +1,21 @@
+# ⛽ FuelSwitch AI 1.2.21 — Usage refreshes as soon as a limit resets
+
+Build 32 · macOS 13+ · Apple Silicon and Intel
+
+## Fixes
+
+- When a 5-hour or weekly window resets, FuelSwitch checks the account a few seconds later instead of waiting for the next refresh cycle.
+- A window whose reset time has passed shows as empty, even while the provider is rate limiting usage checks. It no longer stays stuck at 100% after the reset.
+- An account whose window has just reset is checked right away, without waiting out the regular interval or the slower pace for Claude accounts Claude Code is not using. Backoff after real errors still applies.
+- An account blocked by its weekly limit shows the 5-hour window as empty once that window resets.
+- The wait between refreshes follows the wall clock, so a refresh that came due while the Mac was asleep runs right after it wakes.
+
+## Verification
+
+- New regression tests cover the empty window after a reset under rate limiting, the immediate check after a reset and the 5-hour window of a weekly-blocked account. All 356 tests pass.
+
+---
+
 # ⛽ FuelSwitch AI 1.2.20 — Honest limits when Claude rate-limits usage checks
 
 Build 31 · macOS 13+ · Apple Silicon and Intel

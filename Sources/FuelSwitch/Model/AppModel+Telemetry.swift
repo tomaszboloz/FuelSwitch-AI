@@ -26,13 +26,24 @@ extension AppModel {
         }
     }
 
+    /// Sleeps until the next regular poll, or until a few seconds after the
+    /// earliest limit reset when that comes first, so a window that was used up
+    /// shows its fresh numbers as soon as it resets instead of a cycle later.
     func waitForNextRefresh() async {
-        var elapsed: TimeInterval = 0
-        while elapsed < effectiveIntervalSeconds, !Task.isCancelled {
+        let start = Date()
+        let regularDeadline = start.addingTimeInterval(effectiveIntervalSeconds)
+        let resetDeadline = usage.values
+            .compactMap { $0.nextReset(after: start) }
+            .min()
+            .map { $0.addingTimeInterval(Self.resetGraceSeconds) }
+        let deadline = min(regularDeadline, resetDeadline ?? regularDeadline)
+        while Date() < deadline, !Task.isCancelled {
             try? await Task.sleep(for: .seconds(1))
-            elapsed += 1
         }
     }
+
+    /// Delay after a reset before asking, so the provider has rolled the window.
+    static let resetGraceSeconds: TimeInterval = 5
 
     var effectiveIntervalSeconds: TimeInterval {
         guard adaptiveRefreshEnabled else { return intervalSeconds }

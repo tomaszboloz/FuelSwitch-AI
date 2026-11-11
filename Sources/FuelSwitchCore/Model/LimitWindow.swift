@@ -22,6 +22,14 @@ public struct LimitWindow: Equatable, Sendable, Codable {
     public var isLowFuel: Bool {
         remainingPercent < 20.0
     }
+
+    /// Once `resetsAt` has passed the provider has emptied the window, so the
+    /// last known percentage no longer applies — even if the provider could
+    /// not be asked yet.
+    public func rolledOver(at now: Date) -> LimitWindow {
+        guard let resetsAt, resetsAt <= now else { return self }
+        return LimitWindow(percent: 0, resetsAt: nil, label: label)
+    }
 }
 
 public enum Staleness: Equatable, Sendable {
@@ -73,5 +81,23 @@ public struct AccountUsage: Equatable, Sendable {
     /// Whether this account is running on reserve fuel (< 20% remaining).
     public var isLowFuel: Bool {
         remainingPercent < 20.0
+    }
+
+    /// The same figures with every window whose reset time has passed emptied.
+    public func rolledOver(at now: Date, staleness: Staleness? = nil) -> AccountUsage {
+        AccountUsage(
+            session: session.rolledOver(at: now),
+            weekly: weekly.rolledOver(at: now),
+            scoped: scoped.map { $0.rolledOver(at: now) },
+            fetchedAt: fetchedAt,
+            staleness: staleness ?? self.staleness,
+            resetCreditsAvailable: resetCreditsAvailable,
+            resetCreditId: resetCreditId
+        )
+    }
+
+    /// Earliest future reset across all windows, if any.
+    public func nextReset(after now: Date) -> Date? {
+        ([session, weekly] + scoped).compactMap(\.resetsAt).filter { $0 > now }.min()
     }
 }

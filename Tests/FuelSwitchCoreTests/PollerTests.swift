@@ -785,3 +785,45 @@ private func exhausted(resetsIn seconds: TimeInterval, weekly: Bool = false) -> 
     _ = await poller.refreshAll(interval: 120)
     #expect(await provider.calls == 1)
 }
+
+@Test func aRateLimitedAccountShowsAnEmptyWindowOnceItHasReset() async throws {
+    let store = AccountStore(directory: try temporaryDirectory())
+    try store.upsert(account())
+    let poller = Poller(store: store, providers: [.anthropic: StubUsage(result: .failure(UsageError.rateLimited))])
+    await poller.loadCache([account().id: exhausted(resetsIn: -5)])
+    let result = await poller.refresh(account: account())
+    #expect(result.session.percent == 0)
+    #expect(result.session.resetsAt == nil)
+    #expect(result.weekly.percent == 10)
+    if case .rateLimited = result.staleness {} else { Issue.record("expected rateLimited") }
+}
+
+@Test func aWindowThatResetSkipsTheRegularWaitAndIsQueried() async throws {
+    let dir = try temporaryDirectory()
+    let store = AccountStore(directory: dir)
+    try store.upsert(account())
+    let clock = TestClock()
+    let soon = LimitWindow(percent: 90, resetsAt: Date().addingTimeInterval(30), label: "5 hours")
+    let first = AccountUsage(session: soon, weekly: .empty, scoped: [], fetchedAt: Date(), staleness: .fresh)
+    let provider = CallCounter(first)
+    let poller = Poller(store: store, providers: [.anthropic: provider],
+                        claudeConfigURL: dir.appendingPathComponent("missing.json"), clock: { await clock.reading() })
+    _ = await poller.refreshAll(interval: 300)
+    await clock.advance(by: 40)
+    _ = await poller.refreshAll(interval: 300)
+    #expect(await provider.calls == 2)
+}
+
+@Test func anExhaustedAccountShowsOtherWindowsThatResetAsEmpty() async throws {
+    let store = AccountStore(directory: try temporaryDirectory())
+    try store.upsert(account())
+    let provider = CallCounter(usage(1))
+    let poller = Poller(store: store, providers: [.anthropic: provider])
+    let weeklyFull = LimitWindow(percent: 100, resetsAt: Date().addingTimeInterval(86400), label: "Week")
+    let sessionPast = LimitWindow(percent: 100, resetsAt: Date().addingTimeInterval(-5), label: "5 hours")
+    await poller.loadCache([account().id: AccountUsage(session: sessionPast, weekly: weeklyFull, scoped: [], fetchedAt: Date(), staleness: .fresh)])
+    let result = await poller.refreshOne(account: account())
+    #expect(await provider.calls == 0)
+    #expect(result.session.percent == 0)
+    #expect(result.weekly.percent == 100)
+}

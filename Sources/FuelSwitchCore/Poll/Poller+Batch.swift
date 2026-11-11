@@ -43,15 +43,17 @@ extension Poller {
                     continue
                 }
                 failureCount[account.id] = 0
-            } else if nextDue(for: account) > now {
+            } else if nextDue(for: account) > now,
+                      !((failureCount[account.id] ?? 0) == 0 && windowResetSinceLastAttempt(account, now: now)) {
                 let result = await lastValueOr(account: account, description: "Waiting out the backoff after an error.")
                 results[account.id] = result
                 await onResult?(account.id, result)
                 continue
             } else if shouldDeferInactiveClaude(account, now: now, interval: interval),
                       let cached = cache[account.id] {
-                results[account.id] = cached
-                await onResult?(account.id, cached)
+                let rolled = cached.rolledOver(at: now)
+                results[account.id] = rolled
+                await onResult?(account.id, rolled)
                 continue
             }
             if previousWasQueried {

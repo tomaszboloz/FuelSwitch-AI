@@ -61,15 +61,7 @@ public actor Poller {
 
     func lastValueOr(account: Account, description: String) async -> AccountUsage {
         if let previous = cache[account.id] {
-            return AccountUsage(
-                session: previous.session,
-                weekly: previous.weekly,
-                scoped: previous.scoped,
-                fetchedAt: previous.fetchedAt,
-                staleness: .cached(since: previous.fetchedAt),
-                resetCreditsAvailable: previous.resetCreditsAvailable,
-                resetCreditId: previous.resetCreditId
-            )
+            return previous.rolledOver(at: await clock(), staleness: .cached(since: previous.fetchedAt))
         }
         return AccountUsage(
             session: .empty, weekly: .empty, scoped: [],
@@ -92,15 +84,7 @@ public actor Poller {
         guard let base else {
             return await lastValueOr(account: account, description: "Rate limited. Trying again later.")
         }
-        let result = AccountUsage(
-            session: base.session,
-            weekly: base.weekly,
-            scoped: base.scoped,
-            fetchedAt: base.fetchedAt,
-            staleness: .rateLimited(since: base.fetchedAt),
-            resetCreditsAvailable: base.resetCreditsAvailable,
-            resetCreditId: base.resetCreditId
-        )
+        let result = base.rolledOver(at: await clock(), staleness: .rateLimited(since: base.fetchedAt))
         cache[account.id] = result
         return result
     }
@@ -111,10 +95,21 @@ public actor Poller {
         guard account.provider == .anthropic,
               cache[account.id] != nil,
               let last = lastAttempt[account.id],
+              !windowResetSinceLastAttempt(account, now: now),
               CLISwitcher.activeClaudeEmail(url: claudeConfigURL)?
                   .caseInsensitiveCompare(account.email) != .orderedSame
         else { return false }
         return now.timeIntervalSince(last) < max(interval, Self.minimumInterval) * 3
+    }
+
+    /// True when one of the cached windows reset after the last request, so
+    /// the figures on hand are known to be out of date and worth asking about.
+    func windowResetSinceLastAttempt(_ account: Account, now: Date) -> Bool {
+        guard let cached = cache[account.id] else { return false }
+        let last = lastAttempt[account.id] ?? .distantPast
+        return ([cached.session, cached.weekly] + cached.scoped)
+            .compactMap(\.resetsAt)
+            .contains { $0 > last && $0 <= now }
     }
 
     /// An account whose 5-hour or weekly window is used up stays that way until
@@ -128,14 +123,6 @@ public actor Poller {
             .compactMap(\.resetsAt)
             .max()
         guard let blockedUntil, blockedUntil > now else { return nil }
-        return AccountUsage(
-            session: known.session,
-            weekly: known.weekly,
-            scoped: known.scoped,
-            fetchedAt: known.fetchedAt,
-            staleness: .fresh,
-            resetCreditsAvailable: known.resetCreditsAvailable,
-            resetCreditId: known.resetCreditId
-        )
+        return known.rolledOver(at: now, staleness: .fresh)
     }
 }
