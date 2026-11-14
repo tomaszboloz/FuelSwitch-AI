@@ -95,6 +95,36 @@ import Testing
         #expect(try CLISwitcher.newerCodexCredentials(for: original, url: url) == nil)
     }
 
+    @Test func adoptsNewerTokensWhenCodexStoresNestedTokenMetadata() throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let url = dir.appendingPathComponent("auth.json")
+        var original = try account()
+        original.expiresAt = .distantPast
+        let access = "e30." + Data(#"{"exp":2000000000}"#.utf8).base64EncodedString() + ".sig"
+        let json: [String: Any] = [
+            "auth_mode": "chatgpt",
+            "OPENAI_API_KEY": NSNull(),
+            "tokens": [
+                "access_token": access, "refresh_token": "cli-refresh",
+                "id_token": try #require(original.idToken), "account_id": "new-id",
+                "login_owner_id": "owner",
+                "oauth_provenance": ["issuer": "https://auth.openai.com", "client_id": "client"],
+            ] as [String: Any],
+        ]
+        try JSONSerialization.data(withJSONObject: json).write(to: url)
+        let adopted = try #require(try CLISwitcher.newerCodexCredentials(for: original, url: url))
+        #expect(adopted.refreshToken == "cli-refresh")
+        var stale = original
+        stale.accessToken = access
+        var renewed = try account()
+        renewed.refreshToken = "app-refresh"
+        try CLISwitcher.syncCodexRefresh(from: stale, to: renewed, url: url)
+        let written = try #require(JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [String: Any])
+        #expect((written["tokens"] as? [String: Any])?["refresh_token"] as? String == "app-refresh")
+    }
+
     @Test func failedClaudeKeychainWriteRestoresMetadataAndCache() throws {
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)

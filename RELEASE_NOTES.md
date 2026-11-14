@@ -1,3 +1,16 @@
+# ⛽ FuelSwitch AI 1.2.22 — Codex usage updates again
+
+Build 33 · macOS 13+ · Apple Silicon and Intel
+
+## Fixes
+
+- Codex usage updates again after Codex CLI renews its sign-in. Newer Codex CLI versions save extra sign-in details in `auth.json`, and FuelSwitch stopped picking up the renewed token from that file. It kept the old one, which OpenAI had already revoked.
+- When FuelSwitch renews a Codex token itself, it again writes the new token back to Codex CLI in the newer `auth.json` format.
+
+## Updates
+
+- Sparkle 2.10.1.
+
 # ⛽ FuelSwitch AI 1.2.21 — Usage refreshes as soon as a limit resets
 
 Build 32 · macOS 13+ · Apple Silicon and Intel

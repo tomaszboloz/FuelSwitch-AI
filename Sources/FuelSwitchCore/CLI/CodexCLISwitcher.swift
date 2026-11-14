@@ -38,10 +38,10 @@ extension CLISwitcher {
         guard let data = try CodexAuthStore(url: url).load(),
               let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
               json["auth_mode"] as? String == "chatgpt",
-              let tokens = json["tokens"] as? [String: String],
-              tokens["account_id"] == account.accountId,
-              let access = tokens["access_token"], let refresh = tokens["refresh_token"],
-              let idToken = tokens["id_token"],
+              let tokens = json["tokens"] as? [String: Any],
+              tokens["account_id"] as? String == account.accountId,
+              let access = tokens["access_token"] as? String, let refresh = tokens["refresh_token"] as? String,
+              let idToken = tokens["id_token"] as? String,
               let expiry = JWT.claims(access)["exp"] as? Double,
               expiry > account.expiresAt.timeIntervalSince1970 else { return nil }
         var updated = account
@@ -58,9 +58,9 @@ extension CLISwitcher {
         guard let data = try CodexAuthStore(url: url).load(),
               let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
               json["auth_mode"] as? String == "chatgpt",
-              let tokens = json["tokens"] as? [String: String],
-              tokens["access_token"] == old.accessToken,
-              tokens["account_id"] == old.accountId else { return }
+              let tokens = json["tokens"] as? [String: Any],
+              tokens["access_token"] as? String == old.accessToken,
+              tokens["account_id"] as? String == old.accountId else { return }
         try switchCodex(to: updated, url: url)
     }
 
